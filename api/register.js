@@ -1,6 +1,10 @@
 export default async function handler(req, res) {
 
-  // Allow your website to call this API
+  // =========================================================
+  // CORS
+  // Allow the AAYSSA website to call this API
+  // =========================================================
+
   res.setHeader(
     "Access-Control-Allow-Origin",
     "https://atlantaayyappasevasangam.org"
@@ -16,7 +20,7 @@ export default async function handler(req, res) {
     "Content-Type"
   );
 
-  // Browser preflight request
+  // Handle browser preflight request
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -24,14 +28,21 @@ export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
       success: false,
-      message: "Method not allowed"
+      message: "Method not allowed."
     });
   }
 
   try {
+
+    // =========================================================
+    // 1. Get submitted values
+    // =========================================================
+
     const {
-      fullName,
-      spouseName,
+      firstName,
+      lastName,
+      spouseFirstName,
+      spouseLastName,
       email,
       mobileNumber,
       address,
@@ -41,11 +52,12 @@ export default async function handler(req, res) {
       areasOfInterest,
       emailOptIn,
       textOptIn
-    } = req.body;
+    } = req.body || {};
 
-    // -----------------------------
-    // 1. Normalize
-    // -----------------------------
+
+    // =========================================================
+    // 2. Normalize email and phone
+    // =========================================================
 
     const normalizedEmail = String(email || "")
       .trim()
@@ -55,96 +67,175 @@ export default async function handler(req, res) {
       .replace(/\D/g, "")
       .slice(-10);
 
-    // -----------------------------
-    // 2. Required-field validation
-    // -----------------------------
 
-    if (!fullName || !normalizedEmail || !normalizedPhone) {
+    // =========================================================
+    // 3. Required field validation
+    // =========================================================
+
+    if (
+      !String(firstName || "").trim() ||
+      !String(lastName || "").trim() ||
+      !normalizedEmail ||
+      !normalizedPhone
+    ) {
+
       return res.status(400).json({
         success: false,
-        message: "Full Name, Email and Mobile Number are required."
+        message:
+          "First Name, Last Name, Email and Mobile Number are required."
       });
     }
+
+
+    // =========================================================
+    // 4. Validate phone
+    // =========================================================
 
     if (normalizedPhone.length !== 10) {
+
       return res.status(400).json({
         success: false,
-        message: "Please enter a valid 10-digit U.S. mobile number."
+        message:
+          "Please enter a valid 10-digit U.S. mobile number."
       });
     }
 
-    // Basic email validation
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // =========================================================
+    // 5. Validate email
+    // =========================================================
+
+    const emailPattern =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailPattern.test(normalizedEmail)) {
+
       return res.status(400).json({
         success: false,
-        message: "Please enter a valid email address."
+        message:
+          "Please enter a valid email address."
       });
     }
 
-    // -----------------------------
-    // 3. Server configuration
-    // -----------------------------
 
-    const BASEROW_TOKEN = process.env.BASEROW_TOKEN;
-    const TABLE_ID = process.env.BASEROW_TABLE_ID;
+    // =========================================================
+    // 6. Load secure Vercel environment variables
+    // =========================================================
+
+    const BASEROW_TOKEN =
+      process.env.BASEROW_TOKEN;
+
+    const TABLE_ID =
+      process.env.BASEROW_TABLE_ID;
 
     if (!BASEROW_TOKEN || !TABLE_ID) {
-      throw new Error("Server configuration is missing.");
+      throw new Error(
+        "Server configuration is missing."
+      );
     }
+
 
     const headers = {
       Authorization: `Token ${BASEROW_TOKEN}`,
       "Content-Type": "application/json"
     };
 
-    // -----------------------------
-    // 4. Check duplicate EMAIL
-    // -----------------------------
+
+    // =========================================================
+    // 7. Check duplicate normalized email
+    //
+    // Normalized Email field:
+    // field_10464593
+    // =========================================================
 
     const emailUrl =
       `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/` +
       `?user_field_names=false` +
-      `&filter__field_10464593__equal=${encodeURIComponent(normalizedEmail)}`;
+      `&filter__field_10464593__equal=` +
+      encodeURIComponent(normalizedEmail);
 
-    const emailResponse = await fetch(emailUrl, { headers });
+
+    const emailResponse =
+      await fetch(emailUrl, {
+        method: "GET",
+        headers
+      });
+
 
     if (!emailResponse.ok) {
-      const errorText = await emailResponse.text();
-      console.error("Baserow email lookup failed:", errorText);
-      throw new Error("Unable to check email duplicates.");
+
+      const errorText =
+        await emailResponse.text();
+
+      console.error(
+        "Baserow email lookup failed:",
+        errorText
+      );
+
+      throw new Error(
+        "Unable to check email duplicates."
+      );
     }
 
-    const emailData = await emailResponse.json();
 
-    // -----------------------------
-    // 5. Check duplicate PHONE
-    // -----------------------------
+    const emailData =
+      await emailResponse.json();
+
+
+    // =========================================================
+    // 8. Check duplicate normalized phone
+    //
+    // Normalized Phone field:
+    // field_10464626
+    // =========================================================
 
     const phoneUrl =
       `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/` +
       `?user_field_names=false` +
-      `&filter__field_10464626__equal=${encodeURIComponent(normalizedPhone)}`;
+      `&filter__field_10464626__equal=` +
+      encodeURIComponent(normalizedPhone);
 
-    const phoneResponse = await fetch(phoneUrl, { headers });
+
+    const phoneResponse =
+      await fetch(phoneUrl, {
+        method: "GET",
+        headers
+      });
+
 
     if (!phoneResponse.ok) {
-      const errorText = await phoneResponse.text();
-      console.error("Baserow phone lookup failed:", errorText);
-      throw new Error("Unable to check phone duplicates.");
+
+      const errorText =
+        await phoneResponse.text();
+
+      console.error(
+        "Baserow phone lookup failed:",
+        errorText
+      );
+
+      throw new Error(
+        "Unable to check phone duplicates."
+      );
     }
 
-    const phoneData = await phoneResponse.json();
 
-    const emailExists = emailData.count > 0;
-    const phoneExists = phoneData.count > 0;
+    const phoneData =
+      await phoneResponse.json();
 
-    // -----------------------------
-    // 6. Block duplicates
-    // -----------------------------
+
+    const emailExists =
+      emailData.count > 0;
+
+    const phoneExists =
+      phoneData.count > 0;
+
+
+    // =========================================================
+    // 9. Block duplicate registration
+    // =========================================================
 
     if (emailExists && phoneExists) {
+
       return res.status(409).json({
         success: false,
         duplicate: true,
@@ -154,7 +245,9 @@ export default async function handler(req, res) {
       });
     }
 
+
     if (emailExists) {
+
       return res.status(409).json({
         success: false,
         duplicate: true,
@@ -164,7 +257,9 @@ export default async function handler(req, res) {
       });
     }
 
+
     if (phoneExists) {
+
       return res.status(409).json({
         success: false,
         duplicate: true,
@@ -174,29 +269,54 @@ export default async function handler(req, res) {
       });
     }
 
-    // -----------------------------
-    // 7. Prepare Baserow row
-    // -----------------------------
+
+    // =========================================================
+    // 10. Prepare new Baserow member
+    // =========================================================
 
     const newMember = {
-      field_10227506: String(fullName).trim(),
-      field_10227507: "Active",
 
-      field_10227562: spouseName
-        ? String(spouseName).trim()
-        : "",
+      // First Name
+      field_10227506:
+        String(firstName).trim(),
 
-      // Store normalized email so the actual Email
-      // column is lowercase too.
-      field_10281594: normalizedEmail,
+      // Last Name
+      field_10473214:
+        String(lastName).trim(),
 
-      // Store canonical 10-digit phone.
-      field_10281595: normalizedPhone,
+      // Membership Status
+      field_10227507:
+        "Active",
 
-      field_10281618: address
-        ? String(address).trim()
-        : "",
+      // Spouse First Name
+      field_10227562:
+        spouseFirstName
+          ? String(spouseFirstName).trim()
+          : "",
 
+      // Spouse Last Name
+      field_10473216:
+        spouseLastName
+          ? String(spouseLastName).trim()
+          : "",
+
+      // Email
+      // Store lowercase normalized version
+      field_10281594:
+        normalizedEmail,
+
+      // Mobile Number
+      // Store standardized 10-digit version
+      field_10281595:
+        normalizedPhone,
+
+      // Address
+      field_10281618:
+        address
+          ? String(address).trim()
+          : "",
+
+      // No. of Kids
       field_10281655:
         noOfKids === "" ||
         noOfKids === undefined ||
@@ -204,6 +324,7 @@ export default async function handler(req, res) {
           ? null
           : Number(noOfKids),
 
+      // No. of Adults
       field_10281686:
         noOfAdults === "" ||
         noOfAdults === undefined ||
@@ -211,38 +332,58 @@ export default async function handler(req, res) {
           ? null
           : Number(noOfAdults),
 
-      field_10281690: Array.isArray(volunteerInterest)
-        ? volunteerInterest
-        : volunteerInterest
-          ? [volunteerInterest]
-          : [],
+      // Interested in Volunteering?
+      field_10281690:
+        Array.isArray(volunteerInterest)
+          ? volunteerInterest
+          : volunteerInterest
+            ? [volunteerInterest]
+            : [],
 
-      field_10281806: Array.isArray(areasOfInterest)
-        ? areasOfInterest
-        : areasOfInterest
-          ? [areasOfInterest]
-          : [],
+      // Areas of Interest
+      field_10281806:
+        Array.isArray(areasOfInterest)
+          ? areasOfInterest
+          : areasOfInterest
+            ? [areasOfInterest]
+            : [],
 
-      field_10281810: Boolean(emailOptIn),
-      field_10281812: Boolean(textOptIn)
+      // Email Opt-in
+      field_10281810:
+        Boolean(emailOptIn),
+
+      // Text Opt-in
+      field_10281812:
+        Boolean(textOptIn)
     };
 
-    // -----------------------------
-    // 8. CREATE MEMBER
-    // -----------------------------
+
+    // =========================================================
+    // 11. Create member in Baserow
+    // =========================================================
 
     const createUrl =
       `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/` +
       `?user_field_names=false`;
 
-    const createResponse = await fetch(createUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(newMember)
-    });
+
+    const createResponse =
+      await fetch(createUrl, {
+
+        method: "POST",
+
+        headers,
+
+        body: JSON.stringify(
+          newMember
+        )
+      });
+
 
     if (!createResponse.ok) {
-      const errorText = await createResponse.text();
+
+      const errorText =
+        await createResponse.text();
 
       console.error(
         "Baserow member creation failed:",
@@ -256,25 +397,40 @@ export default async function handler(req, res) {
       });
     }
 
-    const createdMember = await createResponse.json();
 
-    // -----------------------------
-    // 9. Success
-    // -----------------------------
+    const createdMember =
+      await createResponse.json();
+
+
+    // =========================================================
+    // 12. Successful registration
+    // =========================================================
 
     return res.status(201).json({
+
       success: true,
+
       duplicate: false,
+
       message:
         "Thank you! Your AAYSSA membership registration has been successfully submitted.",
-      memberRowId: createdMember.id
+
+      memberRowId:
+        createdMember.id
     });
 
+
   } catch (error) {
-    console.error("AAYSSA Registration API:", error);
+
+    console.error(
+      "AAYSSA Registration API:",
+      error
+    );
 
     return res.status(500).json({
+
       success: false,
+
       message:
         "Unable to process your registration at this time. Please try again later."
     });
