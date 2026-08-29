@@ -17,8 +17,13 @@ export default async function handler(req, res) {
       noOfAdults,
       volunteerInterest,
       areasOfInterest,
-      emailUpdates
+      emailOptIn,
+      textOptIn
     } = req.body;
+
+    // -----------------------------
+    // 1. Normalize
+    // -----------------------------
 
     const normalizedEmail = String(email || "")
       .trim()
@@ -27,6 +32,10 @@ export default async function handler(req, res) {
     const normalizedPhone = String(mobileNumber || "")
       .replace(/\D/g, "")
       .slice(-10);
+
+    // -----------------------------
+    // 2. Required-field validation
+    // -----------------------------
 
     if (!fullName || !normalizedEmail || !normalizedPhone) {
       return res.status(400).json({
@@ -38,9 +47,23 @@ export default async function handler(req, res) {
     if (normalizedPhone.length !== 10) {
       return res.status(400).json({
         success: false,
-        message: "Please enter a valid 10-digit mobile number."
+        message: "Please enter a valid 10-digit U.S. mobile number."
       });
     }
+
+    // Basic email validation
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(normalizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address."
+      });
+    }
+
+    // -----------------------------
+    // 3. Server configuration
+    // -----------------------------
 
     const BASEROW_TOKEN = process.env.BASEROW_TOKEN;
     const TABLE_ID = process.env.BASEROW_TABLE_ID;
@@ -54,7 +77,10 @@ export default async function handler(req, res) {
       "Content-Type": "application/json"
     };
 
-    // Check for duplicate normalized email
+    // -----------------------------
+    // 4. Check duplicate EMAIL
+    // -----------------------------
+
     const emailUrl =
       `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/` +
       `?user_field_names=false` +
@@ -63,12 +89,17 @@ export default async function handler(req, res) {
     const emailResponse = await fetch(emailUrl, { headers });
 
     if (!emailResponse.ok) {
+      const errorText = await emailResponse.text();
+      console.error("Baserow email lookup failed:", errorText);
       throw new Error("Unable to check email duplicates.");
     }
 
     const emailData = await emailResponse.json();
 
-    // Check for duplicate normalized phone
+    // -----------------------------
+    // 5. Check duplicate PHONE
+    // -----------------------------
+
     const phoneUrl =
       `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/` +
       `?user_field_names=false` +
@@ -77,6 +108,8 @@ export default async function handler(req, res) {
     const phoneResponse = await fetch(phoneUrl, { headers });
 
     if (!phoneResponse.ok) {
+      const errorText = await phoneResponse.text();
+      console.error("Baserow phone lookup failed:", errorText);
       throw new Error("Unable to check phone duplicates.");
     }
 
@@ -84,6 +117,10 @@ export default async function handler(req, res) {
 
     const emailExists = emailData.count > 0;
     const phoneExists = phoneData.count > 0;
+
+    // -----------------------------
+    // 6. Block duplicates
+    // -----------------------------
 
     if (emailExists && phoneExists) {
       return res.status(409).json({
@@ -115,20 +152,109 @@ export default async function handler(req, res) {
       });
     }
 
-    return res.status(200).json({
+    // -----------------------------
+    // 7. Prepare Baserow row
+    // -----------------------------
+
+    const newMember = {
+      field_10227506: String(fullName).trim(),
+      field_10227507: "Active",
+
+      field_10227562: spouseName
+        ? String(spouseName).trim()
+        : "",
+
+      // Store normalized email so the actual Email
+      // column is lowercase too.
+      field_10281594: normalizedEmail,
+
+      // Store canonical 10-digit phone.
+      field_10281595: normalizedPhone,
+
+      field_10281618: address
+        ? String(address).trim()
+        : "",
+
+      field_10281655:
+        noOfKids === "" ||
+        noOfKids === undefined ||
+        noOfKids === null
+          ? null
+          : Number(noOfKids),
+
+      field_10281686:
+        noOfAdults === "" ||
+        noOfAdults === undefined ||
+        noOfAdults === null
+          ? null
+          : Number(noOfAdults),
+
+      field_10281690: Array.isArray(volunteerInterest)
+        ? volunteerInterest
+        : volunteerInterest
+          ? [volunteerInterest]
+          : [],
+
+      field_10281806: Array.isArray(areasOfInterest)
+        ? areasOfInterest
+        : areasOfInterest
+          ? [areasOfInterest]
+          : [],
+
+      field_10281810: Boolean(emailOptIn),
+      field_10281812: Boolean(textOptIn)
+    };
+
+    // -----------------------------
+    // 8. CREATE MEMBER
+    // -----------------------------
+
+    const createUrl =
+      `https://api.baserow.io/api/database/rows/table/${TABLE_ID}/` +
+      `?user_field_names=false`;
+
+    const createResponse = await fetch(createUrl, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(newMember)
+    });
+
+    if (!createResponse.ok) {
+      const errorText = await createResponse.text();
+
+      console.error(
+        "Baserow member creation failed:",
+        errorText
+      );
+
+      return res.status(500).json({
+        success: false,
+        message:
+          "We could not complete your registration. Please try again."
+      });
+    }
+
+    const createdMember = await createResponse.json();
+
+    // -----------------------------
+    // 9. Success
+    // -----------------------------
+
+    return res.status(201).json({
       success: true,
       duplicate: false,
-      message: "No duplicate found.",
-      normalizedEmail,
-      normalizedPhone
+      message:
+        "Thank you! Your AAYSSA membership registration has been successfully submitted.",
+      memberRowId: createdMember.id
     });
 
   } catch (error) {
-    console.error("Registration API error:", error);
+    console.error("AAYSSA Registration API:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Unable to process registration at this time."
+      message:
+        "Unable to process your registration at this time. Please try again later."
     });
   }
 }
