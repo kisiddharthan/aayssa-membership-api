@@ -288,6 +288,9 @@ export default async function handler(req, res) {
       field_10227507:
         "Active",
 
+      // Every public registration starts as Member
+      field_10493689: 7473604,
+    
       // Spouse First Name
       field_10227562:
         spouseFirstName
@@ -354,7 +357,10 @@ export default async function handler(req, res) {
 
       // Text Opt-in
       field_10281812:
-        Boolean(textOptIn)
+        Boolean(textOptIn),
+    
+      // Role = Member
+      field_10493689: 7473604
     };
 
 
