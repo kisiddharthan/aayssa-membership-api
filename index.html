@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AAYSSA Member Portal</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f7f5f1;
+      color: #222;
+    }
+
+    .topbar {
+      background: #000;
+      color: #fff;
+      padding: 18px 24px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 45px 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 34px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      text-align: center;
+    }
+
+    .mantra {
+      text-align: center;
+      color: #a75f00;
+      font-weight: 700;
+      margin-bottom: 28px;
+    }
+
+    #status {
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .error {
+      color: #a32929;
+    }
+
+    .success {
+      color: #246b31;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="topbar">
+    Atlanta Ayyappa Seva Sangam (AAYSSA)
+  </div>
+
+  <div class="page">
+    <div class="card">
+
+      <h1>AAYSSA Member Portal</h1>
+
+      <div class="mantra">
+        Swamiye Saranam Ayyappa
+      </div>
+
+      <div id="status">
+        Securely signing you in...
+      </div>
+
+    </div>
+  </div>
+
+<script>
+(async function () {
+
+  const status = document.getElementById("status");
+
+  function show(text, className = "") {
+    status.textContent = text;
+    status.className = className;
+  }
+
+  const hash = window.location.hash;
+
+  if (!hash) {
+    show(
+      "No active login session was found. Please return to the AAYSSA Member Login page and request a new secure login link."
+    );
+    return;
+  }
+
+  const params = new URLSearchParams(hash.substring(1));
+
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+
+  if (!accessToken || !refreshToken) {
+    show(
+      "The secure login link is incomplete or has expired. Please request a new login link.",
+      "error"
+    );
+    return;
+  }
+
+  try {
+
+    const response = await fetch("/api/session", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        accessToken,
+        refreshToken
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Unable to create session.");
+    }
+
+    // Remove Supabase tokens from the visible browser URL
+    history.replaceState(
+      null,
+      "",
+      window.location.pathname
+    );
+
+    show(
+      "Login successful. Loading your AAYSSA membership...",
+      "success"
+    );
+
+    // We will replace this with the member dashboard next.
+    setTimeout(() => {
+      window.location.reload();
+    }, 800);
+
+  } catch (error) {
+
+    console.error(error);
+
+    show(
+      "We could not complete your secure login. Please request a new login link.",
+      "error"
+    );
+
+  }
+
+})();
+</script>
+
+</body>
+</html>
