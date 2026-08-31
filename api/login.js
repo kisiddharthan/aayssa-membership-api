@@ -117,8 +117,8 @@ export default async function handler(req, res) {
           email: normalizedEmail,
           create_user: true,
           options: {
-            email_redirect_to:
-              "https://atlantaayyappasevasangam.org/member-login"
+              email_redirect_to:
+                "https://portal.atlantaayyappasevasangam.org"
           }
         })
       }
