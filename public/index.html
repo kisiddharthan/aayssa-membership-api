@@ -211,26 +211,26 @@
     }
 
     /* =========================================
-       ADMIN DASHBOARD
+       BOARD / ADMIN DASHBOARD
        ========================================= */
 
-    .admin-dashboard {
+    .dashboard {
       margin-top: 34px;
       padding-top: 30px;
       border-top: 2px solid #eadfce;
     }
 
-    .admin-header {
+    .dashboard-header {
       margin-bottom: 18px;
     }
 
-    .admin-header h2 {
+    .dashboard-header h2 {
       margin: 0 0 5px;
       color: #7d4700;
       font-size: 24px;
     }
 
-    .admin-header p {
+    .dashboard-header p {
       margin: 0;
       color: #777;
       font-size: 14px;
@@ -266,26 +266,26 @@
       line-height: 1.4;
     }
 
-    .admin-grid {
+    .dashboard-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 18px;
     }
 
-    .admin-card {
+    .dashboard-card {
       background: white;
       border-radius: 14px;
       padding: 22px;
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
     }
 
-    .admin-card h3 {
+    .dashboard-card h3 {
       color: #7d4700;
       margin: 0 0 16px;
       font-size: 18px;
     }
 
-    .admin-row {
+    .dashboard-row {
       display: flex;
       justify-content: space-between;
       gap: 20px;
@@ -293,20 +293,20 @@
       border-bottom: 1px solid #eee;
     }
 
-    .admin-row:last-child {
+    .dashboard-row:last-child {
       border-bottom: none;
     }
 
-    .admin-row strong {
+    .dashboard-row strong {
       color: #333;
     }
 
-    .admin-number {
+    .dashboard-number {
       font-weight: 800;
       color: #7d4700;
     }
 
-    .admin-loading {
+    .dashboard-loading {
       padding: 24px;
       text-align: center;
       background: white;
@@ -314,9 +314,9 @@
       box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
     }
 
-    .admin-badge {
+    .admin-badge,
+    .board-badge {
       display: inline-block;
-      background: #7d4700;
       color: white;
       padding: 5px 10px;
       border-radius: 999px;
@@ -324,6 +324,14 @@
       font-weight: 700;
       margin-left: 8px;
       vertical-align: middle;
+    }
+
+    .admin-badge {
+      background: #7d4700;
+    }
+
+    .board-badge {
+      background: #555;
     }
 
     .footer {
@@ -341,7 +349,7 @@
 
     @media (max-width: 720px) {
       .grid,
-      .admin-grid {
+      .dashboard-grid {
         grid-template-columns: 1fr;
       }
 
@@ -489,6 +497,40 @@
     }
 
 
+    function hasDashboardAccess(role) {
+
+      return (
+        role === "Board" ||
+        role === "Admin"
+      );
+    }
+
+
+    function renderRoleBadge(role) {
+
+      if (role === "Admin") {
+
+        return `
+          <span class="admin-badge">
+            ADMIN
+          </span>
+        `;
+      }
+
+      if (role === "Board") {
+
+        return `
+          <span class="board-badge">
+            BOARD
+          </span>
+        `;
+      }
+
+      return "";
+    }
+
+
+
     async function loadMember() {
 
       const status =
@@ -595,15 +637,7 @@
             Welcome,
             ${escapeHtml(fullName || "Member")}
 
-            ${
-              member.role === "Admin"
-                ? `
-                  <span class="admin-badge">
-                    ADMIN
-                  </span>
-                `
-                : ""
-            }
+            ${renderRoleBadge(member.role)}
 
           </div>
 
@@ -806,15 +840,15 @@
 
 
           ${
-            member.role === "Admin"
+            hasDashboardAccess(member.role)
               ? `
 
-                <div class="admin-dashboard">
+                <div class="dashboard">
 
-                  <div class="admin-header">
+                  <div class="dashboard-header">
 
                     <h2>
-                      Admin Dashboard
+                      AAYSSA Dashboard
                     </h2>
 
                     <p>
@@ -825,10 +859,10 @@
 
 
                   <div
-                    id="adminStats"
-                    class="admin-loading"
+                    id="dashboardStats"
+                    class="dashboard-loading"
                   >
-                    Loading admin statistics...
+                    Loading dashboard statistics...
                   </div>
 
                 </div>
@@ -876,8 +910,13 @@
           );
 
 
-        if (member.role === "Admin") {
-          await loadAdminStats();
+        if (
+          hasDashboardAccess(
+            member.role
+          )
+        ) {
+
+          await loadDashboardStats();
         }
 
 
@@ -908,11 +947,11 @@
 
 
 
-    async function loadAdminStats() {
+    async function loadDashboardStats() {
 
       const container =
         document.getElementById(
-          "adminStats"
+          "dashboardStats"
         );
 
       if (!container) {
@@ -935,7 +974,7 @@
         if (response.status === 401) {
 
           throw new Error(
-            "Admin session expired."
+            "Dashboard session expired."
           );
         }
 
@@ -943,10 +982,10 @@
         if (response.status === 403) {
 
           container.className =
-            "admin-loading error";
+            "dashboard-loading error";
 
           container.innerHTML = `
-            Administrator access required.
+            Board or administrator access required.
           `;
 
           return;
@@ -956,7 +995,7 @@
         if (!response.ok) {
 
           throw new Error(
-            "Unable to load admin statistics."
+            "Unable to load dashboard statistics."
           );
         }
 
@@ -992,6 +1031,7 @@
         container.innerHTML = `
 
           <div class="stats-grid">
+
 
             <div class="stat-card">
 
@@ -1060,75 +1100,75 @@
           </div>
 
 
-          <div class="admin-grid">
+          <div class="dashboard-grid">
 
 
-            <div class="admin-card">
+            <div class="dashboard-card">
 
               <h3>
                 Seva Areas of Interest
               </h3>
 
 
-              <div class="admin-row">
+              <div class="dashboard-row">
 
                 <strong>
                   Pooja
                 </strong>
 
-                <span class="admin-number">
+                <span class="dashboard-number">
                   ${volunteer.Pooja ?? 0}
                 </span>
 
               </div>
 
 
-              <div class="admin-row">
+              <div class="dashboard-row">
 
                 <strong>
                   Annadhanam
                 </strong>
 
-                <span class="admin-number">
+                <span class="dashboard-number">
                   ${volunteer.Annadhanam ?? 0}
                 </span>
 
               </div>
 
 
-              <div class="admin-row">
+              <div class="dashboard-row">
 
                 <strong>
                   Bhajan
                 </strong>
 
-                <span class="admin-number">
+                <span class="dashboard-number">
                   ${volunteer.Bhajan ?? 0}
                 </span>
 
               </div>
 
 
-              <div class="admin-row">
+              <div class="dashboard-row">
 
                 <strong>
                   Media
                 </strong>
 
-                <span class="admin-number">
+                <span class="dashboard-number">
                   ${volunteer.Media ?? 0}
                 </span>
 
               </div>
 
 
-              <div class="admin-row">
+              <div class="dashboard-row">
 
                 <strong>
                   Decorations
                 </strong>
 
-                <span class="admin-number">
+                <span class="dashboard-number">
                   ${volunteer.Decorations ?? 0}
                 </span>
 
@@ -1138,46 +1178,46 @@
 
 
 
-            <div class="admin-card">
+            <div class="dashboard-card">
 
               <h3>
                 Volunteer Participation
               </h3>
 
 
-              <div class="admin-row">
+              <div class="dashboard-row">
 
                 <strong>
                   Primary Members
                 </strong>
 
-                <span class="admin-number">
+                <span class="dashboard-number">
                   ${participation.primaryMember ?? 0}
                 </span>
 
               </div>
 
 
-              <div class="admin-row">
+              <div class="dashboard-row">
 
                 <strong>
                   Spouses
                 </strong>
 
-                <span class="admin-number">
+                <span class="dashboard-number">
                   ${participation.spouse ?? 0}
                 </span>
 
               </div>
 
 
-              <div class="admin-row">
+              <div class="dashboard-row">
 
                 <strong>
                   Other Family Members
                 </strong>
 
-                <span class="admin-number">
+                <span class="dashboard-number">
                   ${participation.otherFamilyMember ?? 0}
                 </span>
 
@@ -1192,15 +1232,15 @@
       } catch (error) {
 
         console.error(
-          "Admin dashboard error:",
+          "Dashboard error:",
           error
         );
 
         container.className =
-          "admin-loading error";
+          "dashboard-loading error";
 
         container.innerHTML = `
-          Unable to load admin statistics right now.
+          Unable to load dashboard statistics right now.
         `;
       }
     }

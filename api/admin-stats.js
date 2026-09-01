@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+
   if (req.method !== "GET") {
     return res.status(405).json({
       success: false,
@@ -7,8 +8,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const cookies = parseCookies(req.headers.cookie || "");
-    const accessToken = cookies.aayssa_access;
+
+    const cookies =
+      parseCookies(req.headers.cookie || "");
+
+    const accessToken =
+      cookies.aayssa_access;
 
     if (!accessToken) {
       return res.status(401).json({
@@ -17,7 +22,10 @@ export default async function handler(req, res) {
       });
     }
 
-    const SUPABASE_URL = process.env.SUPABASE_URL;
+
+    const SUPABASE_URL =
+      process.env.SUPABASE_URL;
+
     const SUPABASE_PUBLISHABLE_KEY =
       process.env.SUPABASE_PUBLISHABLE_KEY;
 
@@ -27,52 +35,67 @@ export default async function handler(req, res) {
     const BASEROW_TABLE_ID =
       process.env.BASEROW_TABLE_ID;
 
+
     if (
       !SUPABASE_URL ||
       !SUPABASE_PUBLISHABLE_KEY ||
       !BASEROW_TOKEN ||
       !BASEROW_TABLE_ID
     ) {
+
       console.error(
         "Missing required environment variables."
       );
 
       return res.status(500).json({
         success: false,
-        message: "Admin service unavailable."
+        message: "Dashboard service unavailable."
       });
     }
+
 
 
     // ------------------------------------------------
     // 1. Validate current Supabase session
     // ------------------------------------------------
 
-    const userResponse = await fetch(
-      `${SUPABASE_URL}/auth/v1/user`,
-      {
-        headers: {
-          apikey: SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${accessToken}`
+    const userResponse =
+      await fetch(
+        `${SUPABASE_URL}/auth/v1/user`,
+        {
+          headers: {
+            apikey:
+              SUPABASE_PUBLISHABLE_KEY,
+
+            Authorization:
+              `Bearer ${accessToken}`
+          }
         }
-      }
-    );
+      );
+
 
     if (!userResponse.ok) {
+
       return res.status(401).json({
         success: false,
         message: "Session expired."
       });
     }
 
-    const user = await userResponse.json();
+
+    const user =
+      await userResponse.json();
+
 
     if (!user?.email) {
+
       return res.status(401).json({
         success: false,
-        message: "Authenticated email unavailable."
+        message:
+          "Authenticated email unavailable."
       });
     }
+
 
     const normalizedEmail =
       String(user.email)
@@ -80,87 +103,115 @@ export default async function handler(req, res) {
         .toLowerCase();
 
 
+
     // ------------------------------------------------
     // 2. Look up authenticated member in Baserow
     // ------------------------------------------------
 
-    const adminLookupUrl =
+    const memberLookupUrl =
       `https://api.baserow.io/api/database/rows/table/${BASEROW_TABLE_ID}/` +
       `?user_field_names=false` +
       `&filter__field_10464593__equal=${encodeURIComponent(
         normalizedEmail
       )}`;
 
-    const adminLookupResponse =
-      await fetch(adminLookupUrl, {
-        headers: {
-          Authorization:
-            `Token ${BASEROW_TOKEN}`
-        }
-      });
 
-    if (!adminLookupResponse.ok) {
+    const memberLookupResponse =
+      await fetch(
+        memberLookupUrl,
+        {
+          headers: {
+            Authorization:
+              `Token ${BASEROW_TOKEN}`
+          }
+        }
+      );
+
+
+    if (!memberLookupResponse.ok) {
+
       console.error(
-        "Admin lookup failed:",
-        adminLookupResponse.status
+        "Board/Admin lookup failed:",
+        memberLookupResponse.status
       );
 
       return res.status(500).json({
         success: false,
-        message: "Unable to verify administrator."
+        message:
+          "Unable to verify dashboard access."
       });
     }
 
-    const adminLookupData =
-      await adminLookupResponse.json();
+
+    const memberLookupData =
+      await memberLookupResponse.json();
+
 
     if (
-      !Array.isArray(adminLookupData.results) ||
-      adminLookupData.results.length === 0
+      !Array.isArray(
+        memberLookupData.results
+      ) ||
+      memberLookupData.results.length === 0
     ) {
+
       return res.status(403).json({
         success: false,
         message: "Membership not found."
       });
     }
 
-    const adminRow =
-      adminLookupData.results[0];
+
+    const memberRow =
+      memberLookupData.results[0];
+
 
 
     // ------------------------------------------------
-    // 3. Server-side ADMIN authorization
+    // 3. Server-side BOARD / ADMIN authorization
+    //
+    // Member = 7473604
+    // Board  = 7473605
+    // Admin  = 7473606
     // ------------------------------------------------
 
     const roleField =
-      adminRow.field_10493689;
+      memberRow.field_10493689;
+
 
     const roleId =
       roleField?.id ??
       roleField?.value ??
       roleField;
 
+
     const roleName =
       roleField?.value ??
       "";
 
-    const isAdmin =
+
+    const isBoardOrAdmin =
+      Number(roleId) === 7473605 ||
       Number(roleId) === 7473606 ||
+      roleName === "Board" ||
       roleName === "Admin";
 
-    if (!isAdmin) {
+
+    if (!isBoardOrAdmin) {
+
       return res.status(403).json({
         success: false,
-        message: "Administrator access required."
+        message:
+          "Board or administrator access required."
       });
     }
+
 
 
     // ------------------------------------------------
     // 4. Retrieve ALL membership rows
     //
-    // This happens SERVER-SIDE only.
-    // Nothing exposes the Baserow token to the browser.
+    // Runs SERVER-SIDE only.
+    // Baserow token never reaches browser.
     // ------------------------------------------------
 
     const rows =
@@ -170,15 +221,19 @@ export default async function handler(req, res) {
       );
 
 
+
     // ------------------------------------------------
     // 5. Aggregate statistics
     // ------------------------------------------------
 
     let registeredFamilies = 0;
+
     let activeFamilies = 0;
 
     let totalAdults = 0;
+
     let totalKids = 0;
+
 
     const volunteerCounts = {
       Pooja: 0,
@@ -188,9 +243,13 @@ export default async function handler(req, res) {
       Decorations: 0
     };
 
+
     let primaryMemberVolunteers = 0;
+
     let spouseVolunteers = 0;
+
     let otherFamilyVolunteers = 0;
+
 
 
     for (const row of rows) {
@@ -198,9 +257,13 @@ export default async function handler(req, res) {
       registeredFamilies += 1;
 
 
+
       // ----------------------------------------------
       // Membership Status
       // field_10227507
+      //
+      // Still calculated internally.
+      // Not displayed to normal members.
       // ----------------------------------------------
 
       const status =
@@ -208,12 +271,15 @@ export default async function handler(req, res) {
         row.field_10227507 ??
         "";
 
+
       if (
-        String(status).toLowerCase() ===
-        "active"
+        String(status)
+          .toLowerCase() === "active"
       ) {
+
         activeFamilies += 1;
       }
+
 
 
       // ----------------------------------------------
@@ -225,10 +291,12 @@ export default async function handler(req, res) {
           row.field_10281686
         );
 
+
       totalKids +=
         safeNumber(
           row.field_10281655
         );
+
 
 
       // ----------------------------------------------
@@ -241,29 +309,36 @@ export default async function handler(req, res) {
           row.field_10281690
         );
 
+
       if (
         volunteers.includes(
           "Primary Member"
         )
       ) {
+
         primaryMemberVolunteers += 1;
       }
+
 
       if (
         volunteers.includes(
           "Spouse"
         )
       ) {
+
         spouseVolunteers += 1;
       }
+
 
       if (
         volunteers.includes(
           "Other Family Member"
         )
       ) {
+
         otherFamilyVolunteers += 1;
       }
+
 
 
       // ----------------------------------------------
@@ -276,44 +351,53 @@ export default async function handler(req, res) {
           row.field_10281806
         );
 
-      for (
-        const interest
-        of interests
-      ) {
+
+      for (const interest of interests) {
+
         if (
-          Object.prototype.hasOwnProperty.call(
-            volunteerCounts,
-            interest
-          )
+          Object.prototype
+            .hasOwnProperty.call(
+              volunteerCounts,
+              interest
+            )
         ) {
+
           volunteerCounts[interest] += 1;
         }
       }
     }
 
 
+
     const totalPeople =
       totalAdults + totalKids;
 
 
+
     // ------------------------------------------------
-    // 6. Return ONLY aggregate admin information
+    // 6. Return aggregate dashboard information only
     // ------------------------------------------------
 
     return res.status(200).json({
+
       success: true,
 
       stats: {
+
         registeredFamilies,
+
         activeFamilies,
 
         totalAdults,
+
         totalKids,
+
         totalPeople,
 
         volunteerCounts,
 
         volunteerParticipation: {
+
           primaryMember:
             primaryMemberVolunteers,
 
@@ -327,20 +411,24 @@ export default async function handler(req, res) {
     });
 
 
+
   } catch (error) {
 
     console.error(
-      "Admin stats API error:",
+      "Dashboard stats API error:",
       error
     );
+
 
     return res.status(500).json({
       success: false,
       message:
-        "Unable to load admin statistics."
+        "Unable to load dashboard statistics."
     });
   }
 }
+
+
 
 
 
@@ -348,7 +436,7 @@ export default async function handler(req, res) {
 // Retrieve every Baserow row
 //
 // Baserow paginates responses.
-// We handle pagination on the server.
+// Pagination is handled server-side.
 // ====================================================
 
 async function fetchAllBaserowRows(
@@ -359,6 +447,7 @@ async function fetchAllBaserowRows(
   const rows = [];
 
   let page = 1;
+
   const size = 200;
 
 
@@ -372,12 +461,15 @@ async function fetchAllBaserowRows(
 
 
     const response =
-      await fetch(url, {
-        headers: {
-          Authorization:
-            `Token ${token}`
+      await fetch(
+        url,
+        {
+          headers: {
+            Authorization:
+              `Token ${token}`
+          }
         }
-      });
+      );
 
 
     if (!response.ok) {
@@ -395,6 +487,7 @@ async function fetchAllBaserowRows(
     if (
       Array.isArray(data.results)
     ) {
+
       rows.push(
         ...data.results
       );
@@ -415,6 +508,8 @@ async function fetchAllBaserowRows(
 
 
 
+
+
 // ====================================================
 // Convert Baserow number values safely
 // ====================================================
@@ -424,14 +519,19 @@ function safeNumber(value) {
   const number =
     Number(value);
 
+
   if (
     Number.isFinite(number)
   ) {
+
     return number;
   }
 
+
   return 0;
 }
+
+
 
 
 
@@ -445,14 +545,17 @@ function getMultiSelectValues(items) {
     return [];
   }
 
+
   return items
     .map(item => {
 
       if (
         typeof item === "string"
       ) {
+
         return item;
       }
+
 
       return (
         item?.value ||
@@ -466,6 +569,8 @@ function getMultiSelectValues(items) {
 
 
 
+
+
 // ====================================================
 // Parse HttpOnly cookies
 // ====================================================
@@ -474,6 +579,7 @@ function parseCookies(cookieHeader) {
 
   const cookies = {};
 
+
   cookieHeader
     .split(";")
     .forEach(cookie => {
@@ -481,25 +587,31 @@ function parseCookies(cookieHeader) {
       const index =
         cookie.indexOf("=");
 
+
       if (index === -1) {
         return;
       }
+
 
       const key =
         cookie
           .slice(0, index)
           .trim();
 
+
       const value =
         cookie
           .slice(index + 1)
           .trim();
 
+
       if (key) {
+
         cookies[key] =
           decodeURIComponent(value);
       }
     });
+
 
   return cookies;
 }
