@@ -162,7 +162,8 @@
           throw new Error("Unable to load member profile");
         }
 
-        const member = await response.json();
+        const data = await response.json();
+        const member = data.member;
 
         const spouseName =
           `${member.spouseFirstName || ""} ${member.spouseLastName || ""}`.trim();
@@ -202,7 +203,7 @@
 
           <div class="member-row">
             <strong>Mobile:</strong>
-            ${member.mobile || "-"}
+            ${member.mobileNumber || "-"}
           </div>
 
           <div class="member-row">
