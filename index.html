@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <title>AAYSSA Member Portal</title>
 
   <style>
@@ -14,245 +15,798 @@
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #f7f5f1;
+      background: #f6f3ed;
       color: #222;
     }
 
     .topbar {
-      background: #000;
-      color: #fff;
-      padding: 18px 24px;
+      background: #111;
+      color: white;
+      padding: 14px 22px;
+
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .topbar img {
+      width: 54px;
+      height: 54px;
+      object-fit: contain;
+      border-radius: 8px;
+      background: white;
+    }
+
+    .topbar-title {
       font-weight: 700;
-      letter-spacing: 0.5px;
+      font-size: 18px;
+      line-height: 1.3;
+    }
+
+    .topbar-subtitle {
+      font-size: 13px;
+      opacity: 0.8;
+      margin-top: 2px;
     }
 
     .page {
-      max-width: 900px;
+      max-width: 1050px;
       margin: 0 auto;
-      padding: 45px 20px;
+      padding: 34px 18px 50px;
     }
 
-    .card {
-      background: #fff;
-      border-radius: 14px;
-      padding: 34px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-    }
-
-    h1 {
-      margin-top: 0;
+    .hero {
       text-align: center;
-    }
-
-    .mantra {
-      text-align: center;
-      color: #a75f00;
-      font-weight: 700;
       margin-bottom: 28px;
     }
 
-    #status {
-      line-height: 1.7;
+    .hero-logo {
+      width: 110px;
+      max-height: 110px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 5px 0 8px;
+      font-size: 30px;
+    }
+
+    .mantra {
+      color: #a75f00;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .welcome {
+      font-size: 20px;
+      font-weight: 700;
+      margin-top: 18px;
+    }
+
+    .membership-card {
+      max-width: 620px;
+      margin: 0 auto 28px;
+      padding: 24px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #241500,
+          #7d4700
+        );
+
+      color: white;
+      border-radius: 18px;
+
+      box-shadow:
+        0 10px 28px rgba(0, 0, 0, 0.14);
+    }
+
+    .membership-card-label {
+      font-size: 13px;
+      opacity: 0.8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .membership-id {
+      font-size: 30px;
+      font-weight: 800;
+      margin: 8px 0 15px;
+      letter-spacing: 1px;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 11px;
+      border-radius: 999px;
+
+      font-size: 12px;
+      font-weight: 700;
+
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .badge-active {
+      background: #26783c;
+    }
+
+    .grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+      gap: 18px;
+    }
+
+    .section-card {
+      background: white;
+      border-radius: 14px;
+      padding: 22px;
+
+      box-shadow:
+        0 4px 18px rgba(0, 0, 0, 0.07);
+    }
+
+    .section-card h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+      color: #7d4700;
+    }
+
+    .info-row {
+      padding: 10px 0;
+
+      border-bottom:
+        1px solid #eee;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      display: block;
+
+      color: #777;
+      font-size: 12px;
+      font-weight: 700;
+
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+
+      margin-bottom: 3px;
+    }
+
+    .value {
+      font-size: 15px;
+      overflow-wrap: anywhere;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .chip {
+      background: #f3e8d5;
+      color: #754200;
+
+      border-radius: 999px;
+      padding: 7px 11px;
+
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .preference {
+      display: inline-block;
+      margin-right: 12px;
+      margin-bottom: 8px;
+
+      padding: 7px 11px;
+      border-radius: 8px;
+
+      background: #f4f4f4;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .preference-on {
+      background: #e6f4e9;
+      color: #26783c;
+    }
+
+    .preference-off {
+      background: #f4f4f4;
+      color: #777;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+
+      margin-top: 28px;
+    }
+
+    .edit-button,
+    .logout-button,
+    .login-button {
+      display: inline-block;
+
+      padding: 12px 22px;
+
+      border-radius: 8px;
+      border: none;
+
+      font-weight: 700;
+      font-size: 14px;
+
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .edit-button {
+      background: #a75f00;
+      color: white;
+    }
+
+    .logout-button {
+      background: #333;
+      color: white;
+    }
+
+    .login-button {
+      background: #a75f00;
+      color: white;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .loading,
     .message {
+      background: white;
+      border-radius: 14px;
+      padding: 30px;
+
       text-align: center;
-    }
 
-    .member-name {
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 22px;
-    }
-
-    .member-row {
-      padding: 8px 0;
-      border-bottom: 1px solid #eee;
-    }
-
-    .button-row {
-      margin-top: 22px;
-    }
-
-    .edit-button {
-      display: inline-block;
-      padding: 12px 20px;
-      background: #a75f00;
-      color: white;
-      text-decoration: none;
-      border-radius: 7px;
-      font-weight: 700;
-    }
-
-    .logout-button {
-      display: inline-block;
-      margin-left: 10px;
-      padding: 12px 20px;
-      background: #333;
-      color: white;
-      border: none;
-      border-radius: 7px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .logout-button:hover {
-      opacity: 0.9;
+      box-shadow:
+        0 4px 18px rgba(0, 0, 0, 0.07);
     }
 
     .error {
       color: #a32929;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 35px;
+
+      font-size: 12px;
+      color: #777;
+    }
+
+    @media (max-width: 720px) {
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar-title {
+        font-size: 16px;
+      }
+
+      .membership-id {
+        font-size: 24px;
+      }
+
+      h1 {
+        font-size: 25px;
+      }
+
+      .page {
+        padding:
+          24px 14px 40px;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <div class="topbar">
-    Atlanta Ayyappa Seva Sangam (AAYSSA)
-  </div>
+  <header class="topbar">
 
-  <div class="page">
-    <div class="card">
+    <img
+      src="/aayssa-logo.jpg"
+      alt="AAYSSA Logo"
+    >
 
-      <h1>AAYSSA Member Portal</h1>
+    <div>
+      <div class="topbar-title">
+        Atlanta Ayyappa Seva Sangam
+      </div>
+
+      <div class="topbar-subtitle">
+        AAYSSA Member Portal
+      </div>
+    </div>
+
+  </header>
+
+
+  <main class="page">
+
+    <div class="hero">
+
+      <img
+        src="/aayssa-logo.jpg"
+        alt="AAYSSA"
+        class="hero-logo"
+      >
+
+      <h1>
+        AAYSSA Member Portal
+      </h1>
 
       <div class="mantra">
         Swamiye Saranam Ayyappa
       </div>
 
-      <div id="status" class="loading">
-        Loading your membership...
-      </div>
-
     </div>
-  </div>
+
+
+    <div id="status" class="loading">
+      Loading your membership...
+    </div>
+
+
+    <div class="footer">
+      Atlanta Ayyappa Seva Sangam (AAYSSA)
+    </div>
+
+  </main>
+
 
   <script>
+
+    function escapeHtml(value) {
+
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+
+    function displayValue(value) {
+
+      if (
+        value === null ||
+        value === undefined ||
+        value === ""
+      ) {
+        return "-";
+      }
+
+      return escapeHtml(value);
+    }
+
+
+    function getMultiSelectValues(items) {
+
+      if (!Array.isArray(items)) {
+        return [];
+      }
+
+      return items
+        .map(item => {
+
+          if (typeof item === "string") {
+            return item;
+          }
+
+          return (
+            item?.value ||
+            item?.name ||
+            ""
+          );
+
+        })
+        .filter(Boolean);
+    }
+
+
+    function renderChips(items) {
+
+      const values =
+        getMultiSelectValues(items);
+
+      if (values.length === 0) {
+        return `<span class="value">-</span>`;
+      }
+
+      return `
+        <div class="chips">
+
+          ${values.map(value => `
+            <span class="chip">
+              ${escapeHtml(value)}
+            </span>
+          `).join("")}
+
+        </div>
+      `;
+    }
+
+
     async function loadMember() {
 
-      const status = document.getElementById("status");
+      const status =
+        document.getElementById("status");
 
       try {
 
-        const response = await fetch("/api/me", {
-          method: "GET",
-          credentials: "include"
-        });
+        const response =
+          await fetch("/api/me", {
+
+            method: "GET",
+
+            credentials: "include"
+
+          });
+
 
         if (response.status === 401) {
 
           status.className = "message";
 
           status.innerHTML = `
-            <p><strong>No active login session was found.</strong></p>
+
+            <h2>
+              No active login session
+            </h2>
 
             <p>
-              Please return to the AAYSSA Member Login page
-              and request a new secure login link.
+              Please request a new secure
+              AAYSSA member login link.
             </p>
 
-            <p>
-              <a href="https://atlantaayyappasevasangam.org/member-login">
-                Return to Member Login
-              </a>
-            </p>
+            <a
+              class="login-button"
+              href="https://atlantaayyappasevasangam.org/member-login"
+            >
+              Member Login
+            </a>
           `;
 
           return;
         }
+
 
         if (response.status === 403) {
 
-          status.className = "message error";
+          status.className =
+            "message error";
 
           status.innerHTML = `
+
+            <h2>
+              Membership Not Found
+            </h2>
+
             <p>
-              Your authenticated email could not be matched
-              to an active AAYSSA membership.
+              Your authenticated email
+              could not be matched to an
+              AAYSSA membership.
             </p>
           `;
 
           return;
         }
 
+
         if (!response.ok) {
-          throw new Error("Unable to load member profile");
+
+          throw new Error(
+            "Unable to load member profile"
+          );
         }
 
-        const data = await response.json();
-        const member = data.member;
+
+        const data =
+          await response.json();
+
+        const member =
+          data.member;
+
+
+        const firstName =
+          member.firstName || "";
+
+        const lastName =
+          member.lastName || "";
+
+        const fullName =
+          `${firstName} ${lastName}`.trim();
+
 
         const spouseName =
-          `${member.spouseFirstName || ""} ${member.spouseLastName || ""}`.trim();
+          `${member.spouseFirstName || ""} ${member.spouseLastName || ""}`
+            .trim();
+
 
         const membershipStatus =
           member.status?.value ||
           member.status ||
           "-";
 
+
+        const statusClass =
+          String(membershipStatus)
+            .toLowerCase() === "active"
+            ? "badge badge-active"
+            : "badge";
+
+
         status.className = "";
+
 
         status.innerHTML = `
 
-          <div class="member-name">
-            Welcome, ${member.firstName || ""} ${member.lastName || ""}
+          <div class="welcome">
+            Welcome,
+            ${escapeHtml(fullName || "Member")}
           </div>
 
-          <div class="member-row">
-            <strong>Membership ID:</strong>
-            ${member.membershipId || "-"}
+
+          <div class="membership-card">
+
+            <div class="membership-card-label">
+              AAYSSA Membership ID
+            </div>
+
+            <div class="membership-id">
+              ${displayValue(member.membershipId)}
+            </div>
+
+            <div class="badge-row">
+
+              <span class="${statusClass}">
+                ${escapeHtml(membershipStatus)}
+              </span>
+
+              <span class="badge">
+                ${escapeHtml(member.role || "Member")}
+              </span>
+
+            </div>
+
           </div>
 
-          <div class="member-row">
-            <strong>Membership Status:</strong>
-            ${membershipStatus}
+
+          <div class="grid">
+
+            <section class="section-card">
+
+              <h2>
+                Family Details
+              </h2>
+
+              <div class="info-row">
+
+                <span class="label">
+                  Primary Member
+                </span>
+
+                <span class="value">
+                  ${displayValue(fullName)}
+                </span>
+
+              </div>
+
+
+              <div class="info-row">
+
+                <span class="label">
+                  Spouse
+                </span>
+
+                <span class="value">
+                  ${displayValue(spouseName)}
+                </span>
+
+              </div>
+
+
+              <div class="info-row">
+
+                <span class="label">
+                  Adults
+                </span>
+
+                <span class="value">
+                  ${displayValue(member.noOfAdults)}
+                </span>
+
+              </div>
+
+
+              <div class="info-row">
+
+                <span class="label">
+                  Kids
+                </span>
+
+                <span class="value">
+                  ${displayValue(member.noOfKids)}
+                </span>
+
+              </div>
+
+            </section>
+
+
+            <section class="section-card">
+
+              <h2>
+                Contact Information
+              </h2>
+
+              <div class="info-row">
+
+                <span class="label">
+                  Email
+                </span>
+
+                <span class="value">
+                  ${displayValue(member.email)}
+                </span>
+
+              </div>
+
+
+              <div class="info-row">
+
+                <span class="label">
+                  Mobile
+                </span>
+
+                <span class="value">
+                  ${displayValue(member.mobileNumber)}
+                </span>
+
+              </div>
+
+
+              <div class="info-row">
+
+                <span class="label">
+                  Address
+                </span>
+
+                <span class="value">
+                  ${displayValue(member.address)}
+                </span>
+
+              </div>
+
+            </section>
+
+
+            <section class="section-card">
+
+              <h2>
+                Seva & Volunteering
+              </h2>
+
+
+              <div class="info-row">
+
+                <span class="label">
+                  Interested Family Members
+                </span>
+
+                ${renderChips(
+                  member.volunteerInterest
+                )}
+
+              </div>
+
+
+              <div class="info-row">
+
+                <span class="label">
+                  Areas of Interest
+                </span>
+
+                ${renderChips(
+                  member.areasOfInterest
+                )}
+
+              </div>
+
+            </section>
+
+
+            <section class="section-card">
+
+              <h2>
+                Communication Preferences
+              </h2>
+
+
+              <div>
+
+                <span class="
+                  preference
+                  ${
+                    member.emailOptIn
+                      ? "preference-on"
+                      : "preference-off"
+                  }
+                ">
+
+                  Email:
+                  ${
+                    member.emailOptIn
+                      ? "Yes"
+                      : "No"
+                  }
+
+                </span>
+
+
+                <span class="
+                  preference
+                  ${
+                    member.textOptIn
+                      ? "preference-on"
+                      : "preference-off"
+                  }
+                ">
+
+                  Text:
+                  ${
+                    member.textOptIn
+                      ? "Yes"
+                      : "No"
+                  }
+
+                </span>
+
+              </div>
+
+            </section>
+
           </div>
 
-          <div class="member-row">
-            <strong>Role:</strong>
-            ${member.role || "Member"}
-          </div>
 
-          <div class="member-row">
-            <strong>Email:</strong>
-            ${member.email || "-"}
-          </div>
-
-          <div class="member-row">
-            <strong>Mobile:</strong>
-            ${member.mobileNumber || "-"}
-          </div>
-
-          <div class="member-row">
-            <strong>Address:</strong>
-            ${member.address || "-"}
-          </div>
-
-          <div class="member-row">
-            <strong>Spouse:</strong>
-            ${spouseName || "-"}
-          </div>
-
-          <div class="member-row">
-            <strong>Adults:</strong>
-            ${member.noOfAdults ?? "-"}
-          </div>
-
-          <div class="member-row">
-            <strong>Kids:</strong>
-            ${member.noOfKids ?? "-"}
-          </div>
-
-          <div class="button-row">
+          <div class="actions">
 
             ${
               member.editProfileLink
                 ? `
                   <a
                     class="edit-button"
-                    href="${member.editProfileLink}"
+                    href="${escapeHtml(member.editProfileLink)}"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -261,6 +815,7 @@
                 `
                 : ""
             }
+
 
             <button
               id="logoutButton"
@@ -273,19 +828,30 @@
           </div>
         `;
 
+
         document
           .getElementById("logoutButton")
-          .addEventListener("click", logout);
+          .addEventListener(
+            "click",
+            logout
+          );
 
       } catch (error) {
 
         console.error(error);
 
-        status.className = "message error";
+        status.className =
+          "message error";
 
         status.innerHTML = `
+
+          <h2>
+            Unable to Load Membership
+          </h2>
+
           <p>
-            We couldn't load your member profile right now.
+            We couldn't load your
+            member profile right now.
           </p>
 
           <p>
@@ -299,35 +865,57 @@
     async function logout() {
 
       const button =
-        document.getElementById("logoutButton");
+        document.getElementById(
+          "logoutButton"
+        );
+
 
       if (button) {
+
         button.disabled = true;
-        button.textContent = "Logging out...";
+
+        button.textContent =
+          "Logging out...";
       }
+
 
       try {
 
-        const response = await fetch("/api/logout", {
-          method: "POST",
-          credentials: "include"
-        });
+        const response =
+          await fetch("/api/logout", {
+
+            method: "POST",
+
+            credentials: "include"
+
+          });
+
 
         if (!response.ok) {
-          throw new Error("Logout failed");
+
+          throw new Error(
+            "Logout failed"
+          );
         }
+
 
         window.location.href =
           "https://atlantaayyappasevasangam.org/member-login";
+
 
       } catch (error) {
 
         console.error(error);
 
+
         if (button) {
+
           button.disabled = false;
-          button.textContent = "Logout";
+
+          button.textContent =
+            "Logout";
         }
+
 
         alert(
           "Unable to log out right now. Please try again."
@@ -337,6 +925,7 @@
 
 
     loadMember();
+
   </script>
 
 </body>
