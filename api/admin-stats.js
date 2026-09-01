@@ -733,78 +733,70 @@ function buildRegistrationTrends(
   numberOfMonths = 12
 ) {
 
-  const now =
-    new Date();
+  const timeZone =
+    "America/New_York";
 
 
-  // Current month in UTC.
-  const currentMonth =
-    new Date(
-      Date.UTC(
-        now.getUTCFullYear(),
-        now.getUTCMonth(),
-        1
-      )
+  // Get today's Atlanta year/month
+  const nowParts =
+    getDatePartsInTimeZone(
+      new Date(),
+      timeZone
     );
+
+
+  const currentYear =
+    nowParts.year;
+
+  const currentMonth =
+    nowParts.month;
 
 
   const months = [];
 
 
-  // Build chronological list:
-  // oldest month -> current month.
-
+  // Create the last 12 Atlanta calendar months
   for (
     let offset = numberOfMonths - 1;
     offset >= 0;
     offset--
   ) {
 
-    const date =
+    const monthDate =
       new Date(
-        Date.UTC(
-          currentMonth.getUTCFullYear(),
-          currentMonth.getUTCMonth() - offset,
-          1
-        )
+        currentYear,
+        currentMonth - 1 - offset,
+        1
       );
 
 
     const year =
-      date.getUTCFullYear();
+      monthDate.getFullYear();
 
-
-    const monthNumber =
-      date.getUTCMonth() + 1;
+    const month =
+      monthDate.getMonth() + 1;
 
 
     const monthKey =
-      `${year}-${String(monthNumber).padStart(2, "0")}`;
+      `${year}-${String(month).padStart(2, "0")}`;
 
 
     const label =
-      date.toLocaleString(
+      monthDate.toLocaleString(
         "en-US",
         {
           month: "short",
-          year: "numeric",
-          timeZone: "UTC"
+          year: "numeric"
         }
       );
 
 
     months.push({
-
-      month:
-        monthKey,
-
+      month: monthKey,
       label,
-
       count: 0
-
     });
   }
-
 
 
   const monthMap =
@@ -816,19 +808,18 @@ function buildRegistrationTrends(
     );
 
 
-
+  // Count registrations using Atlanta local date
   for (const date of dates) {
 
-    const year =
-      date.getUTCFullYear();
-
-
-    const monthNumber =
-      date.getUTCMonth() + 1;
+    const parts =
+      getDatePartsInTimeZone(
+        date,
+        timeZone
+      );
 
 
     const monthKey =
-      `${year}-${String(monthNumber).padStart(2, "0")}`;
+      `${parts.year}-${String(parts.month).padStart(2, "0")}`;
 
 
     const target =
@@ -836,7 +827,6 @@ function buildRegistrationTrends(
 
 
     if (target) {
-
       target.count += 1;
     }
   }
@@ -845,9 +835,50 @@ function buildRegistrationTrends(
   return months;
 }
 
+function getDatePartsInTimeZone(
+  date,
+  timeZone
+) {
+
+  const formatter =
+    new Intl.DateTimeFormat(
+      "en-US",
+      {
+        timeZone,
+        year: "numeric",
+        month: "numeric",
+        day: "numeric"
+      }
+    );
 
 
+  const parts =
+    formatter.formatToParts(date);
 
+
+  const values = {};
+
+
+  for (const part of parts) {
+
+    if (
+      part.type === "year" ||
+      part.type === "month" ||
+      part.type === "day"
+    ) {
+
+      values[part.type] =
+        Number(part.value);
+    }
+  }
+
+
+  return {
+    year: values.year,
+    month: values.month,
+    day: values.day
+  };
+}
 
 // ====================================================
 // Safely parse Baserow Created on timestamp
