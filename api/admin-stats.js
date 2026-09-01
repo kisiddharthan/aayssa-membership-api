@@ -15,6 +15,7 @@ export default async function handler(req, res) {
     const accessToken =
       cookies.aayssa_access;
 
+
     if (!accessToken) {
       return res.status(401).json({
         success: false,
@@ -55,15 +56,16 @@ export default async function handler(req, res) {
 
 
 
-    // ------------------------------------------------
+    // ==================================================
     // 1. Validate current Supabase session
-    // ------------------------------------------------
+    // ==================================================
 
     const userResponse =
       await fetch(
         `${SUPABASE_URL}/auth/v1/user`,
         {
           headers: {
+
             apikey:
               SUPABASE_PUBLISHABLE_KEY,
 
@@ -104,9 +106,9 @@ export default async function handler(req, res) {
 
 
 
-    // ------------------------------------------------
+    // ==================================================
     // 2. Look up authenticated member in Baserow
-    // ------------------------------------------------
+    // ==================================================
 
     const memberLookupUrl =
       `https://api.baserow.io/api/database/rows/table/${BASEROW_TABLE_ID}/` +
@@ -166,13 +168,13 @@ export default async function handler(req, res) {
 
 
 
-    // ------------------------------------------------
+    // ==================================================
     // 3. Server-side BOARD / ADMIN authorization
     //
     // Member = 7473604
     // Board  = 7473605
     // Admin  = 7473606
-    // ------------------------------------------------
+    // ==================================================
 
     const roleField =
       memberRow.field_10493689;
@@ -207,12 +209,54 @@ export default async function handler(req, res) {
 
 
 
-    // ------------------------------------------------
-    // 4. Retrieve ALL membership rows
+    // ==================================================
+    // 4. Find Baserow automatic "Created on" field
     //
-    // Runs SERVER-SIDE only.
+    // We discover it by field TYPE instead of
+    // hard-coding a field ID.
+    // ==================================================
+
+    let createdOnFieldKey = null;
+
+
+    try {
+
+      createdOnFieldKey =
+        await findCreatedOnFieldKey(
+          BASEROW_TABLE_ID,
+          BASEROW_TOKEN
+        );
+
+
+      if (!createdOnFieldKey) {
+
+        console.warn(
+          "No Baserow Created on field was found."
+        );
+      }
+
+
+    } catch (error) {
+
+      console.error(
+        "Unable to discover Created on field:",
+        error
+      );
+
+      // Dashboard should continue working even if
+      // registration trends cannot be calculated.
+
+      createdOnFieldKey = null;
+    }
+
+
+
+    // ==================================================
+    // 5. Retrieve ALL membership rows
+    //
+    // SERVER-SIDE only.
     // Baserow token never reaches browser.
-    // ------------------------------------------------
+    // ==================================================
 
     const rows =
       await fetchAllBaserowRows(
@@ -222,9 +266,9 @@ export default async function handler(req, res) {
 
 
 
-    // ------------------------------------------------
-    // 5. Aggregate statistics
-    // ------------------------------------------------
+    // ==================================================
+    // 6. Aggregate current dashboard statistics
+    // ==================================================
 
     let registeredFamilies = 0;
 
@@ -236,10 +280,15 @@ export default async function handler(req, res) {
 
 
     const volunteerCounts = {
+
       Pooja: 0,
+
       Annadhanam: 0,
+
       Bhajan: 0,
+
       Media: 0,
+
       Decorations: 0
     };
 
@@ -252,6 +301,11 @@ export default async function handler(req, res) {
 
 
 
+    // Store valid registration dates here.
+    const registrationDates = [];
+
+
+
     for (const row of rows) {
 
       registeredFamilies += 1;
@@ -261,9 +315,6 @@ export default async function handler(req, res) {
       // ----------------------------------------------
       // Membership Status
       // field_10227507
-      //
-      // Still calculated internally.
-      // Not displayed to normal members.
       // ----------------------------------------------
 
       const status =
@@ -283,7 +334,8 @@ export default async function handler(req, res) {
 
 
       // ----------------------------------------------
-      // Adults / Kids
+      // Adults
+      // field_10281686
       // ----------------------------------------------
 
       totalAdults +=
@@ -291,6 +343,12 @@ export default async function handler(req, res) {
           row.field_10281686
         );
 
+
+
+      // ----------------------------------------------
+      // Kids
+      // field_10281655
+      // ----------------------------------------------
 
       totalKids +=
         safeNumber(
@@ -365,6 +423,32 @@ export default async function handler(req, res) {
           volunteerCounts[interest] += 1;
         }
       }
+
+
+
+      // ----------------------------------------------
+      // Registration Date / Created on
+      // ----------------------------------------------
+
+      if (createdOnFieldKey) {
+
+        const rawCreatedOn =
+          row[createdOnFieldKey];
+
+
+        const createdDate =
+          parseBaserowDate(
+            rawCreatedOn
+          );
+
+
+        if (createdDate) {
+
+          registrationDates.push(
+            createdDate
+          );
+        }
+      }
     }
 
 
@@ -374,9 +458,27 @@ export default async function handler(req, res) {
 
 
 
-    // ------------------------------------------------
-    // 6. Return aggregate dashboard information only
-    // ------------------------------------------------
+    // ==================================================
+    // 7. Build last 12 months Registration Trends
+    // ==================================================
+
+    let registrationTrends = [];
+
+
+    if (createdOnFieldKey) {
+
+      registrationTrends =
+        buildRegistrationTrends(
+          registrationDates,
+          12
+        );
+    }
+
+
+
+    // ==================================================
+    // 8. Return aggregate dashboard information only
+    // ==================================================
 
     return res.status(200).json({
 
@@ -394,7 +496,9 @@ export default async function handler(req, res) {
 
         totalPeople,
 
+
         volunteerCounts,
+
 
         volunteerParticipation: {
 
@@ -406,7 +510,19 @@ export default async function handler(req, res) {
 
           otherFamilyMember:
             otherFamilyVolunteers
-        }
+        },
+
+
+        // --------------------------------------------
+        // NEW: Registration trend information
+        // --------------------------------------------
+
+        registrationTrendAvailable:
+          Boolean(createdOnFieldKey),
+
+
+        registrationTrends
+
       }
     });
 
@@ -421,11 +537,91 @@ export default async function handler(req, res) {
 
 
     return res.status(500).json({
+
       success: false,
+
       message:
         "Unable to load dashboard statistics."
     });
   }
+}
+
+
+
+
+
+// ====================================================
+// Find Baserow automatic Created on field
+//
+// Calls the table field-schema endpoint and searches
+// for a field whose type is "created_on".
+//
+// Returns something like:
+//
+// field_12345678
+//
+// No Created on field ID needs to be hard-coded.
+// ====================================================
+
+async function findCreatedOnFieldKey(
+  tableId,
+  token
+) {
+
+  const url =
+    `https://api.baserow.io/api/database/fields/table/${tableId}/`;
+
+
+  const response =
+    await fetch(
+      url,
+      {
+        headers: {
+          Authorization:
+            `Token ${token}`
+        }
+      }
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      `Unable to retrieve Baserow field schema: ${response.status}`
+    );
+  }
+
+
+  const fields =
+    await response.json();
+
+
+  if (!Array.isArray(fields)) {
+
+    return null;
+  }
+
+
+
+  // First preference:
+  // specifically find an automatic Created on field.
+
+  const createdOnField =
+    fields.find(field =>
+      field?.type === "created_on"
+    );
+
+
+  if (
+    !createdOnField ||
+    !createdOnField.id
+  ) {
+
+    return null;
+  }
+
+
+  return `field_${createdOnField.id}`;
 }
 
 
@@ -504,6 +700,183 @@ async function fetchAllBaserowRows(
 
 
   return rows;
+}
+
+
+
+
+
+// ====================================================
+// Build monthly registration trends
+//
+// Example output:
+//
+// [
+//   {
+//     month: "2026-01",
+//     label: "Jan 2026",
+//     count: 3
+//   },
+//   {
+//     month: "2026-02",
+//     label: "Feb 2026",
+//     count: 7
+//   }
+// ]
+//
+// Includes months with ZERO registrations so the
+// chart stays continuous.
+// ====================================================
+
+function buildRegistrationTrends(
+  dates,
+  numberOfMonths = 12
+) {
+
+  const now =
+    new Date();
+
+
+  // Current month in UTC.
+  const currentMonth =
+    new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        1
+      )
+    );
+
+
+  const months = [];
+
+
+  // Build chronological list:
+  // oldest month -> current month.
+
+  for (
+    let offset = numberOfMonths - 1;
+    offset >= 0;
+    offset--
+  ) {
+
+    const date =
+      new Date(
+        Date.UTC(
+          currentMonth.getUTCFullYear(),
+          currentMonth.getUTCMonth() - offset,
+          1
+        )
+      );
+
+
+    const year =
+      date.getUTCFullYear();
+
+
+    const monthNumber =
+      date.getUTCMonth() + 1;
+
+
+    const monthKey =
+      `${year}-${String(monthNumber).padStart(2, "0")}`;
+
+
+    const label =
+      date.toLocaleString(
+        "en-US",
+        {
+          month: "short",
+          year: "numeric",
+          timeZone: "UTC"
+        }
+      );
+
+
+    months.push({
+
+      month:
+        monthKey,
+
+      label,
+
+      count: 0
+
+    });
+  }
+
+
+
+  const monthMap =
+    new Map(
+      months.map(item => [
+        item.month,
+        item
+      ])
+    );
+
+
+
+  for (const date of dates) {
+
+    const year =
+      date.getUTCFullYear();
+
+
+    const monthNumber =
+      date.getUTCMonth() + 1;
+
+
+    const monthKey =
+      `${year}-${String(monthNumber).padStart(2, "0")}`;
+
+
+    const target =
+      monthMap.get(monthKey);
+
+
+    if (target) {
+
+      target.count += 1;
+    }
+  }
+
+
+  return months;
+}
+
+
+
+
+
+// ====================================================
+// Safely parse Baserow Created on timestamp
+// ====================================================
+
+function parseBaserowDate(value) {
+
+  if (!value) {
+    return null;
+  }
+
+
+  // Baserow normally returns an ISO date/time string.
+
+  const date =
+    new Date(value);
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+
+    return null;
+  }
+
+
+  return date;
 }
 
 
