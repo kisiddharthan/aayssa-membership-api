@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -35,7 +36,7 @@
       background: #fff;
       border-radius: 14px;
       padding: 34px;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
     }
 
     h1 {
@@ -51,16 +52,38 @@
     }
 
     #status {
+      line-height: 1.7;
+    }
+
+    .loading,
+    .message {
       text-align: center;
-      line-height: 1.6;
+    }
+
+    .member-name {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 22px;
+    }
+
+    .member-row {
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .edit-button {
+      display: inline-block;
+      margin-top: 22px;
+      padding: 12px 20px;
+      background: #a75f00;
+      color: white;
+      text-decoration: none;
+      border-radius: 7px;
+      font-weight: 700;
     }
 
     .error {
       color: #a32929;
-    }
-
-    .success {
-      color: #246b31;
     }
   </style>
 </head>
@@ -80,94 +103,164 @@
         Swamiye Saranam Ayyappa
       </div>
 
-      <div id="status">
-        Securely signing you in...
+      <div id="status" class="loading">
+        Loading your membership...
       </div>
 
     </div>
   </div>
 
-<script>
-(async function () {
+  <script>
+    async function loadMember() {
 
-  const status = document.getElementById("status");
+      const status = document.getElementById("status");
 
-  function show(text, className = "") {
-    status.textContent = text;
-    status.className = className;
-  }
+      try {
 
-  const hash = window.location.hash;
+        const response = await fetch("/api/me", {
+          method: "GET",
+          credentials: "include"
+        });
 
-  if (!hash) {
-    show(
-      "No active login session was found. Please return to the AAYSSA Member Login page and request a new secure login link."
-    );
-    return;
-  }
+        if (response.status === 401) {
 
-  const params = new URLSearchParams(hash.substring(1));
+          status.className = "message";
 
-  const accessToken = params.get("access_token");
-  const refreshToken = params.get("refresh_token");
+          status.innerHTML = `
+            <p><strong>No active login session was found.</strong></p>
 
-  if (!accessToken || !refreshToken) {
-    show(
-      "The secure login link is incomplete or has expired. Please request a new login link.",
-      "error"
-    );
-    return;
-  }
+            <p>
+              Please return to the AAYSSA Member Login page
+              and request a new secure login link.
+            </p>
 
-  try {
+            <p>
+              <a href="https://atlantaayyappasevasangam.org/member-login">
+                Return to Member Login
+              </a>
+            </p>
+          `;
 
-    const response = await fetch("/api/session", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        accessToken,
-        refreshToken
-      })
-    });
+          return;
+        }
 
-    const data = await response.json();
+        if (response.status === 403) {
 
-    if (!response.ok) {
-      throw new Error(data.message || "Unable to create session.");
+          status.className = "message error";
+
+          status.innerHTML = `
+            <p>
+              Your authenticated email could not be matched
+              to an active AAYSSA membership.
+            </p>
+          `;
+
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error("Unable to load member profile");
+        }
+
+        const member = await response.json();
+
+        const spouseName =
+          `${member.spouseFirstName || ""} ${member.spouseLastName || ""}`.trim();
+
+        const membershipStatus =
+          member.status?.value ||
+          member.status ||
+          "-";
+
+        status.className = "";
+
+        status.innerHTML = `
+
+          <div class="member-name">
+            Welcome, ${member.firstName || ""} ${member.lastName || ""}
+          </div>
+
+          <div class="member-row">
+            <strong>Membership ID:</strong>
+            ${member.membershipId || "-"}
+          </div>
+
+          <div class="member-row">
+            <strong>Membership Status:</strong>
+            ${membershipStatus}
+          </div>
+
+          <div class="member-row">
+            <strong>Role:</strong>
+            ${member.role || "Member"}
+          </div>
+
+          <div class="member-row">
+            <strong>Email:</strong>
+            ${member.email || "-"}
+          </div>
+
+          <div class="member-row">
+            <strong>Mobile:</strong>
+            ${member.mobile || "-"}
+          </div>
+
+          <div class="member-row">
+            <strong>Address:</strong>
+            ${member.address || "-"}
+          </div>
+
+          <div class="member-row">
+            <strong>Spouse:</strong>
+            ${spouseName || "-"}
+          </div>
+
+          <div class="member-row">
+            <strong>Adults:</strong>
+            ${member.noOfAdults ?? "-"}
+          </div>
+
+          <div class="member-row">
+            <strong>Kids:</strong>
+            ${member.noOfKids ?? "-"}
+          </div>
+
+          ${
+            member.editProfileLink
+              ? `
+                <a
+                  class="edit-button"
+                  href="${member.editProfileLink}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Edit Profile
+                </a>
+              `
+              : ""
+          }
+        `;
+
+      } catch (error) {
+
+        console.error(error);
+
+        status.className = "message error";
+
+        status.innerHTML = `
+          <p>
+            We couldn't load your member profile right now.
+          </p>
+
+          <p>
+            Please try again shortly.
+          </p>
+        `;
+      }
     }
 
-    // Remove Supabase tokens from the visible browser URL
-    history.replaceState(
-      null,
-      "",
-      window.location.pathname
-    );
-
-    show(
-      "Login successful. Loading your AAYSSA membership...",
-      "success"
-    );
-
-    // We will replace this with the member dashboard next.
-    setTimeout(() => {
-      window.location.reload();
-    }, 800);
-
-  } catch (error) {
-
-    console.error(error);
-
-    show(
-      "We could not complete your secure login. Please request a new login link.",
-      "error"
-    );
-
-  }
-
-})();
-</script>
+    loadMember();
+  </script>
 
 </body>
 </html>
