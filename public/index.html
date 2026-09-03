@@ -8,73 +8,144 @@
   <title>AAYSSA Member Portal</title>
 
   <style>
+
     * {
       box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
     }
 
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: #f6f3ed;
+      background: #f7f6f3;
       color: #222;
     }
 
-    .topbar {
-      background: #111;
-      color: white;
-      padding: 14px 22px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
+
+    /* =====================================================
+       AAYSSA WEBSITE HEADER
+       ===================================================== */
+
+    .site-header {
+      width: 100%;
+      background: #000;
     }
 
-    .topbar img {
-      width: 54px;
-      height: 54px;
+    .site-header-inner {
+      max-width: 1650px;
+      min-height: 184px;
+      margin: 0 auto;
+      padding: 18px 70px;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .site-logo-link {
+      display: block;
+      text-decoration: none;
+    }
+
+    .site-logo {
+      width: 145px;
+      height: 145px;
       object-fit: contain;
-      border-radius: 8px;
+      display: block;
+    }
+
+    .site-nav {
+      display: flex;
+      align-items: center;
+      gap: 46px;
+    }
+
+    .site-nav a {
+      color: #ddd;
+      text-decoration: none;
+      font-size: 16px;
+      letter-spacing: 1.4px;
+      font-weight: 400;
+      white-space: nowrap;
+      transition: color 0.2s ease;
+    }
+
+    .site-nav a:hover {
+      color: #fff;
+    }
+
+    .site-nav .active {
+      color: #fff;
+    }
+
+    .mobile-menu-button {
+      display: none;
+      background: transparent;
+      border: 0;
+      color: white;
+      font-size: 30px;
+      cursor: pointer;
+      padding: 8px;
+    }
+
+
+    /* =====================================================
+       PORTAL HEADING
+       ===================================================== */
+
+    .portal-heading {
+      text-align: center;
+      padding: 70px 20px 38px;
       background: white;
     }
 
-    .topbar-title {
-      font-weight: 700;
-      font-size: 18px;
-      line-height: 1.3;
+    .portal-heading h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 52px;
+      font-weight: 400;
+      letter-spacing: 1px;
+      color: #111;
     }
 
-    .topbar-subtitle {
-      font-size: 13px;
-      opacity: 0.8;
-      margin-top: 2px;
-    }
-
-    .page {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 34px 18px 50px;
-    }
-
-    .hero {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-
-    h1 {
-      margin: 5px 0 8px;
-      font-size: 30px;
+    .heading-divider {
+      width: 62px;
+      height: 2px;
+      background: #ddd;
+      margin: 34px auto 28px;
     }
 
     .mantra {
-      color: #a75f00;
+      color: #b56800;
+      font-size: 20px;
       font-weight: 700;
-      margin-bottom: 8px;
+    }
+
+
+    /* =====================================================
+       MAIN PAGE
+       ===================================================== */
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 38px 18px 55px;
     }
 
     .welcome {
-      font-size: 22px;
-      font-weight: 700;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 25px;
+      font-weight: 400;
       margin-bottom: 22px;
     }
+
+
+    /* =====================================================
+       MEMBER CARDS
+       ===================================================== */
 
     .grid {
       display: grid;
@@ -87,9 +158,10 @@
     .trend-card,
     .directory-card {
       background: white;
-      border-radius: 14px;
+      border: 1px solid #e8e5df;
+      border-radius: 12px;
       padding: 22px;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.045);
     }
 
     .section-card h2,
@@ -97,7 +169,11 @@
     .trend-card h3,
     .directory-card h3 {
       margin: 0 0 16px;
-      color: #7d4700;
+      color: #8b5100;
+    }
+
+    .section-card h2 {
+      font-size: 18px;
     }
 
     .info-row {
@@ -112,17 +188,22 @@
     .label {
       display: block;
       color: #777;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.4px;
-      margin-bottom: 3px;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
     }
 
     .value {
       font-size: 15px;
       overflow-wrap: anywhere;
     }
+
+
+    /* =====================================================
+       CHIPS
+       ===================================================== */
 
     .chips {
       display: flex;
@@ -132,13 +213,18 @@
     }
 
     .chip {
-      background: #f3e8d5;
+      background: #f4eadb;
       color: #754200;
       border-radius: 999px;
       padding: 7px 11px;
       font-size: 13px;
       font-weight: 700;
     }
+
+
+    /* =====================================================
+       COMMUNICATION PREFERENCES
+       ===================================================== */
 
     .preference {
       display: inline-block;
@@ -160,12 +246,17 @@
       color: #777;
     }
 
+
+    /* =====================================================
+       BUTTONS
+       ===================================================== */
+
     .actions {
       display: flex;
       justify-content: center;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: 28px;
+      margin-top: 30px;
     }
 
     .edit-button,
@@ -173,7 +264,7 @@
     .login-button {
       display: inline-block;
       padding: 12px 22px;
-      border-radius: 8px;
+      border-radius: 7px;
       border: none;
       font-weight: 700;
       font-size: 14px;
@@ -183,8 +274,13 @@
 
     .edit-button,
     .login-button {
-      background: #a75f00;
+      background: #b96c00;
       color: white;
+    }
+
+    .edit-button:hover,
+    .login-button:hover {
+      background: #995900;
     }
 
     .logout-button {
@@ -192,39 +288,88 @@
       color: white;
     }
 
+    .logout-button:hover {
+      background: #111;
+    }
+
     button:disabled {
-      opacity: 0.6;
+      opacity: 0.55;
       cursor: not-allowed;
     }
+
+
+    /* =====================================================
+       LOADING / MESSAGES
+       ===================================================== */
 
     .loading,
     .message,
     .dashboard-loading {
       background: white;
-      border-radius: 14px;
+      border: 1px solid #e8e5df;
+      border-radius: 12px;
       padding: 30px;
       text-align: center;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.045);
     }
 
     .error {
       color: #a32929;
     }
 
+
+    /* =====================================================
+       ROLE BADGES
+       ===================================================== */
+
+    .admin-badge,
+    .board-badge,
+    .role-badge,
+    .status-badge {
+      display: inline-block;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+
+    .admin-badge,
+    .role-badge {
+      background: #8b5100;
+    }
+
+    .board-badge {
+      background: #555;
+    }
+
+    .status-badge {
+      background: #26783c;
+    }
+
+
+    /* =====================================================
+       DASHBOARD
+       ===================================================== */
+
     .dashboard {
-      margin-top: 34px;
-      padding-top: 30px;
-      border-top: 2px solid #eadfce;
+      margin-top: 38px;
+      padding-top: 34px;
+      border-top: 1px solid #ddd7ce;
     }
 
     .dashboard-header {
-      margin-bottom: 18px;
+      margin-bottom: 20px;
     }
 
     .dashboard-header h2 {
-      margin: 0 0 5px;
-      color: #7d4700;
-      font-size: 24px;
+      margin: 0 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 27px;
+      font-weight: 400;
+      color: #111;
     }
 
     .dashboard-header p {
@@ -242,21 +387,22 @@
 
     .stat-card {
       background: white;
-      border-radius: 14px;
+      border: 1px solid #e8e5df;
+      border-radius: 12px;
       padding: 20px 14px;
       text-align: center;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.045);
     }
 
     .stat-number {
       font-size: 30px;
       font-weight: 800;
-      color: #7d4700;
+      color: #8b5100;
     }
 
     .stat-label {
       margin-top: 6px;
-      font-size: 12px;
+      font-size: 11px;
       color: #777;
       font-weight: 700;
       text-transform: uppercase;
@@ -284,8 +430,13 @@
 
     .dashboard-number {
       font-weight: 800;
-      color: #7d4700;
+      color: #8b5100;
     }
+
+
+    /* =====================================================
+       REGISTRATION TREND
+       ===================================================== */
 
     .trend-card {
       margin-top: 20px;
@@ -330,7 +481,7 @@
       margin-bottom: 5px;
       font-size: 12px;
       font-weight: 800;
-      color: #7d4700;
+      color: #8b5100;
     }
 
     .trend-bar-area {
@@ -345,7 +496,11 @@
       width: 65%;
       max-width: 48px;
       min-width: 16px;
-      background: linear-gradient(180deg, #c67a12, #8a4c00);
+      background: linear-gradient(
+        180deg,
+        #c77a10,
+        #8b5100
+      );
       border-radius: 7px 7px 0 0;
       min-height: 3px;
     }
@@ -360,6 +515,11 @@
       line-height: 1.25;
       white-space: nowrap;
     }
+
+
+    /* =====================================================
+       MEMBER DIRECTORY
+       ===================================================== */
 
     .directory-card {
       margin-top: 20px;
@@ -377,18 +537,28 @@
       min-width: 220px;
       padding: 12px 14px;
       border: 1px solid #ccc;
-      border-radius: 8px;
+      border-radius: 7px;
       font-size: 14px;
+      outline: none;
+    }
+
+    .directory-search:focus {
+      border-color: #b96c00;
+      box-shadow: 0 0 0 2px rgba(185, 108, 0, 0.12);
     }
 
     .directory-search-button {
       border: none;
-      background: #a75f00;
+      background: #b96c00;
       color: white;
-      padding: 12px 18px;
-      border-radius: 8px;
+      padding: 12px 20px;
+      border-radius: 7px;
       font-weight: 700;
       cursor: pointer;
+    }
+
+    .directory-search-button:hover {
+      background: #995900;
     }
 
     .directory-results {
@@ -398,7 +568,7 @@
 
     .member-card {
       border: 1px solid #eee;
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 18px;
       background: #fffdf9;
     }
@@ -408,7 +578,7 @@
       justify-content: space-between;
       gap: 12px;
       align-items: flex-start;
-      margin-bottom: 12px;
+      margin-bottom: 15px;
       flex-wrap: wrap;
     }
 
@@ -421,42 +591,13 @@
     .member-meta {
       font-size: 12px;
       color: #777;
-      margin-top: 3px;
+      margin-top: 4px;
     }
 
     .member-detail-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px 20px;
-    }
-
-    .member-detail .label {
-      margin-bottom: 3px;
-    }
-
-    .role-badge,
-    .status-badge,
-    .admin-badge,
-    .board-badge {
-      display: inline-block;
-      color: white;
-      padding: 5px 10px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 700;
-    }
-
-    .admin-badge,
-    .role-badge {
-      background: #7d4700;
-    }
-
-    .board-badge {
-      background: #555;
-    }
-
-    .status-badge {
-      background: #26783c;
+      gap: 14px 20px;
     }
 
     .pagination {
@@ -464,14 +605,14 @@
       justify-content: center;
       align-items: center;
       gap: 12px;
-      margin-top: 20px;
+      margin-top: 22px;
       flex-wrap: wrap;
     }
 
     .page-button {
       border: none;
       padding: 10px 16px;
-      border-radius: 8px;
+      border-radius: 7px;
       cursor: pointer;
       background: #333;
       color: white;
@@ -492,74 +633,240 @@
       border-radius: 10px;
     }
 
+
+    /* =====================================================
+       FOOTER
+       ===================================================== */
+
     .footer {
       text-align: center;
-      margin-top: 35px;
+      margin-top: 42px;
+      padding-top: 22px;
+      border-top: 1px solid #ddd;
       font-size: 12px;
       color: #777;
     }
 
-    @media (max-width: 900px) {
+
+    /* =====================================================
+       TABLET
+       ===================================================== */
+
+    @media (max-width: 1000px) {
+
+      .site-header-inner {
+        padding-left: 30px;
+        padding-right: 30px;
+      }
+
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
       }
+
     }
 
-    @media (max-width: 720px) {
+
+    /* =====================================================
+       MOBILE HEADER
+       ===================================================== */
+
+    @media (max-width: 760px) {
+
+      .site-header-inner {
+        min-height: auto;
+        padding: 14px 20px;
+        flex-wrap: wrap;
+      }
+
+      .site-logo {
+        width: 90px;
+        height: 90px;
+      }
+
+      .mobile-menu-button {
+        display: block;
+      }
+
+      .site-nav {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        padding: 12px 0 8px;
+      }
+
+      .site-nav.open {
+        display: flex;
+      }
+
+      .site-nav a {
+        width: 100%;
+        padding: 14px 4px;
+        border-top: 1px solid #222;
+        font-size: 13px;
+      }
+
+      .portal-heading {
+        padding: 45px 15px 30px;
+      }
+
+      .portal-heading h1 {
+        font-size: 34px;
+      }
+
+      .heading-divider {
+        margin-top: 25px;
+        margin-bottom: 22px;
+      }
+
+      .mantra {
+        font-size: 17px;
+      }
+
+      .page {
+        padding: 28px 14px 40px;
+      }
+
       .grid,
       .dashboard-grid,
       .member-detail-grid {
         grid-template-columns: 1fr;
       }
 
-      .page {
-        padding: 24px 14px 40px;
-      }
     }
 
+
     @media (max-width: 430px) {
+
       .stats-grid {
         grid-template-columns: 1fr;
       }
+
+      .welcome {
+        font-size: 21px;
+      }
+
     }
+
   </style>
 </head>
 
+
 <body>
 
-<header class="topbar">
-  <img src="/aayssa-logo.jpg" alt="AAYSSA Logo">
 
-  <div>
-    <div class="topbar-title">
-      Atlanta Ayyappa Seva Sangam
-    </div>
+<!-- =====================================================
+     AAYSSA HEADER
+     ===================================================== -->
 
-    <div class="topbar-subtitle">
-      AAYSSA Member Portal
-    </div>
+<header class="site-header">
+
+  <div class="site-header-inner">
+
+    <a
+      href="https://atlantaayyappasevasangam.org/"
+      class="site-logo-link"
+      aria-label="AAYSSA Home"
+    >
+
+      <img
+        src="/aayssa-logo.jpg"
+        alt="Atlanta Ayyappa Seva Sangam"
+        class="site-logo"
+      >
+
+    </a>
+
+
+    <button
+      id="mobileMenuButton"
+      class="mobile-menu-button"
+      type="button"
+      aria-label="Open menu"
+      aria-expanded="false"
+    >
+      ☰
+    </button>
+
+
+    <nav
+      id="siteNav"
+      class="site-nav"
+      aria-label="Main navigation"
+    >
+
+      <a
+        href="https://atlantaayyappasevasangam.org/"
+      >
+        HOME
+      </a>
+
+
+      <a
+        href="https://atlantaayyappasevasangam.org/about-us"
+      >
+        ABOUT US
+      </a>
+
+
+      <a
+        href="https://atlantaayyappasevasangam.org/membership"
+      >
+        MEMBERSHIP
+      </a>
+
+    </nav>
+
   </div>
+
 </header>
+
+
+
+<!-- =====================================================
+     PORTAL TITLE
+     ===================================================== -->
+
+<section class="portal-heading">
+
+  <h1>
+    AAYSSA MEMBER PORTAL
+  </h1>
+
+  <div class="heading-divider"></div>
+
+  <div class="mantra">
+    Swamiye Saranam Ayyappa
+  </div>
+
+</section>
+
+
+
+<!-- =====================================================
+     MEMBER PORTAL
+     ===================================================== -->
 
 <main class="page">
 
-  <div class="hero">
-    <h1>AAYSSA Member Portal</h1>
-
-    <div class="mantra">
-      Swamiye Saranam Ayyappa
-    </div>
-  </div>
-
-  <div id="status" class="loading">
+  <div
+    id="status"
+    class="loading"
+  >
     Loading your membership...
   </div>
 
+
   <div class="footer">
+
     Atlanta Ayyappa Seva Sangam (AAYSSA)
+
   </div>
 
 </main>
+
+
 
 <script>
 
@@ -567,7 +874,55 @@
   let directorySearchQuery = "";
 
 
+  /* =====================================================
+     MOBILE MENU
+     ===================================================== */
+
+  const mobileMenuButton =
+    document.getElementById(
+      "mobileMenuButton"
+    );
+
+
+  const siteNav =
+    document.getElementById(
+      "siteNav"
+    );
+
+
+  mobileMenuButton.addEventListener(
+    "click",
+    () => {
+
+      const isOpen =
+        siteNav.classList.toggle(
+          "open"
+        );
+
+
+      mobileMenuButton.setAttribute(
+        "aria-expanded",
+        isOpen
+          ? "true"
+          : "false"
+      );
+
+
+      mobileMenuButton.textContent =
+        isOpen
+          ? "✕"
+          : "☰";
+    }
+  );
+
+
+
+  /* =====================================================
+     HELPERS
+     ===================================================== */
+
   function escapeHtml(value) {
+
     return String(value ?? "")
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
@@ -578,82 +933,141 @@
 
 
   function displayValue(value) {
+
     if (
       value === null ||
       value === undefined ||
       value === ""
     ) {
+
       return "-";
     }
+
 
     return escapeHtml(value);
   }
 
 
   function getMultiSelectValues(items) {
+
     if (!Array.isArray(items)) {
       return [];
     }
 
+
     return items
       .map(item => {
-        if (typeof item === "string") {
+
+        if (
+          typeof item === "string"
+        ) {
+
           return item;
         }
 
-        return item?.value || item?.name || "";
+
+        return (
+          item?.value ||
+          item?.name ||
+          ""
+        );
+
       })
       .filter(Boolean);
   }
 
 
   function renderChips(items) {
-    const values = getMultiSelectValues(items);
+
+    const values =
+      getMultiSelectValues(items);
+
 
     if (values.length === 0) {
-      return `<span class="value">-</span>`;
+
+      return `
+        <span class="value">
+          -
+        </span>
+      `;
     }
 
+
     return `
+
       <div class="chips">
+
         ${values.map(value => `
+
           <span class="chip">
             ${escapeHtml(value)}
           </span>
+
         `).join("")}
+
       </div>
     `;
   }
 
 
   function hasDashboardAccess(role) {
-    return role === "Board" || role === "Admin";
+
+    return (
+      role === "Board" ||
+      role === "Admin"
+    );
   }
 
 
   function renderRoleBadge(role) {
+
     if (role === "Admin") {
-      return `<span class="admin-badge">ADMIN</span>`;
+
+      return `
+        <span class="admin-badge">
+          ADMIN
+        </span>
+      `;
     }
 
+
     if (role === "Board") {
-      return `<span class="board-badge">BOARD</span>`;
+
+      return `
+        <span class="board-badge">
+          BOARD
+        </span>
+      `;
     }
+
 
     return "";
   }
 
 
-  function renderRegistrationTrend(trends, available) {
+
+  /* =====================================================
+     REGISTRATION TREND
+     ===================================================== */
+
+  function renderRegistrationTrend(
+    trends,
+    available
+  ) {
 
     if (
       !available ||
       !Array.isArray(trends) ||
       trends.length === 0
     ) {
+
       return `
+
         <div class="trend-card">
-          <h3>Registration Trends</h3>
+
+          <h3>
+            Registration Trends
+          </h3>
 
           <div class="trend-subtitle">
             New family registrations during the last 12 months
@@ -662,67 +1076,91 @@
           <div class="directory-empty">
             Registration trend data is not available.
           </div>
+
         </div>
       `;
     }
 
 
-    const maxCount = Math.max(
-      ...trends.map(item => Number(item.count || 0)),
-      1
-    );
+    const maxCount =
+      Math.max(
+        ...trends.map(
+          item =>
+            Number(item.count || 0)
+        ),
+        1
+      );
 
 
-    const bars = trends.map(item => {
+    const bars =
+      trends.map(item => {
 
-      const count = Number(item.count || 0);
+        const count =
+          Number(
+            item.count || 0
+          );
 
-      const percentage =
-        count === 0
-          ? 1
-          : Math.max(
-              3,
-              Math.round((count / maxCount) * 100)
-            );
 
-      return `
-        <div class="trend-column">
+        const percentage =
+          count === 0
+            ? 1
+            : Math.max(
+                3,
+                Math.round(
+                  (count / maxCount) * 100
+                )
+              );
 
-          <div class="trend-count">
-            ${count}
+
+        return `
+
+          <div class="trend-column">
+
+            <div class="trend-count">
+              ${count}
+            </div>
+
+
+            <div class="trend-bar-area">
+
+              <div
+                class="trend-bar"
+                style="height:${percentage}%"
+                title="${escapeHtml(item.label)}: ${count}"
+              ></div>
+
+            </div>
+
+
+            <div class="trend-label">
+              ${escapeHtml(item.label)}
+            </div>
+
           </div>
+        `;
 
-          <div class="trend-bar-area">
-            <div
-              class="trend-bar"
-              style="height:${percentage}%"
-              title="${escapeHtml(item.label)}: ${count}"
-            ></div>
-          </div>
-
-          <div class="trend-label">
-            ${escapeHtml(item.label)}
-          </div>
-
-        </div>
-      `;
-
-    }).join("");
+      }).join("");
 
 
     return `
+
       <div class="trend-card">
 
-        <h3>Registration Trends</h3>
+        <h3>
+          Registration Trends
+        </h3>
 
         <div class="trend-subtitle">
           New family registrations during the last 12 months
         </div>
 
+
         <div class="trend-chart-scroll">
+
           <div class="trend-chart">
             ${bars}
           </div>
+
         </div>
 
       </div>
@@ -730,15 +1168,26 @@
   }
 
 
+
+  /* =====================================================
+     MEMBER DIRECTORY SHELL
+     ===================================================== */
+
   function renderMemberDirectoryShell() {
+
     return `
+
       <div class="directory-card">
 
-        <h3>Member Directory</h3>
+        <h3>
+          Member Directory
+        </h3>
+
 
         <div class="directory-subtitle">
           Search and review registered AAYSSA families
         </div>
+
 
         <div class="directory-toolbar">
 
@@ -748,6 +1197,7 @@
             type="search"
             placeholder="Search name, email, phone, seva..."
           >
+
 
           <button
             id="directorySearchButton"
@@ -759,6 +1209,7 @@
 
         </div>
 
+
         <div id="directoryResults">
           Loading member directory...
         </div>
@@ -768,34 +1219,68 @@
   }
 
 
-  async function loadMemberDirectory(page = 1) {
+
+  /* =====================================================
+     LOAD MEMBER DIRECTORY
+     ===================================================== */
+
+  async function loadMemberDirectory(
+    page = 1
+  ) {
 
     const container =
-      document.getElementById("directoryResults");
+      document.getElementById(
+        "directoryResults"
+      );
+
 
     if (!container) {
       return;
     }
 
-    container.innerHTML =
-      `<div class="directory-empty">Loading members...</div>`;
+
+    container.innerHTML = `
+
+      <div class="directory-empty">
+        Loading members...
+      </div>
+    `;
 
 
     try {
 
-      const params = new URLSearchParams();
+      const params =
+        new URLSearchParams();
 
-      params.set("page", page);
-      params.set("size", 20);
 
-      if (directorySearchQuery) {
-        params.set("q", directorySearchQuery);
+      params.set(
+        "page",
+        page
+      );
+
+
+      params.set(
+        "size",
+        20
+      );
+
+
+      if (
+        directorySearchQuery
+      ) {
+
+        params.set(
+          "q",
+          directorySearchQuery
+        );
       }
 
 
       const response =
         await fetch(
+
           `/api/admin-members?${params.toString()}`,
+
           {
             method: "GET",
             credentials: "include"
@@ -803,8 +1288,12 @@
         );
 
 
-      if (response.status === 403) {
+      if (
+        response.status === 403
+      ) {
+
         container.innerHTML = `
+
           <div class="directory-empty error">
             Board or administrator access required.
           </div>
@@ -815,6 +1304,7 @@
 
 
       if (!response.ok) {
+
         throw new Error(
           "Unable to load directory."
         );
@@ -830,7 +1320,9 @@
 
 
       const members =
-        Array.isArray(directory.members)
+        Array.isArray(
+          directory.members
+        )
           ? directory.members
           : [];
 
@@ -839,8 +1331,12 @@
         directory.page || 1;
 
 
-      if (members.length === 0) {
+      if (
+        members.length === 0
+      ) {
+
         container.innerHTML = `
+
           <div class="directory-empty">
             No members found.
           </div>
@@ -853,6 +1349,7 @@
       const memberCards =
         members.map(member => {
 
+
           const fullName =
             `${member.firstName || ""} ${member.lastName || ""}`
               .trim();
@@ -864,19 +1361,31 @@
 
 
           return `
+
             <div class="member-card">
 
+
               <div class="member-card-header">
+
 
                 <div>
 
                   <div class="member-name">
-                    ${escapeHtml(fullName || "AAYSSA Member")}
+                    ${escapeHtml(
+                      fullName ||
+                      "AAYSSA Member"
+                    )}
                   </div>
 
+
                   <div class="member-meta">
+
                     Registered:
-                    ${displayValue(member.registrationDate)}
+
+                    ${displayValue(
+                      member.registrationDate
+                    )}
+
                   </div>
 
                 </div>
@@ -884,27 +1393,38 @@
 
                 ${
                   member.role
+
                     ? `
+
                       <div>
+
                         <span class="role-badge">
                           ${escapeHtml(member.role)}
                         </span>
 
+
                         ${
                           member.status
+
                             ? `
+
                               <span class="status-badge">
                                 ${escapeHtml(member.status)}
                               </span>
+
                             `
+
                             : ""
                         }
+
                       </div>
                     `
+
                     : ""
                 }
 
               </div>
+
 
 
               <div class="member-detail-grid">
@@ -923,6 +1443,7 @@
                 </div>
 
 
+
                 <div class="member-detail">
 
                   <span class="label">
@@ -934,6 +1455,7 @@
                   </div>
 
                 </div>
+
 
 
                 <div class="member-detail">
@@ -949,6 +1471,7 @@
                 </div>
 
 
+
                 <div class="member-detail">
 
                   <span class="label">
@@ -956,13 +1479,17 @@
                   </span>
 
                   <div class="value">
+
                     ${member.noOfAdults ?? 0}
                     Adults /
+
                     ${member.noOfKids ?? 0}
                     Kids
+
                   </div>
 
                 </div>
+
 
 
                 <div class="member-detail">
@@ -978,6 +1505,7 @@
                 </div>
 
 
+
                 <div class="member-detail">
 
                   <span class="label">
@@ -989,6 +1517,7 @@
                   )}
 
                 </div>
+
 
 
                 <div class="member-detail">
@@ -1020,10 +1549,15 @@
 
         <div class="pagination">
 
+
           <button
             class="page-button"
             id="directoryPrevious"
-            ${directory.hasPreviousPage ? "" : "disabled"}
+            ${
+              directory.hasPreviousPage
+                ? ""
+                : "disabled"
+            }
           >
             Previous
           </button>
@@ -1033,7 +1567,9 @@
 
             Page
             ${directory.page || 1}
+
             of
+
             ${directory.totalPages || 1}
 
             &nbsp;•&nbsp;
@@ -1047,7 +1583,11 @@
           <button
             class="page-button"
             id="directoryNext"
-            ${directory.hasNextPage ? "" : "disabled"}
+            ${
+              directory.hasNextPage
+                ? ""
+                : "disabled"
+            }
           >
             Next
           </button>
@@ -1069,6 +1609,7 @@
 
 
       if (previous) {
+
         previous.addEventListener(
           "click",
           () =>
@@ -1080,6 +1621,7 @@
 
 
       if (next) {
+
         next.addEventListener(
           "click",
           () =>
@@ -1099,6 +1641,7 @@
 
 
       container.innerHTML = `
+
         <div class="directory-empty error">
           Unable to load member directory right now.
         </div>
@@ -1106,6 +1649,11 @@
     }
   }
 
+
+
+  /* =====================================================
+     DIRECTORY SEARCH
+     ===================================================== */
 
   function setupDirectorySearch() {
 
@@ -1121,7 +1669,10 @@
       );
 
 
-    if (!input || !button) {
+    if (
+      !input ||
+      !button
+    ) {
       return;
     }
 
@@ -1131,7 +1682,9 @@
       directorySearchQuery =
         input.value.trim();
 
+
       directoryCurrentPage = 1;
+
 
       loadMemberDirectory(1);
     };
@@ -1147,7 +1700,10 @@
       "keydown",
       event => {
 
-        if (event.key === "Enter") {
+        if (
+          event.key === "Enter"
+        ) {
+
           performSearch();
         }
       }
@@ -1155,17 +1711,26 @@
   }
 
 
+
+  /* =====================================================
+     LOAD MEMBER PROFILE
+     ===================================================== */
+
   async function loadMember() {
 
     const status =
-      document.getElementById("status");
+      document.getElementById(
+        "status"
+      );
 
 
     try {
 
       const response =
         await fetch(
+
           "/api/me",
+
           {
             method: "GET",
             credentials: "include"
@@ -1173,17 +1738,26 @@
         );
 
 
-      if (response.status === 401) {
+      if (
+        response.status === 401
+      ) {
 
-        status.className = "message";
+        status.className =
+          "message";
+
 
         status.innerHTML = `
-          <h2>No active login session</h2>
+
+          <h2>
+            No active login session
+          </h2>
+
 
           <p>
             Please request a new secure
             AAYSSA member login link.
           </p>
+
 
           <a
             class="login-button"
@@ -1193,17 +1767,25 @@
           </a>
         `;
 
+
         return;
       }
 
 
-      if (response.status === 403) {
+      if (
+        response.status === 403
+      ) {
 
         status.className =
           "message error";
 
+
         status.innerHTML = `
-          <h2>Membership Not Found</h2>
+
+          <h2>
+            Membership Not Found
+          </h2>
+
 
           <p>
             Your authenticated email
@@ -1212,11 +1794,13 @@
           </p>
         `;
 
+
         return;
       }
 
 
       if (!response.ok) {
+
         throw new Error(
           "Unable to load member profile"
         );
@@ -1246,14 +1830,21 @@
 
       status.innerHTML = `
 
+
         <div class="welcome">
 
           Welcome,
-          ${escapeHtml(fullName || "Member")}
+          ${escapeHtml(
+            fullName ||
+            "Member"
+          )}
 
-          ${renderRoleBadge(member.role)}
+          ${renderRoleBadge(
+            member.role
+          )}
 
         </div>
+
 
 
         <div class="grid">
@@ -1261,7 +1852,9 @@
 
           <section class="section-card">
 
-            <h2>Family Details</h2>
+            <h2>
+              Family Details
+            </h2>
 
 
             <div class="info-row">
@@ -1297,7 +1890,9 @@
               </span>
 
               <span class="value">
-                ${displayValue(member.noOfAdults)}
+                ${displayValue(
+                  member.noOfAdults
+                )}
               </span>
 
             </div>
@@ -1310,7 +1905,9 @@
               </span>
 
               <span class="value">
-                ${displayValue(member.noOfKids)}
+                ${displayValue(
+                  member.noOfKids
+                )}
               </span>
 
             </div>
@@ -1318,9 +1915,12 @@
           </section>
 
 
+
           <section class="section-card">
 
-            <h2>Contact Information</h2>
+            <h2>
+              Contact Information
+            </h2>
 
 
             <div class="info-row">
@@ -1343,7 +1943,9 @@
               </span>
 
               <span class="value">
-                ${displayValue(member.mobileNumber)}
+                ${displayValue(
+                  member.mobileNumber
+                )}
               </span>
 
             </div>
@@ -1356,7 +1958,9 @@
               </span>
 
               <span class="value">
-                ${displayValue(member.address)}
+                ${displayValue(
+                  member.address
+                )}
               </span>
 
             </div>
@@ -1364,9 +1968,12 @@
           </section>
 
 
+
           <section class="section-card">
 
-            <h2>Seva & Volunteering</h2>
+            <h2>
+              Seva & Volunteering
+            </h2>
 
 
             <div class="info-row">
@@ -1397,6 +2004,7 @@
           </section>
 
 
+
           <section class="section-card">
 
             <h2>
@@ -1404,29 +2012,45 @@
             </h2>
 
 
-            <span class="
-              preference
+            <span
+              class="
+                preference
+                ${
+                  member.emailOptIn
+                    ? "preference-on"
+                    : "preference-off"
+                }
+              "
+            >
+
+              Email:
               ${
                 member.emailOptIn
-                  ? "preference-on"
-                  : "preference-off"
+                  ? "Yes"
+                  : "No"
               }
-            ">
-              Email:
-              ${member.emailOptIn ? "Yes" : "No"}
+
             </span>
 
 
-            <span class="
-              preference
+            <span
+              class="
+                preference
+                ${
+                  member.textOptIn
+                    ? "preference-on"
+                    : "preference-off"
+                }
+              "
+            >
+
+              Text:
               ${
                 member.textOptIn
-                  ? "preference-on"
-                  : "preference-off"
+                  ? "Yes"
+                  : "No"
               }
-            ">
-              Text:
-              ${member.textOptIn ? "Yes" : "No"}
+
             </span>
 
           </section>
@@ -1434,10 +2058,16 @@
         </div>
 
 
+
         ${
-          hasDashboardAccess(member.role)
+          hasDashboardAccess(
+            member.role
+          )
+
             ? `
+
               <div class="dashboard">
+
 
                 <div class="dashboard-header">
 
@@ -1462,24 +2092,32 @@
 
               </div>
             `
+
             : ""
         }
 
 
+
         <div class="actions">
+
 
           ${
             member.editProfileLink
+
               ? `
+
                 <a
                   class="edit-button"
-                  href="${escapeHtml(member.editProfileLink)}"
+                  href="${escapeHtml(
+                    member.editProfileLink
+                  )}"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   Edit Profile
                 </a>
               `
+
               : ""
           }
 
@@ -1497,7 +2135,9 @@
 
 
       document
-        .getElementById("logoutButton")
+        .getElementById(
+          "logoutButton"
+        )
         .addEventListener(
           "click",
           logout
@@ -1505,11 +2145,12 @@
 
 
       if (
-        hasDashboardAccess(member.role)
+        hasDashboardAccess(
+          member.role
+        )
       ) {
 
         await loadDashboardStats();
-
       }
 
 
@@ -1523,9 +2164,11 @@
 
 
       status.innerHTML = `
+
         <h2>
           Unable to Load Membership
         </h2>
+
 
         <p>
           Please try again shortly.
@@ -1534,6 +2177,11 @@
     }
   }
 
+
+
+  /* =====================================================
+     DASHBOARD
+     ===================================================== */
 
   async function loadDashboardStats() {
 
@@ -1552,7 +2200,9 @@
 
       const response =
         await fetch(
+
           "/api/admin-stats",
+
           {
             method: "GET",
             credentials: "include"
@@ -1585,12 +2235,19 @@
 
 
       const volunteerSelections =
+
         Number(
           participation.primaryMember || 0
-        ) +
+        )
+
+        +
+
         Number(
           participation.spouse || 0
-        ) +
+        )
+
+        +
+
         Number(
           participation.otherFamilyMember || 0
         );
@@ -1601,7 +2258,9 @@
 
       container.innerHTML = `
 
+
         <div class="stats-grid">
+
 
           <div class="stat-card">
 
@@ -1614,6 +2273,7 @@
             </div>
 
           </div>
+
 
 
           <div class="stat-card">
@@ -1629,6 +2289,7 @@
           </div>
 
 
+
           <div class="stat-card">
 
             <div class="stat-number">
@@ -1642,6 +2303,7 @@
           </div>
 
 
+
           <div class="stat-card">
 
             <div class="stat-number">
@@ -1653,6 +2315,7 @@
             </div>
 
           </div>
+
 
 
           <div class="stat-card">
@@ -1670,7 +2333,9 @@
         </div>
 
 
+
         <div class="dashboard-grid">
+
 
           <div class="dashboard-card">
 
@@ -1678,13 +2343,16 @@
               Seva Areas of Interest
             </h3>
 
+
             ${[
               "Pooja",
               "Annadhanam",
               "Bhajan",
               "Media",
               "Decorations"
+
             ].map(name => `
+
               <div class="dashboard-row">
 
                 <strong>
@@ -1696,9 +2364,11 @@
                 </span>
 
               </div>
+
             `).join("")}
 
           </div>
+
 
 
           <div class="dashboard-card">
@@ -1751,10 +2421,12 @@
         </div>
 
 
+
         ${renderRegistrationTrend(
           stats.registrationTrends,
           stats.registrationTrendAvailable
         )}
+
 
 
         ${renderMemberDirectoryShell()}
@@ -1762,6 +2434,7 @@
 
 
       setupDirectorySearch();
+
 
       await loadMemberDirectory(1);
 
@@ -1779,10 +2452,16 @@
 
 
       container.innerHTML =
+
         "Unable to load dashboard statistics right now.";
     }
   }
 
+
+
+  /* =====================================================
+     LOGOUT
+     ===================================================== */
 
   async function logout() {
 
@@ -1793,7 +2472,9 @@
 
 
     if (button) {
+
       button.disabled = true;
+
       button.textContent =
         "Logging out...";
     }
@@ -1803,7 +2484,9 @@
 
       const response =
         await fetch(
+
           "/api/logout",
+
           {
             method: "POST",
             credentials: "include"
@@ -1812,6 +2495,7 @@
 
 
       if (!response.ok) {
+
         throw new Error(
           "Logout failed"
         );
@@ -1828,8 +2512,11 @@
 
 
       if (button) {
+
         button.disabled = false;
-        button.textContent = "Logout";
+
+        button.textContent =
+          "Logout";
       }
 
 
@@ -1839,6 +2526,11 @@
     }
   }
 
+
+
+  /* =====================================================
+     START PORTAL
+     ===================================================== */
 
   loadMember();
 
