@@ -65,8 +65,6 @@ export default async function handler(req, res) {
             profile.spouseLastName,
           field_10281595:
             profile.normalizedPhone,
-          field_10464626:
-            profile.normalizedPhone,
           field_10281618:
             profile.address,
           field_10281686:
