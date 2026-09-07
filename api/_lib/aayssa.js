@@ -276,6 +276,34 @@ export async function updateVolunteerRow(rowId, values) {
   return response.json();
 }
 
+export async function updateMemberRow(rowId, values) {
+  const response =
+    await fetch(
+      `${getBaserowBaseUrl()}/api/database/rows/table/${MEMBERS_TABLE_ID}/${rowId}/?user_field_names=false`,
+      {
+        method: "PATCH",
+        headers:
+          getBaserowHeaders(),
+        body:
+          JSON.stringify(values)
+      }
+    );
+
+  if (!response.ok) {
+    console.error(
+      "Baserow member update failed:",
+      response.status,
+      await response.text()
+    );
+
+    throw new Error(
+      "Unable to update member record."
+    );
+  }
+
+  return response.json();
+}
+
 export function buildVolunteerPayload({
   familyRowId,
   name,

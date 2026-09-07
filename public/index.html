@@ -322,6 +322,21 @@
       font-size: 14px;
     }
 
+    .form-field input[type="number"],
+    .form-field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 7px;
+      font-size: 14px;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .form-field textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
     .checkbox-label {
       display: flex;
       align-items: center;
@@ -1803,6 +1818,499 @@
   }
 
 
+  function renderEditableSection({
+    id,
+    title,
+    buttonId,
+    body
+  }) {
+
+    return `
+
+      <section
+        id="${escapeHtml(id)}"
+        class="section-card"
+      >
+
+        <div class="section-heading-row">
+
+          <h2>
+            ${escapeHtml(title)}
+          </h2>
+
+          <button
+            id="${escapeHtml(buttonId)}"
+            class="small-action-button"
+            type="button"
+          >
+            Edit
+          </button>
+
+        </div>
+
+        ${body}
+
+      </section>
+    `;
+  }
+
+
+  function renderFamilyDetailsSection(member) {
+
+    const fullName =
+      getCurrentFullName(member);
+
+    const spouseName =
+      getCurrentSpouseName(member);
+
+    return renderEditableSection({
+      id: "familyDetailsSection",
+      title: "Family Details",
+      buttonId: "editFamilyDetailsButton",
+      body: `
+
+        <div class="info-row">
+          <span class="label">Primary Member</span>
+          <span class="value">${displayValue(fullName)}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Spouse</span>
+          <span class="value">${displayValue(spouseName)}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Adults</span>
+          <span class="value">${displayValue(member.noOfAdults)}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Kids</span>
+          <span class="value">${displayValue(member.noOfKids)}</span>
+        </div>
+      `
+    });
+  }
+
+
+  function renderContactSection(member) {
+
+    return renderEditableSection({
+      id: "contactSection",
+      title: "Contact Information",
+      buttonId: "editContactButton",
+      body: `
+
+        <div class="info-row">
+          <span class="label">Email</span>
+          <span class="value">${displayValue(member.email)}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Mobile</span>
+          <span class="value">${displayValue(member.mobileNumber)}</span>
+        </div>
+
+        <div class="info-row">
+          <span class="label">Address</span>
+          <span class="value">${displayValue(member.address)}</span>
+        </div>
+      `
+    });
+  }
+
+
+  function renderPreferencesSection(member) {
+
+    return renderEditableSection({
+      id: "preferencesSection",
+      title: "Communication Preferences",
+      buttonId: "editPreferencesButton",
+      body: `
+
+        <span class="preference ${member.emailOptIn ? "preference-on" : "preference-off"}">
+          Email: ${member.emailOptIn ? "Yes" : "No"}
+        </span>
+
+        <span class="preference ${member.textOptIn ? "preference-on" : "preference-off"}">
+          Text: ${member.textOptIn ? "Yes" : "No"}
+        </span>
+      `
+    });
+  }
+
+
+  function setupProfileEditing() {
+
+    setupSectionEditButton(
+      "editFamilyDetailsButton",
+      "familyDetailsSection",
+      renderFamilyDetailsEditor
+    );
+
+    setupSectionEditButton(
+      "editContactButton",
+      "contactSection",
+      renderContactEditor
+    );
+
+    setupSectionEditButton(
+      "editPreferencesButton",
+      "preferencesSection",
+      renderPreferencesEditor
+    );
+  }
+
+
+  function setupSectionEditButton(
+    buttonId,
+    sectionId,
+    renderEditor
+  ) {
+
+    const button =
+      document.getElementById(buttonId);
+
+    if (!button) {
+      return;
+    }
+
+    button.addEventListener(
+      "click",
+      () => {
+        const section =
+          document.getElementById(sectionId);
+
+        section.innerHTML =
+          renderEditor(currentMember);
+
+        attachProfileFormHandler(
+          section,
+          sectionId
+        );
+      }
+    );
+  }
+
+
+  function renderFamilyDetailsEditor(member) {
+
+    return `
+
+      <h2>Family Details</h2>
+
+      <form class="profile-form">
+
+        <div class="form-field">
+          <label>First Name</label>
+          <input name="firstName" type="text" value="${escapeHtml(member.firstName || "")}" required>
+        </div>
+
+        <div class="form-field">
+          <label>Last Name</label>
+          <input name="lastName" type="text" value="${escapeHtml(member.lastName || "")}" required>
+        </div>
+
+        <div class="form-field">
+          <label>Spouse First Name</label>
+          <input name="spouseFirstName" type="text" value="${escapeHtml(member.spouseFirstName || "")}">
+        </div>
+
+        <div class="form-field">
+          <label>Spouse Last Name</label>
+          <input name="spouseLastName" type="text" value="${escapeHtml(member.spouseLastName || "")}">
+        </div>
+
+        <div class="form-field">
+          <label>Adults</label>
+          <input name="noOfAdults" type="number" min="0" step="1" value="${escapeHtml(member.noOfAdults ?? "")}">
+        </div>
+
+        <div class="form-field">
+          <label>Kids</label>
+          <input name="noOfKids" type="number" min="0" step="1" value="${escapeHtml(member.noOfKids ?? "")}">
+        </div>
+
+        ${renderProfileFormActions()}
+
+      </form>
+    `;
+  }
+
+
+  function renderContactEditor(member) {
+
+    return `
+
+      <h2>Contact Information</h2>
+
+      <form class="profile-form">
+
+        <div class="info-row">
+          <span class="label">Email</span>
+          <span class="value">${displayValue(member.email)}</span>
+        </div>
+
+        <div class="form-field">
+          <label>Mobile</label>
+          <input name="mobileNumber" type="text" value="${escapeHtml(member.mobileNumber || "")}">
+        </div>
+
+        <div class="form-field">
+          <label>Address</label>
+          <textarea name="address">${escapeHtml(member.address || "")}</textarea>
+        </div>
+
+        ${renderProfileFormActions()}
+
+      </form>
+    `;
+  }
+
+
+  function renderPreferencesEditor(member) {
+
+    return `
+
+      <h2>Communication Preferences</h2>
+
+      <form class="profile-form">
+
+        <label class="checkbox-label">
+          <input
+            name="emailOptIn"
+            type="checkbox"
+            ${member.emailOptIn ? "checked" : ""}
+          >
+          Email updates
+        </label>
+
+        <label class="checkbox-label">
+          <input
+            name="textOptIn"
+            type="checkbox"
+            ${member.textOptIn ? "checked" : ""}
+          >
+          Text updates
+        </label>
+
+        ${renderProfileFormActions()}
+
+      </form>
+    `;
+  }
+
+
+  function renderProfileFormActions() {
+
+    return `
+
+      <div class="form-actions">
+
+        <button
+          class="small-action-button save-profile-button"
+          type="submit"
+        >
+          Save
+        </button>
+
+        <button
+          class="danger-button cancel-profile-button"
+          type="button"
+        >
+          Cancel
+        </button>
+
+      </div>
+    `;
+  }
+
+
+  function attachProfileFormHandler(
+    section,
+    sectionId
+  ) {
+
+    const form =
+      section.querySelector(".profile-form");
+
+    form.addEventListener(
+      "submit",
+      event =>
+        saveProfileSection(event, sectionId)
+    );
+
+    section
+      .querySelector(".cancel-profile-button")
+      .addEventListener(
+        "click",
+        () => restoreProfileSection(sectionId)
+      );
+  }
+
+
+  async function saveProfileSection(
+    event,
+    sectionId
+  ) {
+
+    event.preventDefault();
+
+    const form =
+      event.currentTarget;
+
+    const button =
+      form.querySelector(
+        ".save-profile-button"
+      );
+
+    button.disabled = true;
+    button.textContent = "Saving...";
+
+    try {
+      const profile =
+        collectProfileFormValues(form);
+
+      const response =
+        await fetch(
+          "/api/update-profile",
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body:
+              JSON.stringify({
+                profile
+              })
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Unable to update profile."
+        );
+      }
+
+      const data =
+        await response.json();
+
+      currentMember = {
+        ...currentMember,
+        ...(data.member || {})
+      };
+
+      refreshWelcomeName();
+
+      restoreProfileSection(sectionId);
+
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Unable to update this section right now. Please try again."
+      );
+
+      button.disabled = false;
+      button.textContent = "Save";
+    }
+  }
+
+
+  function collectProfileFormValues(form) {
+
+    const data =
+      new FormData(form);
+
+    return {
+      firstName:
+        data.get("firstName") ??
+        currentMember.firstName,
+      lastName:
+        data.get("lastName") ??
+        currentMember.lastName,
+      spouseFirstName:
+        data.get("spouseFirstName") ??
+        currentMember.spouseFirstName,
+      spouseLastName:
+        data.get("spouseLastName") ??
+        currentMember.spouseLastName,
+      mobileNumber:
+        data.get("mobileNumber") ??
+        currentMember.mobileNumber,
+      address:
+        data.get("address") ??
+        currentMember.address,
+      noOfAdults:
+        data.get("noOfAdults") ??
+        currentMember.noOfAdults,
+      noOfKids:
+        data.get("noOfKids") ??
+        currentMember.noOfKids,
+      emailOptIn:
+        form.elements.emailOptIn
+          ? form.elements.emailOptIn.checked
+          : currentMember.emailOptIn,
+      textOptIn:
+        form.elements.textOptIn
+          ? form.elements.textOptIn.checked
+          : currentMember.textOptIn
+    };
+  }
+
+
+  function restoreProfileSection(sectionId) {
+
+    const section =
+      document.getElementById(sectionId);
+
+    if (sectionId === "familyDetailsSection") {
+      section.outerHTML =
+        renderFamilyDetailsSection(currentMember);
+    } else if (sectionId === "contactSection") {
+      section.outerHTML =
+        renderContactSection(currentMember);
+    } else if (sectionId === "preferencesSection") {
+      section.outerHTML =
+        renderPreferencesSection(currentMember);
+    }
+
+    setupProfileEditing();
+  }
+
+
+  function refreshWelcomeName() {
+
+    const welcomeName =
+      document.getElementById(
+        "welcomeName"
+      );
+
+    if (!welcomeName) {
+      return;
+    }
+
+    welcomeName.textContent =
+      getCurrentFullName(currentMember) ||
+      "Member";
+  }
+
+
+  function getCurrentFullName(member) {
+
+    return `${member.firstName || ""} ${member.lastName || ""}`
+      .trim();
+  }
+
+
+  function getCurrentSpouseName(member) {
+
+    return `${member.spouseFirstName || ""} ${member.spouseLastName || ""}`
+      .trim();
+  }
+
+
 
   /* =====================================================
      REGISTRATION TREND
@@ -2570,11 +3078,6 @@
           .trim();
 
 
-      const spouseName =
-        `${member.spouseFirstName || ""} ${member.spouseLastName || ""}`
-          .trim();
-
-
       status.className = "";
 
 
@@ -2584,10 +3087,12 @@
         <div class="welcome">
 
           Welcome,
+          <span id="welcomeName">
           ${escapeHtml(
             fullName ||
             "Member"
           )}
+          </span>
 
           ${renderRoleBadge(
             member.role
@@ -2600,122 +3105,11 @@
         <div class="grid">
 
 
-          <section class="section-card">
-
-            <h2>
-              Family Details
-            </h2>
-
-
-            <div class="info-row">
-
-              <span class="label">
-                Primary Member
-              </span>
-
-              <span class="value">
-                ${displayValue(fullName)}
-              </span>
-
-            </div>
-
-
-            <div class="info-row">
-
-              <span class="label">
-                Spouse
-              </span>
-
-              <span class="value">
-                ${displayValue(spouseName)}
-              </span>
-
-            </div>
-
-
-            <div class="info-row">
-
-              <span class="label">
-                Adults
-              </span>
-
-              <span class="value">
-                ${displayValue(
-                  member.noOfAdults
-                )}
-              </span>
-
-            </div>
-
-
-            <div class="info-row">
-
-              <span class="label">
-                Kids
-              </span>
-
-              <span class="value">
-                ${displayValue(
-                  member.noOfKids
-                )}
-              </span>
-
-            </div>
-
-          </section>
+          ${renderFamilyDetailsSection(member)}
 
 
 
-          <section class="section-card">
-
-            <h2>
-              Contact Information
-            </h2>
-
-
-            <div class="info-row">
-
-              <span class="label">
-                Email
-              </span>
-
-              <span class="value">
-                ${displayValue(member.email)}
-              </span>
-
-            </div>
-
-
-            <div class="info-row">
-
-              <span class="label">
-                Mobile
-              </span>
-
-              <span class="value">
-                ${displayValue(
-                  member.mobileNumber
-                )}
-              </span>
-
-            </div>
-
-
-            <div class="info-row">
-
-              <span class="label">
-                Address
-              </span>
-
-              <span class="value">
-                ${displayValue(
-                  member.address
-                )}
-              </span>
-
-            </div>
-
-          </section>
+          ${renderContactSection(member)}
 
 
 
@@ -2725,55 +3119,7 @@
 
 
 
-          <section class="section-card">
-
-            <h2>
-              Communication Preferences
-            </h2>
-
-
-            <span
-              class="
-                preference
-                ${
-                  member.emailOptIn
-                    ? "preference-on"
-                    : "preference-off"
-                }
-              "
-            >
-
-              Email:
-              ${
-                member.emailOptIn
-                  ? "Yes"
-                  : "No"
-              }
-
-            </span>
-
-
-            <span
-              class="
-                preference
-                ${
-                  member.textOptIn
-                    ? "preference-on"
-                    : "preference-off"
-                }
-              "
-            >
-
-              Text:
-              ${
-                member.textOptIn
-                  ? "Yes"
-                  : "No"
-              }
-
-            </span>
-
-          </section>
+          ${renderPreferencesSection(member)}
 
         </div>
 
@@ -2864,6 +3210,7 @@
         );
 
       setupVolunteerEditing();
+      setupProfileEditing();
 
 
       if (
