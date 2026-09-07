@@ -1,3 +1,8 @@
+import {
+  VOLUNTEERS_TABLE_ID,
+  mapVolunteerRow
+} from "./_lib/aayssa.js";
+
 export default async function handler(req, res) {
 
   if (req.method !== "GET") {
@@ -36,12 +41,17 @@ export default async function handler(req, res) {
     const BASEROW_TABLE_ID =
       process.env.BASEROW_TABLE_ID;
 
+    const BASEROW_VOLUNTEERS_TABLE_ID =
+      process.env.BASEROW_VOLUNTEERS_TABLE_ID ||
+      VOLUNTEERS_TABLE_ID;
+
 
     if (
       !SUPABASE_URL ||
       !SUPABASE_PUBLISHABLE_KEY ||
       !BASEROW_TOKEN ||
-      !BASEROW_TABLE_ID
+      !BASEROW_TABLE_ID ||
+      !BASEROW_VOLUNTEERS_TABLE_ID
     ) {
 
       console.error(
@@ -264,6 +274,12 @@ export default async function handler(req, res) {
         BASEROW_TOKEN
       );
 
+    const volunteerRows =
+      await fetchAllBaserowRows(
+        BASEROW_VOLUNTEERS_TABLE_ID,
+        BASEROW_TOKEN
+      );
+
 
 
     // ==================================================
@@ -358,75 +374,6 @@ export default async function handler(req, res) {
 
 
       // ----------------------------------------------
-      // Interested in Volunteering?
-      // field_10281690
-      // ----------------------------------------------
-
-      const volunteers =
-        getMultiSelectValues(
-          row.field_10281690
-        );
-
-
-      if (
-        volunteers.includes(
-          "Primary Member"
-        )
-      ) {
-
-        primaryMemberVolunteers += 1;
-      }
-
-
-      if (
-        volunteers.includes(
-          "Spouse"
-        )
-      ) {
-
-        spouseVolunteers += 1;
-      }
-
-
-      if (
-        volunteers.includes(
-          "Other Family Member"
-        )
-      ) {
-
-        otherFamilyVolunteers += 1;
-      }
-
-
-
-      // ----------------------------------------------
-      // Areas of Interest
-      // field_10281806
-      // ----------------------------------------------
-
-      const interests =
-        getMultiSelectValues(
-          row.field_10281806
-        );
-
-
-      for (const interest of interests) {
-
-        if (
-          Object.prototype
-            .hasOwnProperty.call(
-              volunteerCounts,
-              interest
-            )
-        ) {
-
-          volunteerCounts[interest] += 1;
-        }
-      }
-
-
-
-      // ----------------------------------------------
       // Registration Date / Created on
       // ----------------------------------------------
 
@@ -447,6 +394,41 @@ export default async function handler(req, res) {
           registrationDates.push(
             createdDate
           );
+        }
+      }
+    }
+
+    for (const row of volunteerRows) {
+
+      const volunteer =
+        mapVolunteerRow(row);
+
+      if (
+        !volunteer.active ||
+        !volunteer.interested
+      ) {
+        continue;
+      }
+
+      if (volunteer.memberType === "primary") {
+        primaryMemberVolunteers += 1;
+      } else if (volunteer.memberType === "spouse") {
+        spouseVolunteers += 1;
+      } else {
+        otherFamilyVolunteers += 1;
+      }
+
+      for (const interest of volunteer.areas) {
+
+        if (
+          Object.prototype
+            .hasOwnProperty.call(
+              volunteerCounts,
+              interest
+            )
+        ) {
+
+          volunteerCounts[interest] += 1;
         }
       }
     }

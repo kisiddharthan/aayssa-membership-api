@@ -223,6 +223,127 @@
 
 
     /* =====================================================
+       VOLUNTEERING
+       ===================================================== */
+
+    .section-heading-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .section-heading-row h2 {
+      margin: 0;
+    }
+
+    .small-action-button,
+    .secondary-button,
+    .danger-button {
+      border: none;
+      border-radius: 7px;
+      padding: 9px 13px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .small-action-button {
+      background: #b96c00;
+      color: white;
+    }
+
+    .secondary-button {
+      background: #333;
+      color: white;
+    }
+
+    .danger-button {
+      background: #f7e8e8;
+      color: #9b2424;
+    }
+
+    .volunteer-entry {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .volunteer-entry:last-child {
+      border-bottom: none;
+    }
+
+    .volunteer-name {
+      font-weight: 800;
+      color: #333;
+    }
+
+    .volunteer-type {
+      color: #777;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .volunteer-form {
+      display: grid;
+      gap: 18px;
+    }
+
+    .volunteer-form-row {
+      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 15px;
+      background: #fffdf9;
+    }
+
+    .volunteer-form-title {
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .form-field {
+      display: grid;
+      gap: 5px;
+      margin-top: 10px;
+    }
+
+    .form-field label,
+    .checkbox-label {
+      color: #555;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .form-field input[type="text"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 7px;
+      font-size: 14px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .area-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      margin-top: 9px;
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+
+    /* =====================================================
        COMMUNICATION PREFERENCES
        ===================================================== */
 
@@ -1045,6 +1166,643 @@
   }
 
 
+  const VOLUNTEER_AREAS = [
+    "Pooja",
+    "Annadhanam",
+    "Bhajan",
+    "Media",
+    "Decorations"
+  ];
+
+  let currentMember = null;
+  let currentVolunteers = [];
+
+
+  function renderVolunteerSection(volunteers) {
+
+    return `
+
+      <section
+        id="volunteerSection"
+        class="section-card"
+      >
+
+        ${renderVolunteerSectionContent(volunteers)}
+
+      </section>
+    `;
+  }
+
+
+  function renderVolunteerSectionContent(volunteers) {
+
+    return `
+
+      <div class="section-heading-row">
+
+        <h2>
+          Seva & Volunteering
+        </h2>
+
+        <button
+          id="editVolunteersButton"
+          class="small-action-button"
+          type="button"
+        >
+          Edit Volunteering
+        </button>
+
+      </div>
+
+      ${renderVolunteerEntries(volunteers)}
+    `;
+  }
+
+
+  function renderVolunteerEntries(volunteers) {
+
+    const activeVolunteers =
+      Array.isArray(volunteers)
+        ? volunteers.filter(volunteer =>
+            volunteer && volunteer.active !== false
+          )
+        : [];
+
+
+    if (activeVolunteers.length === 0) {
+
+      return `
+        <span class="value">
+          -
+        </span>
+      `;
+    }
+
+
+    return activeVolunteers.map(volunteer => `
+
+      <div class="volunteer-entry">
+
+        <div class="volunteer-name">
+          ${escapeHtml(volunteer.name || "AAYSSA Member")}
+        </div>
+
+        <div class="volunteer-type">
+          ${escapeHtml(volunteer.memberTypeLabel || displayVolunteerType(volunteer.memberType))}
+        </div>
+
+        ${
+          volunteer.interested
+            ? renderChips(volunteer.areas || [])
+            : `
+              <span class="value">
+                Not currently volunteering
+              </span>
+            `
+        }
+
+      </div>
+    `).join("");
+  }
+
+
+  function renderDirectoryVolunteers(volunteers) {
+
+    const activeVolunteers =
+      Array.isArray(volunteers)
+        ? volunteers.filter(volunteer =>
+            volunteer &&
+            volunteer.active !== false &&
+            volunteer.interested
+          )
+        : [];
+
+
+    if (activeVolunteers.length === 0) {
+
+      return `
+        <span class="value">
+          -
+        </span>
+      `;
+    }
+
+
+    return activeVolunteers.map(volunteer => `
+
+      <div class="volunteer-entry">
+
+        <div class="volunteer-name">
+          ${escapeHtml(volunteer.name || "AAYSSA Member")}
+        </div>
+
+        <div class="volunteer-type">
+          ${escapeHtml(volunteer.memberTypeLabel || displayVolunteerType(volunteer.memberType))}
+        </div>
+
+        ${renderChips(volunteer.areas || [])}
+
+      </div>
+    `).join("");
+  }
+
+
+  async function loadMyVolunteers() {
+
+    const response =
+      await fetch(
+        "/api/my-volunteers",
+        {
+          method: "GET",
+          credentials: "include"
+        }
+      );
+
+
+    if (!response.ok) {
+      return [];
+    }
+
+
+    const data =
+      await response.json();
+
+
+    return Array.isArray(data.volunteers)
+      ? data.volunteers
+      : [];
+  }
+
+
+  function setupVolunteerEditing() {
+
+    const button =
+      document.getElementById(
+        "editVolunteersButton"
+      );
+
+    if (!button) {
+      return;
+    }
+
+    button.addEventListener(
+      "click",
+      () => {
+        const section =
+          document.getElementById(
+            "volunteerSection"
+          );
+
+        section.innerHTML =
+          renderVolunteerEditor(
+            currentMember,
+            currentVolunteers
+          );
+
+        attachVolunteerEditorHandlers();
+      }
+    );
+  }
+
+
+  function renderVolunteerEditor(
+    member,
+    volunteers
+  ) {
+
+    const primary =
+      findVolunteerByType(
+        volunteers,
+        "primary"
+      ) || {};
+
+    const spouse =
+      findVolunteerByType(
+        volunteers,
+        "spouse"
+      ) || {};
+
+    const spouseName =
+      `${member.spouseFirstName || ""} ${member.spouseLastName || ""}`
+        .trim();
+
+    const additional =
+      volunteers.filter(volunteer =>
+        volunteer.memberType === "additional"
+      );
+
+
+    return `
+
+      <div class="section-heading-row">
+
+        <h2>
+          Edit Volunteering
+        </h2>
+
+      </div>
+
+      <form
+        id="volunteerForm"
+        class="volunteer-form"
+      >
+
+        ${renderPersonVolunteerEditor({
+          id: primary.id || "",
+          type: "primary",
+          title: "Primary Member",
+          name:
+            `${member.firstName || ""} ${member.lastName || ""}`.trim(),
+          interested: primary.interested,
+          areas: primary.areas || []
+        })}
+
+        ${
+          spouseName
+            ? renderPersonVolunteerEditor({
+                id: spouse.id || "",
+                type: "spouse",
+                title: "Spouse",
+                name: spouseName,
+                interested: spouse.interested,
+                areas: spouse.areas || []
+              })
+            : ""
+        }
+
+        <div id="additionalVolunteers">
+          ${additional.map(renderAdditionalVolunteerEditor).join("")}
+        </div>
+
+        <div class="form-actions">
+
+          <button
+            id="addAdditionalVolunteerButton"
+            class="secondary-button"
+            type="button"
+          >
+            Add Family Member
+          </button>
+
+          <button
+            id="saveVolunteersButton"
+            class="small-action-button"
+            type="submit"
+          >
+            Save
+          </button>
+
+          <button
+            id="cancelVolunteersButton"
+            class="danger-button"
+            type="button"
+          >
+            Cancel
+          </button>
+
+        </div>
+
+      </form>
+    `;
+  }
+
+
+  function renderPersonVolunteerEditor({
+    id,
+    type,
+    title,
+    name,
+    interested,
+    areas
+  }) {
+
+    return `
+
+      <div
+        class="volunteer-form-row"
+        data-volunteer-type="${escapeHtml(type)}"
+        data-volunteer-id="${escapeHtml(id)}"
+      >
+
+        <div class="volunteer-form-title">
+          ${escapeHtml(title)}:
+          ${escapeHtml(name || "AAYSSA Member")}
+        </div>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            class="volunteer-interested"
+            ${interested ? "checked" : ""}
+          >
+          Interested in volunteering
+        </label>
+
+        <div class="form-field">
+
+          <label>
+            Areas of Interest
+          </label>
+
+          ${renderAreaOptions(areas)}
+
+        </div>
+
+      </div>
+    `;
+  }
+
+
+  function renderAdditionalVolunteerEditor(volunteer = {}) {
+
+    return `
+
+      <div
+        class="volunteer-form-row additional-volunteer-row"
+        data-volunteer-type="additional"
+        data-volunteer-id="${escapeHtml(volunteer.id || "")}"
+      >
+
+        <div class="volunteer-form-title">
+          Additional Family Member
+        </div>
+
+        <div class="form-field">
+          <label>Name</label>
+          <input
+            type="text"
+            class="additional-name"
+            value="${escapeHtml(volunteer.name || "")}"
+          >
+        </div>
+
+        <div class="form-field">
+          <label>Relationship</label>
+          <input
+            type="text"
+            class="additional-relationship"
+            value="${escapeHtml(volunteer.relationship || "")}"
+          >
+        </div>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            class="volunteer-interested"
+            ${volunteer.interested ? "checked" : ""}
+          >
+          Interested in volunteering
+        </label>
+
+        <div class="form-field">
+
+          <label>
+            Areas of Interest
+          </label>
+
+          ${renderAreaOptions(volunteer.areas || [])}
+
+        </div>
+
+        <button
+          class="danger-button remove-additional-button"
+          type="button"
+        >
+          Remove
+        </button>
+
+      </div>
+    `;
+  }
+
+
+  function renderAreaOptions(selectedAreas) {
+
+    const selected =
+      Array.isArray(selectedAreas)
+        ? selectedAreas
+        : [];
+
+    return `
+
+      <div class="area-options">
+
+        ${VOLUNTEER_AREAS.map(area => `
+
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              class="volunteer-area"
+              value="${escapeHtml(area)}"
+              ${selected.includes(area) ? "checked" : ""}
+            >
+            ${escapeHtml(area)}
+          </label>
+
+        `).join("")}
+
+      </div>
+    `;
+  }
+
+
+  function attachVolunteerEditorHandlers() {
+
+    document
+      .getElementById("addAdditionalVolunteerButton")
+      .addEventListener(
+        "click",
+        () => {
+          document
+            .getElementById("additionalVolunteers")
+            .insertAdjacentHTML(
+              "beforeend",
+              renderAdditionalVolunteerEditor()
+            );
+
+          attachRemoveAdditionalHandlers();
+        }
+      );
+
+    document
+      .getElementById("cancelVolunteersButton")
+      .addEventListener(
+        "click",
+        () => {
+          restoreVolunteerSection();
+        }
+      );
+
+    document
+      .getElementById("volunteerForm")
+      .addEventListener(
+        "submit",
+        saveVolunteers
+      );
+
+    attachRemoveAdditionalHandlers();
+  }
+
+
+  function attachRemoveAdditionalHandlers() {
+
+    document
+      .querySelectorAll(".remove-additional-button")
+      .forEach(button => {
+        button.onclick = () => {
+          button
+            .closest(".additional-volunteer-row")
+            .remove();
+        };
+      });
+  }
+
+
+  async function saveVolunteers(event) {
+
+    event.preventDefault();
+
+    const button =
+      document.getElementById(
+        "saveVolunteersButton"
+      );
+
+    button.disabled = true;
+    button.textContent = "Saving...";
+
+    try {
+      const volunteers =
+        collectVolunteerFormValues();
+
+      const response =
+        await fetch(
+          "/api/update-volunteers",
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body:
+              JSON.stringify({
+                volunteers
+              })
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "Unable to update volunteers."
+        );
+      }
+
+      const data =
+        await response.json();
+
+      currentVolunteers =
+        Array.isArray(data.volunteers)
+          ? data.volunteers
+          : [];
+
+      restoreVolunteerSection();
+
+    } catch (error) {
+      console.error(error);
+
+      alert(
+        "Unable to update volunteering right now. Please try again."
+      );
+
+      button.disabled = false;
+      button.textContent = "Save";
+    }
+  }
+
+
+  function collectVolunteerFormValues() {
+
+    return Array.from(
+      document.querySelectorAll(
+        ".volunteer-form-row"
+      )
+    ).map(row => {
+
+      const type =
+        row.dataset.volunteerType;
+
+      const areas =
+        Array.from(
+          row.querySelectorAll(
+            ".volunteer-area:checked"
+          )
+        ).map(input =>
+          input.value
+        );
+
+      return {
+        id:
+          row.dataset.volunteerId || null,
+        memberType:
+          type,
+        name:
+          type === "additional"
+            ? row.querySelector(".additional-name")?.value || ""
+            : "",
+        relationship:
+          type === "additional"
+            ? row.querySelector(".additional-relationship")?.value || ""
+            : "",
+        interested:
+          Boolean(
+            row.querySelector(".volunteer-interested")?.checked
+          ),
+        areas
+      };
+    });
+  }
+
+
+  function restoreVolunteerSection() {
+
+    const section =
+      document.getElementById(
+        "volunteerSection"
+      );
+
+    section.innerHTML =
+      renderVolunteerSectionContent(
+        currentVolunteers
+      );
+
+    setupVolunteerEditing();
+  }
+
+
+  function findVolunteerByType(
+    volunteers,
+    type
+  ) {
+
+    return volunteers.find(volunteer =>
+      volunteer.memberType === type
+    );
+  }
+
+
+  function displayVolunteerType(type) {
+
+    if (type === "primary") {
+      return "Primary Member";
+    }
+
+    if (type === "spouse") {
+      return "Spouse";
+    }
+
+    return "Additional Family Member";
+  }
+
+
 
   /* =====================================================
      REGISTRATION TREND
@@ -1509,25 +2267,11 @@
                 <div class="member-detail">
 
                   <span class="label">
-                    Volunteer Members
+                    Seva Volunteers
                   </span>
 
-                  ${renderChips(
-                    member.volunteerInterest
-                  )}
-
-                </div>
-
-
-
-                <div class="member-detail">
-
-                  <span class="label">
-                    Seva Interests
-                  </span>
-
-                  ${renderChips(
-                    member.areasOfInterest
+                  ${renderDirectoryVolunteers(
+                    member.volunteers
                   )}
 
                 </div>
@@ -1814,6 +2558,12 @@
       const member =
         data.member;
 
+      currentMember =
+        member;
+
+      currentVolunteers =
+        await loadMyVolunteers();
+
 
       const fullName =
         `${member.firstName || ""} ${member.lastName || ""}`
@@ -1969,39 +2719,9 @@
 
 
 
-          <section class="section-card">
-
-            <h2>
-              Seva & Volunteering
-            </h2>
-
-
-            <div class="info-row">
-
-              <span class="label">
-                Interested Family Members
-              </span>
-
-              ${renderChips(
-                member.volunteerInterest
-              )}
-
-            </div>
-
-
-            <div class="info-row">
-
-              <span class="label">
-                Areas of Interest
-              </span>
-
-              ${renderChips(
-                member.areasOfInterest
-              )}
-
-            </div>
-
-          </section>
+          ${renderVolunteerSection(
+            currentVolunteers
+          )}
 
 
 
@@ -2142,6 +2862,8 @@
           "click",
           logout
         );
+
+      setupVolunteerEditing();
 
 
       if (

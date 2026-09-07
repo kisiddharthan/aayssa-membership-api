@@ -1,3 +1,9 @@
+import {
+  VOLUNTEER_FIELDS,
+  VOLUNTEERS_TABLE_ID,
+  mapVolunteerRow
+} from "./_lib/aayssa.js";
+
 export default async function handler(req, res) {
 
   if (req.method !== "GET") {
@@ -46,12 +52,17 @@ export default async function handler(req, res) {
     const BASEROW_TABLE_ID =
       process.env.BASEROW_TABLE_ID;
 
+    const BASEROW_VOLUNTEERS_TABLE_ID =
+      process.env.BASEROW_VOLUNTEERS_TABLE_ID ||
+      VOLUNTEERS_TABLE_ID;
+
 
     if (
       !SUPABASE_URL ||
       !SUPABASE_PUBLISHABLE_KEY ||
       !BASEROW_TOKEN ||
-      !BASEROW_TABLE_ID
+      !BASEROW_TABLE_ID ||
+      !BASEROW_VOLUNTEERS_TABLE_ID
     ) {
 
       console.error(
@@ -323,6 +334,17 @@ export default async function handler(req, res) {
         BASEROW_TOKEN
       );
 
+    const volunteerRows =
+      await fetchAllBaserowRows(
+        BASEROW_VOLUNTEERS_TABLE_ID,
+        BASEROW_TOKEN
+      );
+
+    const volunteersByFamilyId =
+      groupVolunteersByFamilyId(
+        volunteerRows
+      );
+
 
 
     // ==================================================
@@ -386,16 +408,32 @@ export default async function handler(req, res) {
           );
 
 
+        const volunteers =
+          volunteersByFamilyId.get(
+            Number(row.id)
+          ) || [];
+
+
         const volunteerInterest =
-          getMultiSelectValues(
-            row.field_10281690
-          );
+          volunteers
+            .filter(volunteer =>
+              volunteer.interested
+            )
+            .map(volunteer =>
+              volunteer.memberTypeLabel
+            );
 
 
         const areasOfInterest =
-          getMultiSelectValues(
-            row.field_10281806
-          );
+          [
+            ...new Set(
+              volunteers.flatMap(volunteer =>
+                volunteer.interested
+                  ? volunteer.areas
+                  : []
+              )
+            )
+          ];
 
 
         let registrationDate = null;
@@ -437,6 +475,8 @@ export default async function handler(req, res) {
           noOfAdults,
 
           noOfKids,
+
+          volunteers,
 
           volunteerInterest,
 
@@ -483,6 +523,12 @@ export default async function handler(req, res) {
             email,
             mobileNumber,
             address,
+            ...volunteers.flatMap(volunteer => [
+              volunteer.name,
+              volunteer.memberTypeLabel,
+              volunteer.relationship,
+              ...volunteer.areas
+            ]),
             ...volunteerInterest,
             ...areasOfInterest
           ]
@@ -801,6 +847,94 @@ async function fetchAllBaserowRows(
 
 
   return rows;
+}
+
+
+
+
+
+// ====================================================
+// Group volunteer rows by linked family row ID
+// ====================================================
+
+function groupVolunteersByFamilyId(rows) {
+
+  const grouped =
+    new Map();
+
+
+  for (const row of rows) {
+
+    const volunteer =
+      mapVolunteerRow(row);
+
+
+    if (!volunteer.active) {
+      continue;
+    }
+
+
+    const familyIds =
+      getLinkedRowIds(
+        row[VOLUNTEER_FIELDS.family]
+      );
+
+
+    for (const familyId of familyIds) {
+
+      if (!grouped.has(familyId)) {
+        grouped.set(
+          familyId,
+          []
+        );
+      }
+
+
+      grouped
+        .get(familyId)
+        .push(volunteer);
+    }
+  }
+
+
+  return grouped;
+}
+
+
+
+
+
+// ====================================================
+// Convert Baserow link-row values to row IDs
+// ====================================================
+
+function getLinkedRowIds(value) {
+
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+
+  return value
+    .map(item => {
+
+      if (
+        typeof item === "number" ||
+        typeof item === "string"
+      ) {
+        return Number(item);
+      }
+
+
+      return Number(
+        item?.id ??
+        item?.row_id ??
+        item?.value
+      );
+    })
+    .filter(id =>
+      Number.isFinite(id)
+    );
 }
 
 

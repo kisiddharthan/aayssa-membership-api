@@ -1,3 +1,10 @@
+import {
+  buildVolunteerPayload,
+  createVolunteerRow,
+  getPrimaryName,
+  getSpouseName
+} from "./_lib/aayssa.js";
+
 export default async function handler(req, res) {
 
   // =========================================================
@@ -50,6 +57,9 @@ export default async function handler(req, res) {
       noOfAdults,
       volunteerInterest,
       areasOfInterest,
+      primaryVolunteer,
+      spouseVolunteer,
+      additionalVolunteers,
       emailOptIn,
       textOptIn
     } = req.body || {};
@@ -409,7 +419,31 @@ export default async function handler(req, res) {
 
 
     // =========================================================
-    // 12. Successful registration
+    // 12. Create per-person volunteer records
+    // =========================================================
+
+    try {
+      await createRegistrationVolunteerRows({
+        familyRow: createdMember,
+        legacyVolunteerInterest:
+          volunteerInterest,
+        legacyAreasOfInterest:
+          areasOfInterest,
+        primaryVolunteer,
+        spouseVolunteer,
+        additionalVolunteers
+      });
+
+    } catch (error) {
+      console.error(
+        "Baserow volunteer record creation failed after member registration:",
+        error
+      );
+    }
+
+
+    // =========================================================
+    // 13. Successful registration
     // =========================================================
 
     return res.status(201).json({
@@ -441,4 +475,163 @@ export default async function handler(req, res) {
         "Unable to process your registration at this time. Please try again later."
     });
   }
+}
+
+async function createRegistrationVolunteerRows({
+  familyRow,
+  legacyVolunteerInterest,
+  legacyAreasOfInterest,
+  primaryVolunteer,
+  spouseVolunteer,
+  additionalVolunteers
+}) {
+  const familyRowId =
+    familyRow.id;
+
+  const primaryName =
+    getPrimaryName(familyRow);
+
+  const spouseName =
+    getSpouseName(familyRow);
+
+  const legacyInterestedMembers =
+    normalizeArray(legacyVolunteerInterest);
+
+  const legacyAreas =
+    normalizeArray(legacyAreasOfInterest);
+
+  const primary =
+    normalizeVolunteerRequest(
+      primaryVolunteer,
+      {
+        interested:
+          legacyInterestedMembers.includes("Primary Member") ||
+          legacyAreas.length > 0,
+        areas:
+          legacyAreas
+      }
+    );
+
+  await createVolunteerRow(
+    buildVolunteerPayload({
+      familyRowId,
+      name: primaryName,
+      memberType: "primary",
+      interested:
+        primary.interested,
+      areas:
+        primary.areas,
+      active: true
+    })
+  );
+
+  if (spouseName) {
+    const spouse =
+      normalizeVolunteerRequest(
+        spouseVolunteer,
+        {
+          interested:
+            legacyInterestedMembers.includes("Spouse"),
+          areas:
+            legacyInterestedMembers.includes("Spouse")
+              ? legacyAreas
+              : []
+        }
+      );
+
+    await createVolunteerRow(
+      buildVolunteerPayload({
+        familyRowId,
+        name: spouseName,
+        memberType: "spouse",
+        interested:
+          spouse.interested,
+        areas:
+          spouse.areas,
+        active: true
+      })
+    );
+  }
+
+  const additional =
+    Array.isArray(additionalVolunteers)
+      ? additionalVolunteers
+      : [];
+
+  for (const volunteer of additional) {
+    const normalized =
+      normalizeVolunteerRequest(volunteer);
+
+    if (!normalized.name) {
+      continue;
+    }
+
+    await createVolunteerRow(
+      buildVolunteerPayload({
+        familyRowId,
+        name:
+          normalized.name,
+        memberType:
+          "additional",
+        relationship:
+          normalized.relationship,
+        interested:
+          normalized.interested,
+        areas:
+          normalized.areas,
+        active:
+          true
+      })
+    );
+  }
+}
+
+function normalizeVolunteerRequest(
+  volunteer,
+  fallback = {}
+) {
+  const source =
+    volunteer && typeof volunteer === "object"
+      ? volunteer
+      : {};
+
+  const areas =
+    Array.isArray(source.areas)
+      ? source.areas
+      : Array.isArray(source.areasOfInterest)
+        ? source.areasOfInterest
+        : fallback.areas || [];
+
+  return {
+    name:
+      String(source.name || "")
+        .trim(),
+    relationship:
+      String(source.relationship || "")
+        .trim(),
+    interested:
+      source.interested === undefined
+        ? Boolean(fallback.interested)
+        : Boolean(source.interested),
+    areas:
+      normalizeArray(areas)
+  };
+}
+
+function normalizeArray(value) {
+  if (Array.isArray(value)) {
+    return value
+      .map(item =>
+        String(item || "").trim()
+      )
+      .filter(Boolean);
+  }
+
+  if (value) {
+    return [
+      String(value).trim()
+    ].filter(Boolean);
+  }
+
+  return [];
 }

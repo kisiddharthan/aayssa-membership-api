@@ -1,5 +1,9 @@
 {
   "name": "aayssa-membership-api",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "scripts": {
+    "migrate:volunteers:dry-run": "node scripts/migrate-volunteers.cjs --dry-run",
+    "migrate:volunteers:apply": "node scripts/migrate-volunteers.cjs --apply"
+  }
 }
