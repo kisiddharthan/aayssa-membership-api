@@ -345,22 +345,6 @@ export default async function handler(req, res) {
           ? null
           : Number(noOfAdults),
 
-      // Interested in Volunteering?
-      field_10281690:
-        Array.isArray(volunteerInterest)
-          ? volunteerInterest
-          : volunteerInterest
-            ? [volunteerInterest]
-            : [],
-
-      // Areas of Interest
-      field_10281806:
-        Array.isArray(areasOfInterest)
-          ? areasOfInterest
-          : areasOfInterest
-            ? [areasOfInterest]
-            : [],
-
       // Email Opt-in
       field_10281810:
         Boolean(emailOptIn),

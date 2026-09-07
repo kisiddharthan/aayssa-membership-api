@@ -1,0 +1,807 @@
+<div id="aayssa-membership">
+
+  <style>
+    #aayssa-membership {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 10px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #30251f;
+      box-sizing: border-box;
+    }
+
+    #aayssa-membership * {
+      box-sizing: border-box;
+    }
+
+    .aayssa-card {
+      background: #fffdf9;
+      border: 1px solid #ead8c5;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 5px 20px rgba(80, 45, 20, 0.10);
+    }
+
+    .aayssa-header {
+      background: linear-gradient(135deg, #7b2607, #a64b0a);
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    .aayssa-header h2 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    .aayssa-header p {
+      margin: 5px 0;
+      line-height: 1.5;
+    }
+
+    .aayssa-body {
+      padding: 28px;
+    }
+
+    .notice {
+      background: #fff6e8;
+      border-left: 4px solid #a64b0a;
+      padding: 14px 16px;
+      border-radius: 7px;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    .section-title {
+      color: #8c3508;
+      font-size: 19px;
+      font-weight: bold;
+      border-bottom: 1px solid #ead8c5;
+      padding-bottom: 8px;
+      margin: 28px 0 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+
+    .required {
+      color: #a83220;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cfc4ba;
+      border-radius: 7px;
+      font-size: 16px;
+      background: white;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #a64b0a;
+      box-shadow: 0 0 0 2px rgba(166, 75, 10, 0.12);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .choice-group {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .choice {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 12px;
+      border: 1px solid #ddd1c5;
+      border-radius: 7px;
+      background: white;
+      cursor: pointer;
+      font-weight: normal;
+    }
+
+    .choice input,
+    .consent input {
+      width: auto;
+      margin: 0;
+    }
+
+    .person-volunteer {
+      border: 1px solid #ead8c5;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 14px;
+      background: white;
+    }
+
+    .person-volunteer h4 {
+      margin: 0 0 12px;
+      color: #30251f;
+      font-size: 17px;
+    }
+
+    .person-meta {
+      color: #6f655e;
+      font-size: 13px;
+      margin: -6px 0 12px;
+    }
+
+    .volunteer-area-wrap {
+      display: none;
+      margin-top: 14px;
+    }
+
+    .person-volunteer.is-interested .volunteer-area-wrap {
+      display: block;
+    }
+
+    .additional-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .secondary-btn,
+    .remove-btn {
+      border: none;
+      border-radius: 7px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .secondary-btn {
+      background: #30251f;
+      color: white;
+    }
+
+    .remove-btn {
+      background: #fff0ee;
+      color: #8a251b;
+    }
+
+    .consent {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin: 12px 0;
+      font-weight: normal;
+      line-height: 1.5;
+    }
+
+    .consent input {
+      margin-top: 4px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      border: none;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 22px;
+      background: #8c3508;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .submit-btn:hover {
+      background: #702704;
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+
+    #formMessage {
+      display: none;
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      line-height: 1.5;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .success {
+      display: block !important;
+      background: #edf8ef;
+      border: 1px solid #9dccaa;
+      color: #236536;
+    }
+
+    .error {
+      display: block !important;
+      background: #fff0ee;
+      border: 1px solid #e0aaa4;
+      color: #8a251b;
+    }
+
+    .small-note {
+      font-size: 13px;
+      color: #6f655e;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 650px) {
+      .grid,
+      .choice-group {
+        grid-template-columns: 1fr;
+      }
+
+      .full {
+        grid-column: auto;
+      }
+
+      .aayssa-body {
+        padding: 20px;
+      }
+
+      .aayssa-header h2 {
+        font-size: 23px;
+      }
+    }
+  </style>
+
+  <div class="aayssa-card">
+    <div class="aayssa-header">
+      <h2>Membership Registration</h2>
+      <p>Swamiye Saranam Ayyappa</p>
+    </div>
+
+    <div class="aayssa-body">
+      <div class="notice">
+        <strong>Already registered?</strong>
+        <br>
+        Please do not submit another registration. Use
+        <strong>Member Login</strong>
+        under Membership to securely access the member portal and update your profile.
+      </div>
+
+      <form id="membershipForm">
+        <div class="section-title">Member Information</div>
+
+        <div class="grid">
+          <div>
+            <label>First Name <span class="required">*</span></label>
+            <input type="text" id="firstName" autocomplete="given-name" required>
+          </div>
+
+          <div>
+            <label>Last Name <span class="required">*</span></label>
+            <input type="text" id="lastName" autocomplete="family-name" required>
+          </div>
+
+          <div>
+            <label>Spouse First Name</label>
+            <input type="text" id="spouseFirstName">
+          </div>
+
+          <div>
+            <label>Spouse Last Name</label>
+            <input type="text" id="spouseLastName">
+          </div>
+
+          <div>
+            <label>Email <span class="required">*</span></label>
+            <input type="email" id="email" autocomplete="email" required>
+          </div>
+
+          <div>
+            <label>Mobile Number <span class="required">*</span></label>
+            <input type="tel" id="mobileNumber" autocomplete="tel" placeholder="(470) 555-1234" required>
+            <div class="small-note">Please enter a 10-digit U.S. mobile number.</div>
+          </div>
+
+          <div class="full">
+            <label>Address</label>
+            <textarea id="address" autocomplete="street-address"></textarea>
+          </div>
+
+          <div>
+            <label>No. of Adults (18+)</label>
+            <input type="number" id="noOfAdults" min="0" step="1">
+          </div>
+
+          <div>
+            <label>No. of Kids</label>
+            <input type="number" id="noOfKids" min="0" step="1">
+          </div>
+        </div>
+
+        <div class="section-title">Volunteer With AAYSSA</div>
+
+        <div
+          class="person-volunteer"
+          data-volunteer-person="primary"
+        >
+          <h4>Primary Member</h4>
+
+          <label class="choice">
+            <input type="checkbox" class="volunteer-interested">
+            Interested in volunteering
+          </label>
+
+          <div class="volunteer-area-wrap">
+            <label>Primary Member Areas of Interest</label>
+            <div class="choice-group volunteer-areas"></div>
+          </div>
+        </div>
+
+        <div
+          id="spouseVolunteerSection"
+          class="person-volunteer"
+          data-volunteer-person="spouse"
+          style="display: none;"
+        >
+          <h4>Spouse</h4>
+          <div class="person-meta" id="spouseVolunteerName"></div>
+
+          <label class="choice">
+            <input type="checkbox" class="volunteer-interested">
+            Interested in volunteering
+          </label>
+
+          <div class="volunteer-area-wrap">
+            <label>Spouse Areas of Interest</label>
+            <div class="choice-group volunteer-areas"></div>
+          </div>
+        </div>
+
+        <div id="additionalVolunteers"></div>
+
+        <div class="additional-actions">
+          <button
+            type="button"
+            class="secondary-btn"
+            id="addAdditionalVolunteer"
+          >
+            Add Additional Family Member
+          </button>
+        </div>
+
+        <div class="section-title">Stay Connected</div>
+
+        <label class="consent">
+          <input type="checkbox" id="emailOptIn">
+          <span>
+            I would like to receive AAYSSA email updates,
+            announcements and event information.
+          </span>
+        </label>
+
+        <label class="consent">
+          <input type="checkbox" id="textOptIn">
+          <span>
+            I would like to receive AAYSSA text updates and important event notifications.
+          </span>
+        </label>
+
+        <button type="submit" class="submit-btn" id="submitButton">
+          REGISTER WITH AAYSSA
+        </button>
+
+        <div id="formMessage"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const API_URL =
+      "https://aayssa-membership-api.vercel.app/api/register";
+
+    const VOLUNTEER_AREAS = [
+      "Pooja",
+      "Annadhanam",
+      "Bhajan",
+      "Media",
+      "Decorations"
+    ];
+
+    const form =
+      document.getElementById("membershipForm");
+
+    const button =
+      document.getElementById("submitButton");
+
+    const message =
+      document.getElementById("formMessage");
+
+    const spouseFirstNameInput =
+      document.getElementById("spouseFirstName");
+
+    const spouseLastNameInput =
+      document.getElementById("spouseLastName");
+
+    const spouseVolunteerSection =
+      document.getElementById("spouseVolunteerSection");
+
+    const spouseVolunteerName =
+      document.getElementById("spouseVolunteerName");
+
+    const additionalVolunteers =
+      document.getElementById("additionalVolunteers");
+
+    document
+      .querySelectorAll(".volunteer-areas")
+      .forEach(renderAreaChoices);
+
+    document
+      .querySelectorAll(".volunteer-interested")
+      .forEach(setupInterestToggle);
+
+    spouseFirstNameInput.addEventListener(
+      "input",
+      updateSpouseVolunteerVisibility
+    );
+
+    spouseLastNameInput.addEventListener(
+      "input",
+      updateSpouseVolunteerVisibility
+    );
+
+    document
+      .getElementById("addAdditionalVolunteer")
+      .addEventListener(
+        "click",
+        addAdditionalVolunteerRow
+      );
+
+    form.addEventListener(
+      "submit",
+      submitMembership
+    );
+
+    function renderAreaChoices(container) {
+      container.innerHTML =
+        VOLUNTEER_AREAS.map(function(area) {
+          return `
+            <label class="choice">
+              <input
+                type="checkbox"
+                class="volunteer-area"
+                value="${escapeHtml(area)}">
+              ${escapeHtml(area)}
+            </label>
+          `;
+        }).join("");
+    }
+
+    function setupInterestToggle(input) {
+      input.addEventListener(
+        "change",
+        function() {
+          const section =
+            input.closest(".person-volunteer");
+
+          section.classList.toggle(
+            "is-interested",
+            input.checked
+          );
+        }
+      );
+    }
+
+    function updateSpouseVolunteerVisibility() {
+      const spouseName =
+        getSpouseName();
+
+      spouseVolunteerSection.style.display =
+        spouseName
+          ? ""
+          : "none";
+
+      spouseVolunteerName.textContent =
+        spouseName;
+
+      if (!spouseName) {
+        spouseVolunteerSection
+          .querySelector(".volunteer-interested")
+          .checked = false;
+
+        spouseVolunteerSection.classList.remove(
+          "is-interested"
+        );
+
+        spouseVolunteerSection
+          .querySelectorAll(".volunteer-area")
+          .forEach(function(input) {
+            input.checked = false;
+          });
+      }
+    }
+
+    function addAdditionalVolunteerRow() {
+      const wrapper =
+        document.createElement("div");
+
+      wrapper.className =
+        "person-volunteer additional-volunteer";
+
+      wrapper.dataset.volunteerPerson =
+        "additional";
+
+      wrapper.innerHTML = `
+        <h4>Additional Family Member</h4>
+
+        <div class="grid">
+          <div>
+            <label>Name</label>
+            <input type="text" class="additional-name">
+          </div>
+
+          <div>
+            <label>Relationship</label>
+            <input type="text" class="additional-relationship">
+          </div>
+        </div>
+
+        <label class="choice">
+          <input type="checkbox" class="volunteer-interested">
+          Interested in volunteering
+        </label>
+
+        <div class="volunteer-area-wrap">
+          <label>Areas of Interest</label>
+          <div class="choice-group volunteer-areas"></div>
+        </div>
+
+        <div class="additional-actions">
+          <button type="button" class="remove-btn">
+            Remove
+          </button>
+        </div>
+      `;
+
+      additionalVolunteers.appendChild(wrapper);
+
+      renderAreaChoices(
+        wrapper.querySelector(".volunteer-areas")
+      );
+
+      setupInterestToggle(
+        wrapper.querySelector(".volunteer-interested")
+      );
+
+      wrapper
+        .querySelector(".remove-btn")
+        .addEventListener(
+          "click",
+          function() {
+            wrapper.remove();
+          }
+        );
+    }
+
+    async function submitMembership(event) {
+      event.preventDefault();
+
+      message.className = "";
+      message.style.display = "none";
+      message.textContent = "";
+
+      const payload =
+        buildPayload();
+
+      button.disabled = true;
+      button.textContent = "CHECKING & REGISTERING...";
+
+      try {
+        const response =
+          await fetch(
+            API_URL,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body:
+                JSON.stringify(payload)
+            }
+          );
+
+        const result =
+          await response.json();
+
+        if (!response.ok) {
+          throw new Error(
+            result.message ||
+            "Unable to complete registration."
+          );
+        }
+
+        message.textContent =
+          "Thank you! Your AAYSSA membership registration has been successfully submitted. Please check your email for your welcome message.";
+
+        message.className =
+          "success";
+
+        form.reset();
+        additionalVolunteers.innerHTML = "";
+        updateSpouseVolunteerVisibility();
+
+        document
+          .querySelectorAll(".person-volunteer")
+          .forEach(function(section) {
+            section.classList.remove("is-interested");
+          });
+
+        message.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+
+      } catch (error) {
+        message.textContent =
+          error.message;
+
+        message.className =
+          "error";
+
+        message.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+
+      } finally {
+        button.disabled = false;
+        button.textContent = "REGISTER WITH AAYSSA";
+      }
+    }
+
+    function buildPayload() {
+      const primaryVolunteer =
+        readVolunteerSection(
+          document.querySelector(
+            '[data-volunteer-person="primary"]'
+          )
+        );
+
+      const spouseVolunteer =
+        getSpouseName()
+          ? readVolunteerSection(spouseVolunteerSection)
+          : {
+              interested: false,
+              areas: []
+            };
+
+      const additionalVolunteerRows =
+        Array.from(
+          document.querySelectorAll(
+            ".additional-volunteer"
+          )
+        );
+
+      const additionalVolunteersPayload =
+        additionalVolunteerRows
+          .map(function(section) {
+            const volunteer =
+              readVolunteerSection(section);
+
+            return {
+              name:
+                section
+                  .querySelector(".additional-name")
+                  .value
+                  .trim(),
+              relationship:
+                section
+                  .querySelector(".additional-relationship")
+                  .value
+                  .trim(),
+              interested:
+                volunteer.interested,
+              areas:
+                volunteer.areas
+            };
+          })
+          .filter(function(volunteer) {
+            return volunteer.name;
+          });
+
+      return {
+        firstName:
+          getInputValue("firstName"),
+        lastName:
+          getInputValue("lastName"),
+        spouseFirstName:
+          getInputValue("spouseFirstName"),
+        spouseLastName:
+          getInputValue("spouseLastName"),
+        email:
+          getInputValue("email"),
+        mobileNumber:
+          getInputValue("mobileNumber"),
+        address:
+          getInputValue("address"),
+        noOfKids:
+          document.getElementById("noOfKids").value,
+        noOfAdults:
+          document.getElementById("noOfAdults").value,
+
+        primaryVolunteer,
+        spouseVolunteer,
+        additionalVolunteers:
+          additionalVolunteersPayload,
+
+        emailOptIn:
+          document.getElementById("emailOptIn").checked,
+        textOptIn:
+          document.getElementById("textOptIn").checked
+      };
+    }
+
+    function readVolunteerSection(section) {
+      const interested =
+        Boolean(
+          section.querySelector(".volunteer-interested").checked
+        );
+
+      const areas =
+        interested
+          ? Array.from(
+              section.querySelectorAll(".volunteer-area:checked")
+            ).map(function(input) {
+              return input.value;
+            })
+          : [];
+
+      return {
+        interested,
+        areas
+      };
+    }
+
+    function getInputValue(id) {
+      return document
+        .getElementById(id)
+        .value
+        .trim();
+    }
+
+    function getSpouseName() {
+      return [
+        spouseFirstNameInput.value.trim(),
+        spouseLastNameInput.value.trim()
+      ].filter(Boolean).join(" ");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+
+</div>
