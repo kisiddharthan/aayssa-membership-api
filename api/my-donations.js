@@ -1,6 +1,6 @@
-import {
+const {
   getAuthenticatedMember
-} from "../lib/aayssa.js";
+} = require("../lib/aayssa.js");
 
 const ZEFFY_API_BASE_URL =
   "https://api.zeffy.com/api/v1";
@@ -8,7 +8,7 @@ const ZEFFY_API_BASE_URL =
 const DEFAULT_CURRENCY =
   "usd";
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({
       success: false,
@@ -327,3 +327,5 @@ function cleanString(value) {
   return String(value ?? "")
     .trim();
 }
+
+module.exports = handler;

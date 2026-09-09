@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+async function handler(req, res) {
   const allowedOrigins = [
     "https://atlantaayyappasevasangam.org",
     "https://www.atlantaayyappasevasangam.org"
@@ -152,3 +152,5 @@ export default async function handler(req, res) {
     });
   }
 }
+
+module.exports = handler;

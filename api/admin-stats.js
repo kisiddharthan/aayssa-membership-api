@@ -1,9 +1,9 @@
-import {
+const {
   VOLUNTEERS_TABLE_ID,
   mapVolunteerRow
-} from "../lib/aayssa.js";
+} = require("../lib/aayssa.js");
 
-export default async function handler(req, res) {
+async function handler(req, res) {
 
   if (req.method !== "GET") {
     return res.status(405).json({
@@ -1001,3 +1001,5 @@ function parseCookies(cookieHeader) {
 
   return cookies;
 }
+
+module.exports = handler;

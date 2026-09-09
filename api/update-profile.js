@@ -1,13 +1,13 @@
-import {
+const {
   cleanString,
   fetchFamilyVolunteerRows,
   getAuthenticatedMember,
   mapVolunteerRow,
   updateVolunteerRow,
   updateMemberRow
-} from "../lib/aayssa.js";
+} = require("../lib/aayssa.js");
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({
       success: false,
@@ -177,6 +177,8 @@ function normalizeProfile(profile) {
       Boolean(profile.textOptIn)
   };
 }
+
+module.exports = handler;
 
 function normalizeOptionalNumber(value) {
   if (
