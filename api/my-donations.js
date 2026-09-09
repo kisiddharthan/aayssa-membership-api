@@ -1,6 +1,6 @@
 import {
   getAuthenticatedMember
-} from "./_lib/aayssa.js";
+} from "../lib/aayssa.js";
 
 const ZEFFY_API_BASE_URL =
   "https://api.zeffy.com/api/v1";

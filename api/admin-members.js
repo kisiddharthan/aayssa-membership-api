@@ -2,7 +2,7 @@ import {
   VOLUNTEER_FIELDS,
   VOLUNTEERS_TABLE_ID,
   mapVolunteerRow
-} from "./_lib/aayssa.js";
+} from "../lib/aayssa.js";
 
 export default async function handler(req, res) {
 

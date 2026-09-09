@@ -9,7 +9,7 @@ import {
   mapVolunteerRow,
   VOLUNTEER_FIELDS,
   updateVolunteerRow
-} from "./_lib/aayssa.js";
+} from "../lib/aayssa.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {

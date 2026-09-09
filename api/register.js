@@ -3,7 +3,7 @@ import {
   createVolunteerRow,
   getPrimaryName,
   getSpouseName
-} from "./_lib/aayssa.js";
+} from "../lib/aayssa.js";
 
 export default async function handler(req, res) {
 
