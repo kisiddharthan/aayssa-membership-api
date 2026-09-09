@@ -384,6 +384,77 @@
 
 
     /* =====================================================
+       DONATIONS
+       ===================================================== */
+
+    .donation-summary {
+      padding: 15px;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      background: #fffdf9;
+      margin-bottom: 14px;
+    }
+
+    .donation-total {
+      font-size: 30px;
+      font-weight: 800;
+      color: #8b5100;
+      margin-top: 4px;
+    }
+
+    .donation-meta {
+      color: #777;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .donation-payment {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .donation-payment:last-child {
+      border-bottom: none;
+    }
+
+    .donation-payment-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .donation-description {
+      font-weight: 800;
+      color: #333;
+    }
+
+    .donation-date {
+      color: #777;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    .donation-amount {
+      color: #8b5100;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .receipt-link {
+      display: inline-block;
+      margin-top: 9px;
+      padding: 8px 11px;
+      border-radius: 7px;
+      background: #333;
+      color: white;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+
+    /* =====================================================
        BUTTONS
        ===================================================== */
 
@@ -1191,6 +1262,169 @@
 
   let currentMember = null;
   let currentVolunteers = [];
+  let currentDonations = null;
+
+
+  function formatCurrency(
+    amount,
+    currency = "USD"
+  ) {
+
+    return new Intl.NumberFormat(
+      "en-US",
+      {
+        style: "currency",
+        currency:
+          currency || "USD"
+      }
+    ).format(Number(amount || 0));
+  }
+
+
+  function formatDate(value) {
+
+    if (!value) {
+      return "-";
+    }
+
+    const date =
+      new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "-";
+    }
+
+    return new Intl.DateTimeFormat(
+      "en-US",
+      {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }
+    ).format(date);
+  }
+
+
+  function renderDonationSection(donations) {
+
+    const year =
+      donations?.year ||
+      new Date().getFullYear();
+
+    if (!donations) {
+
+      return `
+
+        <section class="section-card">
+
+          <h2>
+            Donations & Tax Receipts
+          </h2>
+
+          <span class="value">
+            Donation information is not available right now.
+          </span>
+
+        </section>
+      `;
+    }
+
+    const payments =
+      Array.isArray(donations.payments)
+        ? donations.payments
+        : [];
+
+    return `
+
+      <section class="section-card">
+
+        <h2>
+          Donations & Tax Receipts
+        </h2>
+
+        <div class="donation-summary">
+
+          <span class="label">
+            ${escapeHtml(year)} Donations
+          </span>
+
+          <div class="donation-total">
+            ${formatCurrency(
+              donations.totalPaidThisYear,
+              donations.currency
+            )}
+          </div>
+
+          <div class="donation-meta">
+            ${escapeHtml(payments.length)} payment${payments.length === 1 ? "" : "s"}
+            ${donations.taxReceiptCount ? ` &middot; ${escapeHtml(donations.taxReceiptCount)} receipt${donations.taxReceiptCount === 1 ? "" : "s"} available` : ""}
+          </div>
+
+        </div>
+
+        ${renderDonationPayments(payments)}
+
+      </section>
+    `;
+  }
+
+
+  function renderDonationPayments(payments) {
+
+    if (!payments.length) {
+
+      return `
+        <span class="value">
+          No donations found for this year.
+        </span>
+      `;
+    }
+
+    return payments.map(payment => `
+
+      <div class="donation-payment">
+
+        <div class="donation-payment-row">
+
+          <div>
+
+            <div class="donation-description">
+              ${escapeHtml(payment.description || "AAYSSA Donation")}
+            </div>
+
+            <div class="donation-date">
+              ${escapeHtml(formatDate(payment.date))}
+            </div>
+
+          </div>
+
+          <div class="donation-amount">
+            ${formatCurrency(
+              payment.eligibleAmount ?? payment.amount,
+              payment.currency
+            )}
+          </div>
+
+        </div>
+
+        ${
+          payment.receiptUrl
+            ? `
+              <a
+                class="receipt-link"
+                href="${escapeHtml(payment.receiptUrl)}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Download Tax Receipt
+              </a>
+            `
+            : ""
+        }
+
+      </div>
+    `).join("");
+  }
 
 
   function renderVolunteerSection(volunteers) {
@@ -1346,6 +1580,43 @@
     return Array.isArray(data.volunteers)
       ? data.volunteers
       : [];
+  }
+
+
+  async function loadMyDonations() {
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/my-donations",
+          {
+            method: "GET",
+            credentials: "include"
+          }
+        );
+
+
+      if (!response.ok) {
+        return null;
+      }
+
+
+      const data =
+        await response.json();
+
+
+      return data.donations || null;
+
+    } catch (error) {
+
+      console.error(
+        "Donation load error:",
+        error
+      );
+
+      return null;
+    }
   }
 
 
@@ -3069,8 +3340,20 @@
       currentMember =
         member;
 
+      const [
+        volunteers,
+        donations
+      ] =
+        await Promise.all([
+          loadMyVolunteers(),
+          loadMyDonations()
+        ]);
+
       currentVolunteers =
-        await loadMyVolunteers();
+        volunteers;
+
+      currentDonations =
+        donations;
 
 
       const fullName =
@@ -3110,6 +3393,11 @@
 
 
           ${renderContactSection(member)}
+
+
+          ${renderDonationSection(
+            currentDonations
+          )}
 
 
 
