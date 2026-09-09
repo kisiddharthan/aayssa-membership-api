@@ -3,6 +3,12 @@ import {
   mapVolunteerRow
 } from "./_lib/aayssa.js";
 
+const ZEFFY_API_BASE_URL =
+  "https://api.zeffy.com/api/v1";
+
+const DEFAULT_DONATION_CURRENCY =
+  "USD";
+
 export default async function handler(req, res) {
 
   if (req.method !== "GET") {
@@ -456,6 +462,9 @@ export default async function handler(req, res) {
         );
     }
 
+    const donationSummary =
+      await safeFetchAdminDonationSummary();
+
 
 
     // ==================================================
@@ -503,7 +512,10 @@ export default async function handler(req, res) {
           Boolean(createdOnFieldKey),
 
 
-        registrationTrends
+        registrationTrends,
+
+
+        donationSummary
 
       }
     });
@@ -682,6 +694,308 @@ async function fetchAllBaserowRows(
 
 
   return rows;
+}
+
+
+async function safeFetchAdminDonationSummary() {
+  try {
+    return await fetchAdminDonationSummary();
+  } catch (error) {
+    console.error(
+      "Dashboard donation summary unavailable:",
+      error
+    );
+
+    return buildUnavailableDonationSummary();
+  }
+}
+
+
+async function fetchAdminDonationSummary() {
+  if (!process.env.ZEFFY_API_KEY) {
+    console.warn(
+      "Missing ZEFFY_API_KEY; dashboard donation summary unavailable."
+    );
+
+    return buildUnavailableDonationSummary();
+  }
+
+  const year =
+    new Date().getUTCFullYear();
+
+  const yearStart =
+    Math.floor(Date.UTC(year, 0, 1) / 1000);
+
+  const nextYearStart =
+    Math.floor(Date.UTC(year + 1, 0, 1) / 1000);
+
+  const payments =
+    await fetchZeffyPages(
+      "/payments",
+      {
+        status:
+          "succeeded",
+        "created[gte]":
+          yearStart,
+        "created[lte]":
+          nextYearStart - 1
+      }
+    );
+
+  const mappedPayments =
+    payments.map(mapZeffyPayment);
+
+  const currency =
+    mappedPayments[0]?.currency ||
+    DEFAULT_DONATION_CURRENCY;
+
+  return {
+    available: true,
+    year,
+    currency,
+    totalPaidThisYear:
+      mappedPayments.reduce(
+        (total, payment) =>
+          total + payment.amount,
+        0
+      ),
+    paymentCount:
+      mappedPayments.length,
+    monthlyDonations:
+      buildMonthlyDonationTrends(
+        mappedPayments,
+        12
+      )
+  };
+}
+
+
+function buildUnavailableDonationSummary() {
+  return {
+    available: false,
+    year:
+      new Date().getUTCFullYear(),
+    currency:
+      DEFAULT_DONATION_CURRENCY,
+    totalPaidThisYear:
+      0,
+    paymentCount:
+      0,
+    monthlyDonations:
+      []
+  };
+}
+
+
+async function fetchZeffyPages(
+  path,
+  params
+) {
+  const rows = [];
+
+  let cursor = "";
+
+  do {
+    const url =
+      new URL(`${ZEFFY_API_BASE_URL}${path}`);
+
+    url.searchParams.set(
+      "limit",
+      "100"
+    );
+
+    Object
+      .entries(params || {})
+      .forEach(([key, value]) => {
+        if (
+          value !== undefined &&
+          value !== null &&
+          value !== ""
+        ) {
+          url.searchParams.set(
+            key,
+            String(value)
+          );
+        }
+      });
+
+    if (cursor) {
+      url.searchParams.set(
+        "starting_after",
+        cursor
+      );
+    }
+
+    const response =
+      await fetch(
+        url,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${process.env.ZEFFY_API_KEY}`
+          }
+        }
+      );
+
+    if (!response.ok) {
+      console.error(
+        "Zeffy dashboard API request failed:",
+        response.status,
+        path
+      );
+
+      throw new Error(
+        "Unable to load Zeffy dashboard records."
+      );
+    }
+
+    const data =
+      await response.json();
+
+    if (Array.isArray(data.data)) {
+      rows.push(...data.data);
+    }
+
+    cursor =
+      data.has_more && data.next_cursor
+        ? data.next_cursor
+        : "";
+  } while (cursor);
+
+  return rows;
+}
+
+
+function mapZeffyPayment(payment) {
+  const createdTimestamp =
+    Number(payment.created || 0);
+
+  return {
+    createdDate:
+      createdTimestamp
+        ? new Date(createdTimestamp * 1000)
+        : null,
+    amount:
+      centsToDollars(payment.amount),
+    currency:
+      String(
+        payment.currency ||
+        DEFAULT_DONATION_CURRENCY
+      ).toUpperCase()
+  };
+}
+
+
+function centsToDollars(value) {
+  const amount =
+    Number(value || 0);
+
+  if (!Number.isFinite(amount)) {
+    return 0;
+  }
+
+  return Math.round(amount) / 100;
+}
+
+
+function buildMonthlyDonationTrends(
+  payments,
+  numberOfMonths = 12
+) {
+  const months =
+    buildMonthBuckets(numberOfMonths)
+      .map(item => ({
+        ...item,
+        amount: 0,
+        count: 0
+      }));
+
+  const monthMap =
+    new Map(
+      months.map(item => [
+        item.month,
+        item
+      ])
+    );
+
+  for (const payment of payments) {
+    if (!payment.createdDate) {
+      continue;
+    }
+
+    const parts =
+      getDatePartsInTimeZone(
+        payment.createdDate,
+        "America/New_York"
+      );
+
+    const monthKey =
+      `${parts.year}-${String(parts.month).padStart(2, "0")}`;
+
+    const target =
+      monthMap.get(monthKey);
+
+    if (target) {
+      target.amount += payment.amount;
+      target.count += 1;
+    }
+  }
+
+  return months.map(item => ({
+    ...item,
+    amount:
+      Math.round(item.amount * 100) / 100
+  }));
+}
+
+
+function buildMonthBuckets(
+  numberOfMonths = 12
+) {
+  const timeZone =
+    "America/New_York";
+
+  const nowParts =
+    getDatePartsInTimeZone(
+      new Date(),
+      timeZone
+    );
+
+  const months = [];
+
+  for (
+    let offset = numberOfMonths - 1;
+    offset >= 0;
+    offset--
+  ) {
+    const monthDate =
+      new Date(
+        nowParts.year,
+        nowParts.month - 1 - offset,
+        1
+      );
+
+    const year =
+      monthDate.getFullYear();
+
+    const month =
+      monthDate.getMonth() + 1;
+
+    months.push({
+      month:
+        `${year}-${String(month).padStart(2, "0")}`,
+      label:
+        monthDate.toLocaleString(
+          "en-US",
+          {
+            month: "short",
+            year: "numeric"
+          }
+        )
+    });
+  }
+
+  return months;
 }
 
 

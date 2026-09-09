@@ -2705,6 +2705,125 @@
   }
 
 
+  function renderDonationTrend(donationSummary) {
+
+    if (
+      !donationSummary?.available ||
+      !Array.isArray(donationSummary.monthlyDonations) ||
+      donationSummary.monthlyDonations.length === 0
+    ) {
+
+      return `
+
+        <div class="trend-card">
+
+          <h3>
+            Monthly Donations
+          </h3>
+
+          <div class="trend-subtitle">
+            Zeffy donations received during the last 12 months
+          </div>
+
+          <div class="directory-empty">
+            Donation trend data is not available.
+          </div>
+
+        </div>
+      `;
+    }
+
+
+    const trends =
+      donationSummary.monthlyDonations;
+
+
+    const maxAmount =
+      Math.max(
+        ...trends.map(item =>
+          Number(item.amount || 0)
+        ),
+        1
+      );
+
+
+    const bars =
+      trends.map(item => {
+
+        const amount =
+          Number(item.amount || 0);
+
+
+        const percentage =
+          amount === 0
+            ? 1
+            : Math.max(
+                3,
+                Math.round(
+                  (amount / maxAmount) * 100
+                )
+              );
+
+
+        return `
+
+          <div class="trend-column">
+
+            <div class="trend-count">
+              ${formatCurrency(
+                amount,
+                donationSummary.currency
+              )}
+            </div>
+
+
+            <div class="trend-bar-area">
+
+              <div
+                class="trend-bar"
+                style="height:${percentage}%"
+                title="${escapeHtml(item.label)}: ${formatCurrency(amount, donationSummary.currency)}"
+              ></div>
+
+            </div>
+
+
+            <div class="trend-label">
+              ${escapeHtml(item.label)}
+            </div>
+
+          </div>
+        `;
+
+      }).join("");
+
+
+    return `
+
+      <div class="trend-card">
+
+        <h3>
+          Monthly Donations
+        </h3>
+
+        <div class="trend-subtitle">
+          Zeffy donations received during the last 12 months
+        </div>
+
+
+        <div class="trend-chart-scroll">
+
+          <div class="trend-chart">
+            ${bars}
+          </div>
+
+        </div>
+
+      </div>
+    `;
+  }
+
+
 
   /* =====================================================
      MEMBER DIRECTORY SHELL
@@ -3590,6 +3709,9 @@
       const participation =
         stats.volunteerParticipation || {};
 
+      const donationSummary =
+        stats.donationSummary || null;
+
 
       const volunteerSelections =
 
@@ -3687,6 +3809,27 @@
 
           </div>
 
+
+
+          <div class="stat-card">
+
+            <div class="stat-number">
+              ${
+                donationSummary?.available
+                  ? formatCurrency(
+                      donationSummary.totalPaidThisYear,
+                      donationSummary.currency
+                    )
+                  : "-"
+              }
+            </div>
+
+            <div class="stat-label">
+              Zeffy Donations This Year
+            </div>
+
+          </div>
+
         </div>
 
 
@@ -3776,6 +3919,12 @@
           </div>
 
         </div>
+
+
+
+        ${renderDonationTrend(
+          donationSummary
+        )}
 
 
 
