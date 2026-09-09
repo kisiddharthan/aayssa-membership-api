@@ -605,6 +605,7 @@
       font-size: 30px;
       font-weight: 800;
       color: #8b5100;
+      white-space: nowrap;
     }
 
     .stat-label {
@@ -614,6 +615,7 @@
       font-weight: 700;
       text-transform: uppercase;
       line-height: 1.4;
+      min-height: 31px;
     }
 
     .dashboard-grid {
@@ -3800,20 +3802,6 @@
           <div class="stat-card">
 
             <div class="stat-number">
-              ${volunteerSelections}
-            </div>
-
-            <div class="stat-label">
-              Volunteer Selections
-            </div>
-
-          </div>
-
-
-
-          <div class="stat-card">
-
-            <div class="stat-number">
               ${
                 donationSummary?.available
                   ? formatCurrency(
@@ -3825,7 +3813,7 @@
             </div>
 
             <div class="stat-label">
-              Zeffy Donations This Year
+              Donations This Year
             </div>
 
           </div>
@@ -3876,6 +3864,18 @@
             <h3>
               Volunteer Participation
             </h3>
+
+            <div class="dashboard-row">
+
+              <strong>
+                Total Volunteers
+              </strong>
+
+              <span class="dashboard-number">
+                ${volunteerSelections}
+              </span>
+
+            </div>
 
 
             <div class="dashboard-row">
