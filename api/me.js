@@ -1,4 +1,4 @@
-async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({
       success: false,
@@ -220,5 +220,3 @@ function parseCookies(cookieHeader) {
 
   return cookies;
 }
-
-module.exports = handler;

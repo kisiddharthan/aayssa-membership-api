@@ -1,13 +1,13 @@
-const {
+import {
   fetchFamilyVolunteerRows,
   getAuthenticatedMember,
   getMultiSelectValues,
   getPrimaryName,
   getSpouseName,
   mapVolunteerRow
-} = require("../lib/aayssa.js");
+} from "./_lib/aayssa.js";
 
-async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({
       success: false,
@@ -115,5 +115,3 @@ function buildLegacyVolunteers(memberRow) {
 
   return volunteers;
 }
-
-module.exports = handler;

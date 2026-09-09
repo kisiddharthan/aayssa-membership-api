@@ -1,11 +1,11 @@
-const {
+import {
   buildVolunteerPayload,
   createVolunteerRow,
   getPrimaryName,
   getSpouseName
-} = require("../lib/aayssa.js");
+} from "./_lib/aayssa.js";
 
-async function handler(req, res) {
+export default async function handler(req, res) {
 
   // =========================================================
   // CORS
@@ -619,5 +619,3 @@ function normalizeArray(value) {
 
   return [];
 }
-
-module.exports = handler;

@@ -1,10 +1,10 @@
-const MEMBERS_TABLE_ID =
+export const MEMBERS_TABLE_ID =
   process.env.BASEROW_TABLE_ID;
 
-const VOLUNTEERS_TABLE_ID =
+export const VOLUNTEERS_TABLE_ID =
   process.env.BASEROW_VOLUNTEERS_TABLE_ID || "1179938";
 
-const VOLUNTEER_FIELDS = {
+export const VOLUNTEER_FIELDS = {
   name: "field_10642219",
   memberType: "field_10642220",
   active: "field_10642221",
@@ -16,13 +16,13 @@ const VOLUNTEER_FIELDS = {
   updatedOn: "field_10642234"
 };
 
-const VOLUNTEER_MEMBER_TYPE_OPTIONS = {
+export const VOLUNTEER_MEMBER_TYPE_OPTIONS = {
   primary: 7582778,
   spouse: 7582779,
   additional: 7582780
 };
 
-const VOLUNTEER_AREA_OPTIONS = {
+export const VOLUNTEER_AREA_OPTIONS = {
   Bhajan: 7582773,
   Pooja: 7582774,
   Annadhanam: 7582775,
@@ -30,7 +30,7 @@ const VOLUNTEER_AREA_OPTIONS = {
   Decorations: 7582777
 };
 
-const VOLUNTEER_AREAS = [
+export const VOLUNTEER_AREAS = [
   "Pooja",
   "Annadhanam",
   "Bhajan",
@@ -38,12 +38,12 @@ const VOLUNTEER_AREAS = [
   "Decorations"
 ];
 
-function getBaserowBaseUrl() {
+export function getBaserowBaseUrl() {
   return (process.env.BASEROW_URL || "https://api.baserow.io")
     .replace(/\/$/, "");
 }
 
-function getBaserowHeaders() {
+export function getBaserowHeaders() {
   const token =
     process.env.BASEROW_TOKEN;
 
@@ -57,7 +57,7 @@ function getBaserowHeaders() {
   };
 }
 
-function assertServerConfig() {
+export function assertServerConfig() {
   const missing = [];
 
   if (!process.env.SUPABASE_URL) {
@@ -87,7 +87,7 @@ function assertServerConfig() {
   }
 }
 
-async function getAuthenticatedMember(req) {
+export async function getAuthenticatedMember(req) {
   assertServerConfig();
 
   const cookies =
@@ -185,7 +185,7 @@ async function getAuthenticatedMember(req) {
   };
 }
 
-async function fetchFamilyVolunteerRows(memberRowId) {
+export async function fetchFamilyVolunteerRows(memberRowId) {
   const url =
     `${getBaserowBaseUrl()}/api/database/rows/table/${VOLUNTEERS_TABLE_ID}/` +
     `?user_field_names=false` +
@@ -220,7 +220,7 @@ async function fetchFamilyVolunteerRows(memberRowId) {
     : [];
 }
 
-async function createVolunteerRow(values) {
+export async function createVolunteerRow(values) {
   const response =
     await fetch(
       `${getBaserowBaseUrl()}/api/database/rows/table/${VOLUNTEERS_TABLE_ID}/?user_field_names=false`,
@@ -248,7 +248,7 @@ async function createVolunteerRow(values) {
   return response.json();
 }
 
-async function updateVolunteerRow(rowId, values) {
+export async function updateVolunteerRow(rowId, values) {
   const response =
     await fetch(
       `${getBaserowBaseUrl()}/api/database/rows/table/${VOLUNTEERS_TABLE_ID}/${rowId}/?user_field_names=false`,
@@ -276,7 +276,7 @@ async function updateVolunteerRow(rowId, values) {
   return response.json();
 }
 
-async function updateMemberRow(rowId, values) {
+export async function updateMemberRow(rowId, values) {
   const response =
     await fetch(
       `${getBaserowBaseUrl()}/api/database/rows/table/${MEMBERS_TABLE_ID}/${rowId}/?user_field_names=false`,
@@ -304,7 +304,7 @@ async function updateMemberRow(rowId, values) {
   return response.json();
 }
 
-function buildVolunteerPayload({
+export function buildVolunteerPayload({
   familyRowId,
   name,
   memberType,
@@ -337,7 +337,7 @@ function buildVolunteerPayload({
   };
 }
 
-function mapVolunteerRow(row) {
+export function mapVolunteerRow(row) {
   const memberTypeValue =
     getSingleSelectValue(row[VOLUNTEER_FIELDS.memberType]);
 
@@ -361,22 +361,22 @@ function mapVolunteerRow(row) {
   };
 }
 
-function getPrimaryName(memberRow) {
+export function getPrimaryName(memberRow) {
   return `${memberRow.field_10227506 || ""} ${memberRow.field_10473214 || ""}`
     .trim();
 }
 
-function getSpouseName(memberRow) {
+export function getSpouseName(memberRow) {
   return `${memberRow.field_10227562 || ""} ${memberRow.field_10473216 || ""}`
     .trim();
 }
 
-function cleanString(value) {
+export function cleanString(value) {
   return String(value ?? "")
     .trim();
 }
 
-function getMultiSelectValues(items) {
+export function getMultiSelectValues(items) {
   if (!Array.isArray(items)) {
     return [];
   }
@@ -396,7 +396,7 @@ function getMultiSelectValues(items) {
     .filter(Boolean);
 }
 
-function normalizeMemberType(value) {
+export function normalizeMemberType(value) {
   const normalized =
     cleanString(value)
       .toLowerCase();
@@ -412,7 +412,7 @@ function normalizeMemberType(value) {
   return "additional";
 }
 
-function displayMemberType(value) {
+export function displayMemberType(value) {
   const memberType =
     normalizeMemberType(value);
 
@@ -427,7 +427,7 @@ function displayMemberType(value) {
   return "Additional Family Member";
 }
 
-function sanitizeAreaOptions(areas) {
+export function sanitizeAreaOptions(areas) {
   const values =
     Array.isArray(areas)
       ? areas
@@ -485,29 +485,3 @@ function parseCookies(cookieHeader) {
 
   return cookies;
 }
-
-module.exports = {
-  MEMBERS_TABLE_ID,
-  VOLUNTEERS_TABLE_ID,
-  VOLUNTEER_FIELDS,
-  VOLUNTEER_MEMBER_TYPE_OPTIONS,
-  VOLUNTEER_AREA_OPTIONS,
-  VOLUNTEER_AREAS,
-  getBaserowBaseUrl,
-  getBaserowHeaders,
-  assertServerConfig,
-  getAuthenticatedMember,
-  fetchFamilyVolunteerRows,
-  createVolunteerRow,
-  updateVolunteerRow,
-  updateMemberRow,
-  buildVolunteerPayload,
-  mapVolunteerRow,
-  getPrimaryName,
-  getSpouseName,
-  cleanString,
-  getMultiSelectValues,
-  normalizeMemberType,
-  displayMemberType,
-  sanitizeAreaOptions
-};
