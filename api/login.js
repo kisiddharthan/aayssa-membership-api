@@ -13,6 +13,7 @@ export default async function handler(req, res) {
   res.setHeader("Vary", "Origin");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
   if (req.method === "OPTIONS") {
     return res.status(204).end();
@@ -99,11 +100,11 @@ export default async function handler(req, res) {
       return res.status(200).json({
         success: true,
         message:
-          "If this email is registered with AAYSSA, a secure login link will be sent shortly."
+          "If this email is registered with AAYSSA, a secure passcode will be sent shortly."
       });
     }
 
-    // Ask Supabase to send the magic link
+    // Ask Supabase to send the email OTP.
     const supabaseResponse = await fetch(
       `${SUPABASE_URL}/auth/v1/otp`,
       {
@@ -133,14 +134,14 @@ export default async function handler(req, res) {
 
       return res.status(500).json({
         success: false,
-        message: "Unable to send the login link right now."
+        message: "Unable to send the login passcode right now."
       });
     }
 
     return res.status(200).json({
       success: true,
       message:
-        "If this email is registered with AAYSSA, a secure login link will be sent shortly."
+        "If this email is registered with AAYSSA, a secure passcode will be sent shortly."
     });
   } catch (error) {
     console.error("Login API error:", error);

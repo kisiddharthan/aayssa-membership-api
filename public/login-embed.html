@@ -1,0 +1,437 @@
+<div id="aayssa-login">
+  <div class="aayssa-card">
+
+    <div class="aayssa-mantra">
+      Swamiye Saranam Ayyappa
+    </div>
+
+    <p class="aayssa-description">
+      Sign in securely to access your AAYSSA membership information,
+      volunteer preferences and member services.
+    </p>
+
+    <form id="memberLoginForm">
+
+      <label for="memberEmail">Email Address</label>
+
+      <input
+        type="email"
+        id="memberEmail"
+        placeholder="Enter your registered email"
+        autocomplete="email"
+        required
+      >
+
+      <button type="submit" id="loginButton">
+        SEND PASSCODE
+      </button>
+
+    </form>
+
+    <form id="memberCodeForm" class="code-form">
+
+      <label for="memberCode">Email Passcode</label>
+
+      <input
+        type="text"
+        id="memberCode"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="10"
+        placeholder="Enter passcode"
+        autocomplete="one-time-code"
+        required
+      >
+
+      <button type="submit" id="verifyButton">
+        SIGN IN
+      </button>
+
+      <button type="button" id="changeEmailButton">
+        Use a different email
+      </button>
+
+    </form>
+
+    <div id="loginMessage" class="message"></div>
+
+    <div class="security-note">
+      A one-time passcode will be sent to your registered email address.
+    </div>
+
+    <div class="register-area">
+      <span>Not an AAYSSA member?</span>
+      <a
+        href="https://atlantaayyappasevasangam.org/register"
+        target="_top"
+      >
+        Register Here
+      </a>
+    </div>
+
+  </div>
+</div>
+
+<style>
+#aayssa-login {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 45px 18px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+#aayssa-login * {
+  box-sizing: border-box;
+}
+
+.aayssa-card {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 38px 42px;
+  background: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.aayssa-symbol {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.aayssa-card h1 {
+  margin: 5px 0 8px;
+  font-size: 30px;
+  color: #222222;
+}
+
+.aayssa-mantra {
+  color: #b36b00;
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.aayssa-description {
+  color: #666666;
+  line-height: 1.6;
+  font-size: 15px;
+  margin: 0 auto 28px;
+  max-width: 470px;
+}
+
+#memberLoginForm,
+#memberCodeForm {
+  text-align: left;
+}
+
+.code-form {
+  display: none;
+}
+
+#memberLoginForm label,
+#memberCodeForm label {
+  display: block;
+  color: #333333;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+#memberEmail,
+#memberCode {
+  width: 100%;
+  padding: 14px 15px;
+  border: 1px solid #cccccc;
+  border-radius: 7px;
+  font-size: 16px;
+  outline: none;
+  background: #ffffff;
+}
+
+#memberEmail:focus,
+#memberCode:focus {
+  border-color: #b36b00;
+  box-shadow: 0 0 0 2px rgba(179,107,0,0.12);
+}
+
+#loginButton,
+#verifyButton,
+#changeEmailButton {
+  width: 100%;
+  margin-top: 16px;
+  padding: 15px;
+  border: none;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#loginButton,
+#verifyButton {
+  background: #b36b00;
+  color: #ffffff;
+}
+
+#changeEmailButton {
+  background: #333333;
+  color: #ffffff;
+}
+
+#loginButton:hover,
+#verifyButton:hover,
+#changeEmailButton:hover {
+  opacity: 0.92;
+}
+
+#loginButton:disabled,
+#verifyButton:disabled,
+#changeEmailButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.message {
+  display: none;
+  margin-top: 20px;
+  padding: 13px;
+  border-radius: 7px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.message.success {
+  display: block;
+  background: #edf8ef;
+  color: #246b31;
+  border: 1px solid #cce8d1;
+}
+
+.message.error {
+  display: block;
+  background: #fff0f0;
+  color: #a32929;
+  border: 1px solid #efcccc;
+}
+
+.security-note {
+  margin-top: 23px;
+  color: #777777;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.register-area {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #eeeeee;
+  font-size: 14px;
+  color: #666666;
+}
+
+.register-area a {
+  margin-left: 5px;
+  color: #b36b00;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.register-area a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 600px) {
+  #aayssa-login {
+    padding: 25px 12px;
+  }
+
+  .aayssa-card {
+    padding: 30px 20px;
+  }
+
+  .aayssa-card h1 {
+    font-size: 25px;
+  }
+}
+</style>
+
+<script>
+(function () {
+
+  const API_BASE =
+    "https://portal.atlantaayyappasevasangam.org/api";
+
+  const loginForm = document.getElementById("memberLoginForm");
+  const codeForm = document.getElementById("memberCodeForm");
+  const emailInput = document.getElementById("memberEmail");
+  const codeInput = document.getElementById("memberCode");
+  const loginButton = document.getElementById("loginButton");
+  const verifyButton = document.getElementById("verifyButton");
+  const changeEmailButton = document.getElementById("changeEmailButton");
+  const message = document.getElementById("loginMessage");
+
+  let pendingEmail = "";
+
+  loginForm.addEventListener("submit", async function (event) {
+
+    event.preventDefault();
+
+    const email = emailInput.value.trim().toLowerCase();
+
+    if (!email) {
+      showMessage(
+        "Please enter your registered email address.",
+        "error"
+      );
+      return;
+    }
+
+    loginButton.disabled = true;
+    loginButton.textContent = "SENDING PASSCODE...";
+
+    resetMessage();
+
+    try {
+
+      const response = await fetch(
+        `${API_BASE}/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            email: email
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Unable to send passcode."
+        );
+      }
+
+      pendingEmail = email;
+
+      loginForm.style.display = "none";
+      codeForm.style.display = "block";
+      codeInput.value = "";
+      codeInput.focus();
+
+      showMessage(
+        "If this email is registered with AAYSSA, a passcode has been sent. Please check your inbox.",
+        "success"
+      );
+
+    } catch (error) {
+
+      console.error("AAYSSA login error:", error);
+
+      showMessage(
+        "We couldn't send the passcode right now. Please try again.",
+        "error"
+      );
+
+    } finally {
+
+      loginButton.disabled = false;
+      loginButton.textContent = "SEND PASSCODE";
+
+    }
+
+  });
+
+  codeForm.addEventListener("submit", async function (event) {
+
+    event.preventDefault();
+
+    const code = codeInput.value.trim();
+
+    if (!pendingEmail || !code) {
+      showMessage(
+        "Please enter the passcode from your email.",
+        "error"
+      );
+      return;
+    }
+
+    verifyButton.disabled = true;
+    verifyButton.textContent = "SIGNING IN...";
+
+    resetMessage();
+
+    try {
+
+      const response = await fetch(
+        `${API_BASE}/verify-login-code`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            email: pendingEmail,
+            code: code
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Unable to verify passcode."
+        );
+      }
+
+      window.top.location.href =
+        data.redirectUrl ||
+        "https://portal.atlantaayyappasevasangam.org/";
+
+    } catch (error) {
+
+      console.error("AAYSSA passcode verification error:", error);
+
+      showMessage(
+        error.message || "The passcode is invalid or expired.",
+        "error"
+      );
+
+    } finally {
+
+      verifyButton.disabled = false;
+      verifyButton.textContent = "SIGN IN";
+
+    }
+
+  });
+
+  changeEmailButton.addEventListener("click", function () {
+    pendingEmail = "";
+    codeInput.value = "";
+    codeForm.style.display = "none";
+    loginForm.style.display = "block";
+    resetMessage();
+    emailInput.focus();
+  });
+
+  function resetMessage() {
+    message.style.display = "none";
+    message.className = "message";
+    message.textContent = "";
+  }
+
+  function showMessage(text, type) {
+    message.textContent = text;
+    message.className = "message " + type;
+    message.style.display = "block";
+  }
+
+})();
+</script>
