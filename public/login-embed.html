@@ -274,6 +274,8 @@
 
   let pendingEmail = "";
 
+  redirectIfActiveSession();
+
   loginForm.addEventListener("submit", async function (event) {
 
     event.preventDefault();
@@ -431,6 +433,27 @@
     message.textContent = text;
     message.className = "message " + type;
     message.style.display = "block";
+  }
+
+  async function redirectIfActiveSession() {
+    try {
+      const response = await fetch(
+        `${API_BASE}/me`,
+        {
+          method: "GET",
+          credentials: "include"
+        }
+      );
+
+      if (response.ok) {
+        window.top.location.href =
+          "https://portal.atlantaayyappasevasangam.org/";
+      }
+    } catch (error) {
+      console.info(
+        "No active AAYSSA portal session detected."
+      );
+    }
   }
 
 })();
