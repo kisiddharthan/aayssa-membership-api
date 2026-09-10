@@ -255,6 +255,11 @@ export default async function handler(req, res) {
         .trim()
         .toLowerCase();
 
+    const sortBy =
+      normalizeSortBy(
+        req.query.sort
+      );
+
 
     let page =
       Number.parseInt(
@@ -451,6 +456,12 @@ export default async function handler(req, res) {
         }
 
 
+        const registrationDateSort =
+          createdOnFieldKey && row[createdOnFieldKey]
+            ? Date.parse(row[createdOnFieldKey]) || 0
+            : 0;
+
+
 
         // ----------------------------------------------
         // Fields available to Board + Admin
@@ -536,6 +547,16 @@ export default async function handler(req, res) {
             .toLowerCase();
 
 
+        member._primaryNameSort =
+          `${firstName} ${lastName}`
+            .trim()
+            .toLowerCase();
+
+
+        member._registeredDateSort =
+          registrationDateSort;
+
+
         return member;
       });
 
@@ -575,26 +596,27 @@ export default async function handler(req, res) {
 
 
     // ==================================================
-    // 11. Sort alphabetically
+    // 11. Sort
     // ==================================================
 
     members.sort(
       (a, b) => {
 
-        const nameA =
-          `${a.firstName} ${a.lastName}`
-            .trim()
-            .toLowerCase();
+        if (sortBy === "registeredDate") {
+
+          const dateCompare =
+            Number(b._registeredDateSort || 0) -
+            Number(a._registeredDateSort || 0);
+
+          if (dateCompare !== 0) {
+            return dateCompare;
+          }
+        }
 
 
-        const nameB =
-          `${b.firstName} ${b.lastName}`
-            .trim()
-            .toLowerCase();
-
-
-        return nameA.localeCompare(
-          nameB
+        return String(a._primaryNameSort || "")
+          .localeCompare(
+            String(b._primaryNameSort || "")
         );
       }
     );
@@ -646,6 +668,8 @@ export default async function handler(req, res) {
 
           const {
             _search,
+            _primaryNameSort,
+            _registeredDateSort,
             ...safeMember
           } = member;
 
@@ -681,6 +705,8 @@ export default async function handler(req, res) {
         hasNextPage:
           page < totalPages,
 
+        sortBy,
+
         members:
           paginatedMembers
 
@@ -707,6 +733,19 @@ export default async function handler(req, res) {
 
     });
   }
+}
+
+
+function normalizeSortBy(value) {
+  const sortBy =
+    String(value || "")
+      .trim();
+
+  if (sortBy === "registeredDate") {
+    return "registeredDate";
+  }
+
+  return "primaryName";
 }
 
 

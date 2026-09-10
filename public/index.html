@@ -756,6 +756,21 @@
       box-shadow: 0 0 0 2px rgba(185, 108, 0, 0.12);
     }
 
+    .directory-sort {
+      min-width: 190px;
+      padding: 12px 14px;
+      border: 1px solid #ccc;
+      border-radius: 7px;
+      font-size: 14px;
+      background: white;
+      outline: none;
+    }
+
+    .directory-sort:focus {
+      border-color: #b96c00;
+      box-shadow: 0 0 0 2px rgba(185, 108, 0, 0.12);
+    }
+
     .directory-search-button {
       border: none;
       background: #b96c00;
@@ -1081,6 +1096,7 @@
 
   let directoryCurrentPage = 1;
   let directorySearchQuery = "";
+  let directorySortBy = "primaryName";
 
 
   /* =====================================================
@@ -2857,6 +2873,21 @@
           >
 
 
+          <select
+            id="directorySort"
+            class="directory-sort"
+            aria-label="Sort member directory"
+          >
+            <option value="primaryName">
+              Sort by Primary Name
+            </option>
+
+            <option value="registeredDate">
+              Sort by Registered Date
+            </option>
+          </select>
+
+
           <button
             id="directorySearchButton"
             class="directory-search-button"
@@ -2920,6 +2951,11 @@
       params.set(
         "size",
         20
+      );
+
+      params.set(
+        "sort",
+        directorySortBy
       );
 
 
@@ -3312,13 +3348,21 @@
         "directorySearchButton"
       );
 
+    const sort =
+      document.getElementById(
+        "directorySort"
+      );
 
     if (
       !input ||
-      !button
+      !button ||
+      !sort
     ) {
       return;
     }
+
+    sort.value =
+      directorySortBy;
 
 
     const performSearch = () => {
@@ -3333,10 +3377,29 @@
       loadMemberDirectory(1);
     };
 
+    const performSort = () => {
+
+      directorySortBy =
+        sort.value === "registeredDate"
+          ? "registeredDate"
+          : "primaryName";
+
+
+      directoryCurrentPage = 1;
+
+
+      loadMemberDirectory(1);
+    };
+
 
     button.addEventListener(
       "click",
       performSearch
+    );
+
+    sort.addEventListener(
+      "change",
+      performSort
     );
 
 
