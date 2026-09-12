@@ -135,11 +135,19 @@
       padding: 38px 18px 55px;
     }
 
+    .portal-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
     .welcome {
       font-family: Georgia, "Times New Roman", serif;
       font-size: 25px;
       font-weight: 400;
-      margin-bottom: 22px;
+      margin-bottom: 0;
     }
 
 
@@ -981,6 +989,11 @@
 
       .stats-grid {
         grid-template-columns: 1fr;
+      }
+
+      .portal-top-row {
+        align-items: flex-start;
+        flex-direction: column;
       }
 
       .welcome {
@@ -3589,19 +3602,32 @@
       status.innerHTML = `
 
 
-        <div class="welcome">
+        <div class="portal-top-row">
 
-          Welcome,
-          <span id="welcomeName">
-          ${escapeHtml(
-            fullName ||
-            "Member"
-          )}
-          </span>
+          <div class="welcome">
 
-          ${renderRoleBadge(
-            member.role
-          )}
+            Welcome,
+            <span id="welcomeName">
+            ${escapeHtml(
+              fullName ||
+              "Member"
+            )}
+            </span>
+
+            ${renderRoleBadge(
+              member.role
+            )}
+
+          </div>
+
+
+          <button
+            id="logoutButton"
+            class="logout-button"
+            type="button"
+          >
+            Logout
+          </button>
 
         </div>
 
@@ -3672,41 +3698,6 @@
             : ""
         }
 
-
-
-        <div class="actions">
-
-
-          ${
-            member.editProfileLink
-
-              ? `
-
-                <a
-                  class="edit-button"
-                  href="${escapeHtml(
-                    member.editProfileLink
-                  )}"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Edit Profile
-                </a>
-              `
-
-              : ""
-          }
-
-
-          <button
-            id="logoutButton"
-            class="logout-button"
-            type="button"
-          >
-            Logout
-          </button>
-
-        </div>
       `;
 
 
