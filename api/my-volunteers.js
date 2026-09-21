@@ -6,8 +6,15 @@ import {
   getSpouseName,
   mapVolunteerRow
 } from "./_lib/aayssa.js";
+import {
+  handleMaaladharan
+} from "./_lib/maaladharan.js";
 
 export default async function handler(req, res) {
+  if (req.query?.resource === "maaladharan") {
+    return handleMaaladharan(req, res);
+  }
+
   if (req.method !== "GET") {
     return res.status(405).json({
       success: false,

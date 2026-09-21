@@ -38,6 +38,7 @@ Do not expose server-side tokens in browser code.
 - `BASEROW_TOKEN`
 - `BASEROW_TABLE_ID`
 - `BASEROW_VOLUNTEERS_TABLE_ID`
+- `BASEROW_MAALADHARAN_TABLE_ID` (defaults to `1210688`)
 - `ZEFFY_API_KEY`
 
 `.env.local` is ignored by Git. Never commit secrets.
@@ -51,6 +52,12 @@ Members table:
 Volunteer table:
 - Name: `AAYSSA_Volunteers`
 - Table ID: `1179938`
+
+Maaladharan registration table:
+- Name: `AAYSSA_Maaladharan_Registrations`
+- Table ID: `1210688`
+- One row per registered participant.
+- The API resolves Baserow fields by name and always derives the family link and email from the authenticated session.
 
 Volunteer records are per person:
 - Primary
@@ -124,6 +131,15 @@ The old Supabase magic-link callback route was removed after switching to passco
 - `GET /api/my-donations`
   - Returns current-year Zeffy donation summary for the authenticated member email.
 
+- `GET /api/my-volunteers?resource=maaladharan`
+  - Returns the authenticated family's 2026-27 Maaladharan registrations.
+
+- `POST /api/my-volunteers?resource=maaladharan`
+  - Creates a family-scoped participant registration.
+  - Rejects duplicate participant names for the active season.
+  - Uses the server-controlled season window of October 25 through December 4, 2026.
+  - Shares the existing `my-volunteers` function to keep the Vercel Hobby route count stable.
+
 - `GET /api/admin-stats`
   - Board/Admin only.
   - Returns membership counts, volunteer stats, registration trend, Zeffy donation total, and monthly donation trend.
@@ -142,6 +158,11 @@ Member portal (`public/index.html`) includes:
 - Contact information card with edit controls.
 - Seva & Volunteering card with edit controls.
 - Communication preferences card with edit controls.
+- Native 2026-27 Maaladharan registration card:
+  - Displays the Mandalam start and closing dates.
+  - Registers primary, spouse, or additional family members individually.
+  - Captures age, phone, Maaladharan date, first-Deeksha status, Padi status, and optional notes.
+  - Displays existing family registrations and prevents duplicates.
 - Donations & Tax Receipts card:
   - Current-year Zeffy donation total.
   - Payment list.

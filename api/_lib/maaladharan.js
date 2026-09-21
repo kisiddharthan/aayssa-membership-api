@@ -1,0 +1,574 @@
+import {
+  cleanString,
+  getAuthenticatedMember,
+  getBaserowBaseUrl,
+  getBaserowHeaders
+} from "./aayssa.js";
+
+const TABLE_ID =
+  process.env.BASEROW_MAALADHARAN_TABLE_ID || "1210688";
+
+const SEASON = "2026-27 Mandalam";
+const SEASON_START = "2026-10-25";
+const SEASON_END = "2026-12-04";
+
+export async function handleMaaladharan(req, res) {
+  if (!["GET", "POST"].includes(req.method)) {
+    return res.status(405).json({
+      success: false,
+      message: "Method not allowed."
+    });
+  }
+
+  try {
+    const auth =
+      await getAuthenticatedMember(req);
+
+    if (auth.status !== 200) {
+      return res.status(auth.status).json({
+        success: false,
+        message: auth.error
+      });
+    }
+
+    const fields =
+      await fetchRegistrationFields();
+
+    const registrations =
+      await fetchFamilyRegistrations(
+        auth.memberRow.id,
+        fields
+      );
+
+    if (req.method === "GET") {
+      return res.status(200).json({
+        success: true,
+        season: SEASON,
+        seasonStart: SEASON_START,
+        seasonEnd: SEASON_END,
+        registrations
+      });
+    }
+
+    const registration =
+      normalizeRegistration(req.body);
+
+    const validationError =
+      validateRegistration(registration);
+
+    if (validationError) {
+      return res.status(400).json({
+        success: false,
+        message: validationError
+      });
+    }
+
+    const duplicate =
+      registrations.find(item =>
+        item.participantName.toLowerCase() ===
+          registration.participantName.toLowerCase() &&
+        item.status !== "Cancelled"
+      );
+
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "This participant is already registered for the 2026-27 season."
+      });
+    }
+
+    await createRegistration({
+      auth,
+      fields,
+      registration
+    });
+
+    const updatedRegistrations =
+      await fetchFamilyRegistrations(
+        auth.memberRow.id,
+        fields
+      );
+
+    return res.status(201).json({
+      success: true,
+      season: SEASON,
+      seasonStart: SEASON_START,
+      seasonEnd: SEASON_END,
+      registrations: updatedRegistrations
+    });
+  } catch (error) {
+    console.error(
+      "Maaladharan registration API error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        error instanceof Error &&
+        error.message.startsWith("Registration table")
+          ? error.message
+          : "Unable to process Maaladharan registration."
+    });
+  }
+}
+
+async function fetchRegistrationFields() {
+  const response =
+    await fetch(
+      `${getBaserowBaseUrl()}/api/database/fields/table/${TABLE_ID}/`,
+      {
+        headers: getBaserowHeaders()
+      }
+    );
+
+  if (!response.ok) {
+    console.error(
+      "Registration field lookup failed:",
+      response.status,
+      await response.text()
+    );
+
+    throw new Error(
+      "Registration table configuration is unavailable."
+    );
+  }
+
+  const fields =
+    await response.json();
+
+  const byName =
+    new Map(
+      fields.map(field => [
+        normalizeFieldName(field.name),
+        field
+      ])
+    );
+
+  const requiredNames = [
+    "Family",
+    "Season",
+    "Participant Name",
+    "Participant Type",
+    "Age",
+    "Phone Number",
+    "Email",
+    "Maaladharan Date",
+    "First Deeksha",
+    "Padi Count",
+    "Registration Status"
+  ];
+
+  const missing =
+    requiredNames.filter(name =>
+      !byName.has(normalizeFieldName(name))
+    );
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Registration table is missing fields: ${missing.join(", ")}.`
+    );
+  }
+
+  return {
+    all: fields,
+    byName
+  };
+}
+
+async function fetchFamilyRegistrations(
+  familyRowId,
+  fields
+) {
+  const familyField =
+    getField(fields, "Family");
+
+  const url =
+    `${getBaserowBaseUrl()}/api/database/rows/table/${TABLE_ID}/` +
+    `?user_field_names=false` +
+    `&filter__field_${familyField.id}__link_row_has=${encodeURIComponent(familyRowId)}`;
+
+  const response =
+    await fetch(url, {
+      headers: getBaserowHeaders()
+    });
+
+  if (!response.ok) {
+    console.error(
+      "Registration lookup failed:",
+      response.status,
+      await response.text()
+    );
+
+    throw new Error(
+      "Unable to load Maaladharan registrations."
+    );
+  }
+
+  const data =
+    await response.json();
+
+  return (Array.isArray(data.results)
+    ? data.results
+    : [])
+    .map(row =>
+      mapRegistrationRow(row, fields)
+    )
+    .filter(item =>
+      item.season === SEASON
+    );
+}
+
+async function createRegistration({
+  auth,
+  fields,
+  registration
+}) {
+  const values = {};
+
+  setField(
+    values,
+    fields,
+    "Registration Name",
+    `${registration.participantName} - ${SEASON}`,
+    { optional: true, writableOnly: true }
+  );
+  setField(
+    values,
+    fields,
+    "Family",
+    [Number(auth.memberRow.id)]
+  );
+  setSelectField(
+    values,
+    fields,
+    "Season",
+    SEASON
+  );
+  setField(
+    values,
+    fields,
+    "Participant Name",
+    registration.participantName
+  );
+  setSelectField(
+    values,
+    fields,
+    "Participant Type",
+    displayParticipantType(
+      registration.participantType
+    )
+  );
+  setField(
+    values,
+    fields,
+    "Age",
+    registration.age
+  );
+  setField(
+    values,
+    fields,
+    "Phone Number",
+    registration.phoneNumber
+  );
+  setField(
+    values,
+    fields,
+    "Email",
+    auth.normalizedEmail
+  );
+  setField(
+    values,
+    fields,
+    "Maaladharan Date",
+    registration.maaladharanDate
+  );
+  setField(
+    values,
+    fields,
+    "First Deeksha",
+    registration.firstDeeksha
+  );
+  setSelectField(
+    values,
+    fields,
+    "Padi Count",
+    registration.firstDeeksha
+      ? "1 (Kanni Swamy)"
+      : registration.padiStatus
+  );
+  setField(
+    values,
+    fields,
+    "Joining AAYSSA Yatra",
+    false,
+    { optional: true }
+  );
+  setSelectField(
+    values,
+    fields,
+    "Registration Status",
+    "Submitted"
+  );
+  setField(
+    values,
+    fields,
+    "Member Notes",
+    registration.memberNotes,
+    { optional: true }
+  );
+
+  const response =
+    await fetch(
+      `${getBaserowBaseUrl()}/api/database/rows/table/${TABLE_ID}/?user_field_names=false`,
+      {
+        method: "POST",
+        headers: getBaserowHeaders(),
+        body: JSON.stringify(values)
+      }
+    );
+
+  if (!response.ok) {
+    console.error(
+      "Registration creation failed:",
+      response.status,
+      await response.text()
+    );
+
+    throw new Error(
+      "Unable to save Maaladharan registration."
+    );
+  }
+}
+
+function mapRegistrationRow(row, fields) {
+  return {
+    id: row.id,
+    season:
+      getSelectValue(
+        row[fieldKey(fields, "Season")]
+      ),
+    participantName:
+      cleanString(
+        row[fieldKey(fields, "Participant Name")]
+      ),
+    participantType:
+      getSelectValue(
+        row[fieldKey(fields, "Participant Type")]
+      ),
+    age:
+      Number(
+        row[fieldKey(fields, "Age")] || 0
+      ),
+    maaladharanDate:
+      cleanString(
+        row[fieldKey(fields, "Maaladharan Date")]
+      ),
+    firstDeeksha:
+      Boolean(
+        row[fieldKey(fields, "First Deeksha")]
+      ),
+    padiStatus:
+      getSelectValue(
+        row[fieldKey(fields, "Padi Count")]
+      ),
+    status:
+      getSelectValue(
+        row[fieldKey(fields, "Registration Status")]
+      )
+  };
+}
+
+function normalizeRegistration(body) {
+  return {
+    participantName:
+      cleanString(body?.participantName),
+    participantType:
+      cleanString(body?.participantType)
+        .toLowerCase(),
+    age:
+      Number(body?.age),
+    phoneNumber:
+      cleanString(body?.phoneNumber),
+    maaladharanDate:
+      cleanString(body?.maaladharanDate),
+    firstDeeksha:
+      Boolean(body?.firstDeeksha),
+    padiStatus:
+      cleanString(body?.padiStatus),
+    memberNotes:
+      cleanString(body?.memberNotes)
+  };
+}
+
+function validateRegistration(registration) {
+  if (!registration.participantName) {
+    return "Participant name is required.";
+  }
+
+  if (
+    !["primary", "spouse", "additional"]
+      .includes(registration.participantType)
+  ) {
+    return "Select a valid participant type.";
+  }
+
+  if (
+    !Number.isInteger(registration.age) ||
+    registration.age < 1 ||
+    registration.age > 120
+  ) {
+    return "Enter a valid participant age.";
+  }
+
+  if (!registration.phoneNumber) {
+    return "Phone number is required.";
+  }
+
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/
+      .test(registration.maaladharanDate) ||
+    registration.maaladharanDate < SEASON_START ||
+    registration.maaladharanDate > SEASON_END
+  ) {
+    return (
+      "Maaladharan date must be between " +
+      "October 25 and December 4, 2026."
+    );
+  }
+
+  const validPadiValues = [
+    "1 (Kanni Swamy)",
+    ...Array.from(
+      { length: 16 },
+      (_, index) => String(index + 2)
+    ),
+    "18 (Guru Swamy)"
+  ];
+
+  if (
+    !registration.firstDeeksha &&
+    !validPadiValues.includes(
+      registration.padiStatus
+    )
+  ) {
+    return "Select a valid Padi status.";
+  }
+
+  return "";
+}
+
+function setField(
+  values,
+  fields,
+  name,
+  value,
+  {
+    optional = false,
+    writableOnly = false
+  } = {}
+) {
+  const field =
+    fields.byName.get(
+      normalizeFieldName(name)
+    );
+
+  if (!field) {
+    if (optional) {
+      return;
+    }
+
+    throw new Error(
+      `Registration table is missing field: ${name}.`
+    );
+  }
+
+  if (
+    writableOnly &&
+    ["formula", "created_on", "last_modified"]
+      .includes(field.type)
+  ) {
+    return;
+  }
+
+  values[`field_${field.id}`] = value;
+}
+
+function setSelectField(
+  values,
+  fields,
+  name,
+  optionValue
+) {
+  const field =
+    getField(fields, name);
+
+  const option =
+    (field.select_options || [])
+      .find(item =>
+        cleanString(item.value)
+          .toLowerCase() ===
+        cleanString(optionValue)
+          .toLowerCase()
+      );
+
+  if (!option) {
+    throw new Error(
+      `Registration table field "${name}" is missing option "${optionValue}".`
+    );
+  }
+
+  values[`field_${field.id}`] =
+    option.id;
+}
+
+function getField(fields, name) {
+  const field =
+    fields.byName.get(
+      normalizeFieldName(name)
+    );
+
+  if (!field) {
+    throw new Error(
+      `Registration table is missing field: ${name}.`
+    );
+  }
+
+  return field;
+}
+
+function fieldKey(fields, name) {
+  return `field_${getField(fields, name).id}`;
+}
+
+function normalizeFieldName(value) {
+  return cleanString(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function getSelectValue(value) {
+  if (
+    value &&
+    typeof value === "object"
+  ) {
+    return cleanString(
+      value.value || value.name
+    );
+  }
+
+  return cleanString(value);
+}
+
+function displayParticipantType(value) {
+  if (value === "primary") {
+    return "Primary";
+  }
+
+  if (value === "spouse") {
+    return "Spouse";
+  }
+
+  return "Additional Member";
+}

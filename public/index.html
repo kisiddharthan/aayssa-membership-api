@@ -322,11 +322,16 @@
       font-weight: 700;
     }
 
-    .form-field input[type="text"] {
+    .form-field input[type="text"],
+    .form-field input[type="tel"],
+    .form-field input[type="date"],
+    .form-field input[type="email"],
+    .form-field select {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid #ccc;
       border-radius: 7px;
+      background: white;
       font-size: 14px;
     }
 
@@ -363,6 +368,88 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
+    }
+
+
+    /* =====================================================
+       MAALADHARAN REGISTRATION
+       ===================================================== */
+
+    .maaladharan-card {
+      grid-column: 1 / -1;
+    }
+
+    .maaladharan-intro {
+      margin: -4px 0 18px;
+      color: #555;
+      line-height: 1.55;
+    }
+
+    .maaladharan-schedule {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .maaladharan-date {
+      padding: 14px;
+      border: 1px solid #ead8bb;
+      border-radius: 10px;
+      background: #fff8ec;
+    }
+
+    .maaladharan-date strong {
+      display: block;
+      color: #8b5100;
+      margin-bottom: 4px;
+    }
+
+    .maaladharan-registration {
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .maaladharan-registration:last-child {
+      border-bottom: 0;
+    }
+
+    .maaladharan-registration-meta {
+      color: #666;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    .maaladharan-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4px 16px;
+      padding-top: 4px;
+    }
+
+    .maaladharan-form .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .maaladharan-form .form-actions {
+      margin-top: 14px;
+    }
+
+    .inline-message {
+      margin-top: 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 700px) {
+      .maaladharan-schedule,
+      .maaladharan-form {
+        grid-template-columns: 1fr;
+      }
+
+      .maaladharan-form .full-width {
+        grid-column: auto;
+      }
     }
 
 
@@ -1310,6 +1397,7 @@
   let currentMember = null;
   let currentVolunteers = [];
   let currentDonations = null;
+  let currentMaaladharan = null;
 
 
   function formatCurrency(
@@ -1685,6 +1773,507 @@
       );
 
       return null;
+    }
+  }
+
+
+  async function loadMaaladharanRegistrations() {
+
+    try {
+      const response =
+        await fetch(
+          "/api/my-volunteers?resource=maaladharan",
+          {
+            method: "GET",
+            credentials: "include"
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+          "Unable to load registrations."
+        );
+      }
+
+      return data;
+
+    } catch (error) {
+      console.error(
+        "Maaladharan registration load error:",
+        error
+      );
+
+      return {
+        season: "2026-27",
+        seasonStart: "2026-10-25",
+        seasonEnd: "2026-12-04",
+        registrations: [],
+        error: error.message
+      };
+    }
+  }
+
+
+  function renderMaaladharanSection(data) {
+
+    const registrations =
+      Array.isArray(data?.registrations)
+        ? data.registrations
+        : [];
+
+    return `
+      <section
+        id="maaladharanSection"
+        class="section-card maaladharan-card"
+      >
+        <div class="section-heading-row">
+          <h2>
+            2026–27 Maaladharan Registration
+          </h2>
+
+          <span class="status-badge">
+            Registration Open
+          </span>
+        </div>
+
+        <p class="maaladharan-intro">
+          Swamiye Saranam Ayyappa. Register each family member
+          taking Ayyappa Swamy Deeksha. Submit a separate
+          registration for every participant.
+        </p>
+
+        <div class="maaladharan-schedule">
+          <div class="maaladharan-date">
+            <strong>Mandalam Starts</strong>
+            Sunday, October 25, 2026
+          </div>
+
+          <div class="maaladharan-date">
+            <strong>Mandalam Closing</strong>
+            Friday, December 4, 2026
+          </div>
+        </div>
+
+        ${
+          data?.error
+            ? `
+              <p class="inline-message error">
+                ${escapeHtml(data.error)}
+              </p>
+            `
+            : ""
+        }
+
+        ${
+          registrations.length
+            ? `
+              <div class="info-row">
+                <span class="label">
+                  Your Registered Participants
+                </span>
+
+                ${registrations.map(
+                  renderMaaladharanRegistration
+                ).join("")}
+              </div>
+            `
+            : `
+              <div class="info-row">
+                <span class="label">
+                  Your Registered Participants
+                </span>
+                <span class="value">
+                  No registrations submitted yet.
+                </span>
+              </div>
+            `
+        }
+
+        ${renderMaaladharanForm()}
+      </section>
+    `;
+  }
+
+
+  function renderMaaladharanRegistration(
+    registration
+  ) {
+
+    const deekshaLabel =
+      registration.firstDeeksha
+        ? "First Deeksha · Kanni"
+        : `Padi ${registration.padiStatus || "-"}`;
+
+    return `
+      <div class="maaladharan-registration">
+        <div class="volunteer-name">
+          ${escapeHtml(
+            registration.participantName
+          )}
+          <span class="status-badge">
+            ${escapeHtml(
+              registration.status ||
+              "Submitted"
+            )}
+          </span>
+        </div>
+
+        <div class="maaladharan-registration-meta">
+          ${escapeHtml(
+            registration.participantType
+          )}
+          · Age ${escapeHtml(registration.age)}
+          · ${escapeHtml(deekshaLabel)}
+          · Maaladharan ${escapeHtml(
+            formatDate(
+              registration.maaladharanDate
+                ? registration.maaladharanDate +
+                  "T12:00:00"
+                : ""
+            )
+          )}
+        </div>
+      </div>
+    `;
+  }
+
+
+  function renderMaaladharanForm() {
+
+    const primaryName =
+      getCurrentFullName(currentMember);
+
+    const spouseName =
+      getCurrentSpouseName(currentMember);
+
+    const padiOptions = [
+      "1 (Kanni Swamy)",
+      ...Array.from(
+        { length: 16 },
+        (_, index) => String(index + 2)
+      ),
+      "18 (Guru Swamy)"
+    ];
+
+    return `
+      <form
+        id="maaladharanForm"
+        class="maaladharan-form"
+      >
+        <div class="form-field">
+          <label for="maaladharanParticipantType">
+            Participant Type
+          </label>
+          <select
+            id="maaladharanParticipantType"
+            name="participantType"
+            required
+          >
+            <option value="primary">
+              Primary Member
+            </option>
+            ${
+              spouseName
+                ? `
+                  <option value="spouse">
+                    Spouse
+                  </option>
+                `
+                : ""
+            }
+            <option value="additional">
+              Additional Family Member
+            </option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="maaladharanParticipantName">
+            Participant Name
+          </label>
+          <input
+            id="maaladharanParticipantName"
+            name="participantName"
+            type="text"
+            value="${escapeHtml(primaryName)}"
+            required
+          >
+        </div>
+
+        <div class="form-field">
+          <label for="maaladharanAge">
+            Age
+          </label>
+          <input
+            id="maaladharanAge"
+            name="age"
+            type="number"
+            min="1"
+            max="120"
+            required
+          >
+        </div>
+
+        <div class="form-field">
+          <label for="maaladharanPhone">
+            Phone Number
+          </label>
+          <input
+            id="maaladharanPhone"
+            name="phoneNumber"
+            type="tel"
+            value="${escapeHtml(
+              currentMember?.mobileNumber || ""
+            )}"
+            required
+          >
+        </div>
+
+        <div class="form-field">
+          <label for="maaladharanDate">
+            Maaladharan Date
+          </label>
+          <input
+            id="maaladharanDate"
+            name="maaladharanDate"
+            type="date"
+            min="2026-10-25"
+            max="2026-12-04"
+            value="2026-10-25"
+            required
+          >
+        </div>
+
+        <div class="form-field">
+          <label for="maaladharanPadiStatus">
+            Padi Status
+          </label>
+          <select
+            id="maaladharanPadiStatus"
+            name="padiStatus"
+            required
+          >
+            ${padiOptions.map(option => `
+              <option value="${escapeHtml(option)}">
+                ${escapeHtml(option)}
+              </option>
+            `).join("")}
+          </select>
+        </div>
+
+        <label class="checkbox-label full-width">
+          <input
+            id="maaladharanFirstDeeksha"
+            name="firstDeeksha"
+            type="checkbox"
+          >
+          This is the participant’s first Deeksha
+        </label>
+
+        <p class="donation-meta full-width">
+          Count one Padi per year, including Irumudi taken
+          in Sabarimala or the United States. Select Guru
+          after more than 18 years.
+        </p>
+
+        <div class="form-field full-width">
+          <label for="maaladharanNotes">
+            Notes (optional)
+          </label>
+          <textarea
+            id="maaladharanNotes"
+            name="memberNotes"
+            maxlength="1000"
+          ></textarea>
+        </div>
+
+        <div class="form-actions full-width">
+          <button
+            id="submitMaaladharanButton"
+            class="small-action-button"
+            type="submit"
+          >
+            Register Participant
+          </button>
+        </div>
+
+        <div
+          id="maaladharanFormMessage"
+          class="inline-message full-width"
+          role="status"
+          aria-live="polite"
+        ></div>
+      </form>
+    `;
+  }
+
+
+  function setupMaaladharanForm() {
+
+    const form =
+      document.getElementById(
+        "maaladharanForm"
+      );
+
+    if (!form) {
+      return;
+    }
+
+    const typeInput =
+      form.elements.participantType;
+
+    const nameInput =
+      form.elements.participantName;
+
+    const firstDeekshaInput =
+      form.elements.firstDeeksha;
+
+    const padiInput =
+      form.elements.padiStatus;
+
+    typeInput.addEventListener(
+      "change",
+      () => {
+        if (typeInput.value === "primary") {
+          nameInput.value =
+            getCurrentFullName(currentMember);
+          nameInput.readOnly = false;
+        } else if (typeInput.value === "spouse") {
+          nameInput.value =
+            getCurrentSpouseName(currentMember);
+          nameInput.readOnly = false;
+        } else {
+          nameInput.value = "";
+          nameInput.focus();
+        }
+      }
+    );
+
+    firstDeekshaInput.addEventListener(
+      "change",
+      () => {
+        if (firstDeekshaInput.checked) {
+          padiInput.value =
+            "1 (Kanni Swamy)";
+        }
+
+        padiInput.disabled =
+          firstDeekshaInput.checked;
+      }
+    );
+
+    form.addEventListener(
+      "submit",
+      submitMaaladharanRegistration
+    );
+  }
+
+
+  async function submitMaaladharanRegistration(
+    event
+  ) {
+
+    event.preventDefault();
+
+    const form =
+      event.currentTarget;
+
+    const button =
+      document.getElementById(
+        "submitMaaladharanButton"
+      );
+
+    const message =
+      document.getElementById(
+        "maaladharanFormMessage"
+      );
+
+    const formData =
+      new FormData(form);
+
+    const registration = {
+      participantType:
+        formData.get("participantType"),
+      participantName:
+        formData.get("participantName"),
+      age:
+        Number(formData.get("age")),
+      phoneNumber:
+        formData.get("phoneNumber"),
+      maaladharanDate:
+        formData.get("maaladharanDate"),
+      firstDeeksha:
+        form.elements.firstDeeksha.checked,
+      padiStatus:
+        form.elements.firstDeeksha.checked
+          ? "1 (Kanni Swamy)"
+          : formData.get("padiStatus"),
+      memberNotes:
+        formData.get("memberNotes")
+    };
+
+    button.disabled = true;
+    button.textContent = "Registering...";
+    message.className =
+      "inline-message full-width";
+    message.textContent = "";
+
+    try {
+      const response =
+        await fetch(
+          "/api/my-volunteers?resource=maaladharan",
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body:
+              JSON.stringify(registration)
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+          "Unable to submit registration."
+        );
+      }
+
+      currentMaaladharan = data;
+
+      const section =
+        document.getElementById(
+          "maaladharanSection"
+        );
+
+      section.outerHTML =
+        renderMaaladharanSection(
+          currentMaaladharan
+        );
+
+      setupMaaladharanForm();
+
+    } catch (error) {
+      console.error(error);
+
+      message.className =
+        "inline-message error full-width";
+      message.textContent =
+        error.message ||
+        "Unable to submit registration.";
+
+      button.disabled = false;
+      button.textContent =
+        "Register Participant";
     }
   }
 
@@ -3577,11 +4166,13 @@
 
       const [
         volunteers,
-        donations
+        donations,
+        maaladharan
       ] =
         await Promise.all([
           loadMyVolunteers(),
-          loadMyDonations()
+          loadMyDonations(),
+          loadMaaladharanRegistrations()
         ]);
 
       currentVolunteers =
@@ -3589,6 +4180,9 @@
 
       currentDonations =
         donations;
+
+      currentMaaladharan =
+        maaladharan;
 
 
       const fullName =
@@ -3641,6 +4235,11 @@
 
 
           ${renderContactSection(member)}
+
+
+          ${renderMaaladharanSection(
+            currentMaaladharan
+          )}
 
 
           ${renderDonationSection(
@@ -3712,6 +4311,7 @@
 
       setupVolunteerEditing();
       setupProfileEditing();
+      setupMaaladharanForm();
 
 
       if (
