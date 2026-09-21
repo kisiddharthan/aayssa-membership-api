@@ -542,6 +542,148 @@ function fieldKey(fields, name) {
   return `field_${getField(fields, name).id}`;
 }
 
+export async function fetchMaaladharanDashboardSummary() {
+  const fields =
+    await fetchRegistrationFields();
+
+  const rows = [];
+  let page = 1;
+
+  while (true) {
+    const response =
+      await fetch(
+        `${getBaserowBaseUrl()}/api/database/rows/table/${TABLE_ID}/?user_field_names=false&page=${page}&size=200`,
+        {
+          headers: getBaserowHeaders()
+        }
+      );
+
+    if (!response.ok) {
+      console.error(
+        "Maaladharan dashboard lookup failed:",
+        response.status,
+        await response.text()
+      );
+
+      throw new Error(
+        "Unable to load Maaladharan dashboard data."
+      );
+    }
+
+    const data =
+      await response.json();
+
+    rows.push(
+      ...(Array.isArray(data.results)
+        ? data.results
+        : [])
+    );
+
+    if (!data.next) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  const registrations =
+    rows
+      .map(row =>
+        mapRegistrationRow(row, fields)
+      )
+      .filter(registration =>
+        registration.season === SEASON &&
+        registration.status !== "Cancelled"
+      );
+
+  const padiValues = [
+    "1 (Kanni Swamy)",
+    ...Array.from(
+      { length: 16 },
+      (_, index) => String(index + 2)
+    ),
+    "18 (Guru Swamy)"
+  ];
+
+  const padiMap =
+    new Map(
+      padiValues.map(value => [
+        value,
+        0
+      ])
+    );
+
+  const dateMap =
+    new Map();
+
+  for (const registration of registrations) {
+    if (padiMap.has(registration.padiStatus)) {
+      padiMap.set(
+        registration.padiStatus,
+        padiMap.get(registration.padiStatus) + 1
+      );
+    }
+
+    if (
+      /^\d{4}-\d{2}-\d{2}$/
+        .test(registration.maaladharanDate)
+    ) {
+      dateMap.set(
+        registration.maaladharanDate,
+        (dateMap.get(
+          registration.maaladharanDate
+        ) || 0) + 1
+      );
+    }
+  }
+
+  return {
+    available: true,
+    season: SEASON,
+    totalSwamies: registrations.length,
+    padiCounts:
+      padiValues.map((value, index) => ({
+        value,
+        label:
+          index === 0
+            ? "1 (Kanni)"
+            : index === 17
+              ? "18 (Guru)"
+              : value,
+        count: padiMap.get(value) || 0
+      })),
+    dateCounts:
+      Array.from(dateMap.entries())
+        .sort(([first], [second]) =>
+          first.localeCompare(second)
+        )
+        .map(([date, count]) => ({
+          date,
+          label:
+            formatMaaladharanDateLabel(date),
+          count
+        }))
+  };
+}
+
+function formatMaaladharanDateLabel(value) {
+  const date =
+    new Date(`${value}T12:00:00Z`);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      timeZone: "UTC",
+      month: "short",
+      day: "numeric"
+    }
+  ).format(date);
+}
+
 function normalizeFieldName(value) {
   return cleanString(value)
     .toLowerCase()

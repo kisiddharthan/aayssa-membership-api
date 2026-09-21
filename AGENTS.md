@@ -180,6 +180,7 @@ Board/Admin dashboard includes:
 - Volunteer participation, including total volunteers.
 - Monthly donations chart from Zeffy.
 - Registration trends chart.
+- 2026-27 Maaladharan charts showing active Swamies by Padi count and planned Maaladharan date.
 - Member directory with search, pagination, and sorting.
 
 ## Public Registration Embed

@@ -2,6 +2,9 @@ import {
   VOLUNTEERS_TABLE_ID,
   mapVolunteerRow
 } from "./_lib/aayssa.js";
+import {
+  fetchMaaladharanDashboardSummary
+} from "./_lib/maaladharan.js";
 
 const ZEFFY_API_BASE_URL =
   "https://api.zeffy.com/api/v1";
@@ -462,8 +465,14 @@ export default async function handler(req, res) {
         );
     }
 
-    const donationSummary =
-      await safeFetchAdminDonationSummary();
+    const [
+      donationSummary,
+      maaladharanSummary
+    ] =
+      await Promise.all([
+        safeFetchAdminDonationSummary(),
+        safeFetchMaaladharanDashboardSummary()
+      ]);
 
 
 
@@ -515,7 +524,9 @@ export default async function handler(req, res) {
         registrationTrends,
 
 
-        donationSummary
+        donationSummary,
+
+        maaladharanSummary
 
       }
     });
@@ -694,6 +705,26 @@ async function fetchAllBaserowRows(
 
 
   return rows;
+}
+
+
+async function safeFetchMaaladharanDashboardSummary() {
+  try {
+    return await fetchMaaladharanDashboardSummary();
+  } catch (error) {
+    console.error(
+      "Maaladharan dashboard summary error:",
+      error
+    );
+
+    return {
+      available: false,
+      season: "2026-27 Mandalam",
+      totalSwamies: 0,
+      padiCounts: [],
+      dateCounts: []
+    };
+  }
 }
 
 
