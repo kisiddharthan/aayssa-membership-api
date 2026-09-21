@@ -2001,6 +2001,7 @@
                 : ""
             )
           )}
+          · Tampa Yatra ${registration.joiningYatra ? "Yes" : "No"}
         </div>
 
         ${
@@ -2078,6 +2079,15 @@
             `).join("")}
           </select>
         </div>
+
+        <label class="checkbox-label full-width">
+          <input
+            name="joiningYatra"
+            type="checkbox"
+            ${registration.joiningYatra ? "checked" : ""}
+          >
+          Joining AAYSSA Tampa Yatra
+        </label>
 
         <div class="form-field full-width">
           <label>
@@ -2234,6 +2244,8 @@
                 .maaladharanDate.value,
             padiStatus:
               form.elements.padiStatus.value,
+            joiningYatra:
+              form.elements.joiningYatra.checked,
             memberNotes:
               form.elements.memberNotes.value
           }
@@ -2464,6 +2476,15 @@
           This is the participant’s first Deeksha
         </label>
 
+        <label class="checkbox-label full-width">
+          <input
+            id="maaladharanJoiningYatra"
+            name="joiningYatra"
+            type="checkbox"
+          >
+          Joining AAYSSA Tampa Yatra
+        </label>
+
         <p class="donation-meta full-width">
           Count one Padi per year, including Irumudi taken
           in Sabarimala or the United States. Select Guru
@@ -2604,6 +2625,8 @@
         form.elements.firstDeeksha.checked
           ? "1 (Kanni Swamy)"
           : formData.get("padiStatus"),
+      joiningYatra:
+        form.elements.joiningYatra.checked,
       memberNotes:
         formData.get("memberNotes")
     };

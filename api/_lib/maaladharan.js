@@ -217,6 +217,7 @@ async function fetchRegistrationFields() {
     "First Deeksha",
     "Padi Count",
     "Registration Status",
+    "Joining AAYSSA Yatra",
     "Member Notes"
   ];
 
@@ -362,8 +363,7 @@ async function createRegistration({
     values,
     fields,
     "Joining AAYSSA Yatra",
-    false,
-    { optional: true }
+    registration.joiningYatra
   );
   setSelectField(
     values,
@@ -436,6 +436,12 @@ async function updateRegistration({
       update.padiStatus ===
         "1 (Kanni Swamy)"
     );
+    setField(
+      values,
+      fields,
+      "Joining AAYSSA Yatra",
+      update.joiningYatra
+    );
   }
 
   setField(
@@ -504,6 +510,10 @@ function mapRegistrationRow(row, fields) {
       getSelectValue(
         row[fieldKey(fields, "Registration Status")]
       ),
+    joiningYatra:
+      Boolean(
+        row[fieldKey(fields, "Joining AAYSSA Yatra")]
+      ),
     memberNotes:
       cleanString(
         row[fieldKey(fields, "Member Notes")]
@@ -520,6 +530,8 @@ function normalizeRegistrationUpdate(body) {
       cleanString(body?.maaladharanDate),
     padiStatus:
       cleanString(body?.padiStatus),
+    joiningYatra:
+      Boolean(body?.joiningYatra),
     memberNotes:
       cleanString(body?.memberNotes)
         .slice(0, 1000)
@@ -587,6 +599,8 @@ function normalizeRegistration(body) {
       Boolean(body?.firstDeeksha),
     padiStatus:
       cleanString(body?.padiStatus),
+    joiningYatra:
+      Boolean(body?.joiningYatra),
     memberNotes:
       cleanString(body?.memberNotes)
   };

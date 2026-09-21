@@ -140,7 +140,7 @@ The old Supabase magic-link callback route was removed after switching to passco
   - Uses the server-controlled season window of October 25 through December 4, 2026.
 
 - `PATCH /api/my-volunteers?resource=maaladharan`
-  - Updates the Maaladharan date, Padi count, and optional member note.
+  - Updates the Maaladharan date, Padi count, Tampa Yatra participation, and optional member note.
   - Supports withdrawing an active registration by setting its status to `Cancelled`.
   - Verifies that the requested registration belongs to the authenticated family.
   - Shares the existing `my-volunteers` function to keep the Vercel Hobby route count stable.
@@ -166,7 +166,7 @@ Member portal (`public/index.html`) includes:
 - Native 2026-27 Maaladharan registration card:
   - Displays the Mandalam start and closing dates.
   - Registers primary, spouse, or additional family members individually.
-  - Captures age, phone, Maaladharan date, first-Deeksha status, Padi status, and optional notes.
+  - Captures age, phone, Maaladharan date, first-Deeksha status, Padi status, Tampa Yatra participation, and optional notes.
   - Displays existing family registrations and prevents duplicates.
 - Donations & Tax Receipts card:
   - Current-year Zeffy donation total.
