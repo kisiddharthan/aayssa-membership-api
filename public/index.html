@@ -410,6 +410,31 @@
       border-bottom: 1px solid #eee;
     }
 
+    .maaladharan-registration-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .maaladharan-registration-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .withdrawn-badge {
+      background: #777;
+    }
+
+    .maaladharan-edit-form {
+      margin-top: 12px;
+      padding: 15px;
+      border: 1px solid #ead8bb;
+      border-radius: 10px;
+      background: #fffdf9;
+    }
+
     .maaladharan-registration:last-child {
       border-bottom: 0;
     }
@@ -1917,18 +1942,49 @@
         ? "First Deeksha · Kanni"
         : `Padi ${registration.padiStatus || "-"}`;
 
+    const isWithdrawn =
+      registration.status === "Cancelled";
+
     return `
-      <div class="maaladharan-registration">
-        <div class="volunteer-name">
-          ${escapeHtml(
-            registration.participantName
-          )}
-          <span class="status-badge">
+      <div
+        id="maaladharanRegistration-${escapeHtml(
+          registration.id
+        )}"
+        class="maaladharan-registration"
+      >
+        <div class="maaladharan-registration-heading">
+          <div class="volunteer-name">
             ${escapeHtml(
-              registration.status ||
-              "Submitted"
+              registration.participantName
             )}
-          </span>
+          </div>
+
+          <div class="maaladharan-registration-actions">
+            <span class="status-badge ${isWithdrawn ? "withdrawn-badge" : ""}">
+              ${escapeHtml(
+                isWithdrawn
+                  ? "Withdrawn"
+                  : registration.status ||
+                    "Submitted"
+              )}
+            </span>
+
+            ${
+              isWithdrawn
+                ? ""
+                : `
+                  <button
+                    class="small-action-button edit-maaladharan-button"
+                    type="button"
+                    data-registration-id="${escapeHtml(
+                      registration.id
+                    )}"
+                  >
+                    Edit
+                  </button>
+                `
+            }
+          </div>
         </div>
 
         <div class="maaladharan-registration-meta">
@@ -1946,8 +2002,333 @@
             )
           )}
         </div>
+
+        ${
+          registration.memberNotes
+            ? `
+              <div class="maaladharan-registration-meta">
+                Note: ${escapeHtml(
+                  registration.memberNotes
+                )}
+              </div>
+            `
+            : ""
+        }
       </div>
     `;
+  }
+
+
+  function renderMaaladharanEditForm(
+    registration
+  ) {
+
+    const padiOptions = [
+      "1 (Kanni Swamy)",
+      ...Array.from(
+        { length: 16 },
+        (_, index) => String(index + 2)
+      ),
+      "18 (Guru Swamy)"
+    ];
+
+    return `
+      <form
+        class="maaladharan-form maaladharan-edit-form"
+        data-registration-id="${escapeHtml(
+          registration.id
+        )}"
+      >
+        <div class="form-field">
+          <label>
+            Maaladharan Date
+          </label>
+          <input
+            name="maaladharanDate"
+            type="date"
+            min="2026-10-25"
+            max="2026-12-04"
+            value="${escapeHtml(
+              registration.maaladharanDate
+            )}"
+            required
+          >
+        </div>
+
+        <div class="form-field">
+          <label>
+            Padi Count
+          </label>
+          <select
+            name="padiStatus"
+            required
+          >
+            ${padiOptions.map(option => `
+              <option
+                value="${escapeHtml(option)}"
+                ${
+                  option ===
+                    registration.padiStatus
+                    ? "selected"
+                    : ""
+                }
+              >
+                ${escapeHtml(option)}
+              </option>
+            `).join("")}
+          </select>
+        </div>
+
+        <div class="form-field full-width">
+          <label>
+            Member Note (optional)
+          </label>
+          <textarea
+            name="memberNotes"
+            maxlength="1000"
+          >${escapeHtml(
+            registration.memberNotes || ""
+          )}</textarea>
+        </div>
+
+        <div class="form-actions full-width">
+          <button
+            class="small-action-button save-maaladharan-edit"
+            type="submit"
+          >
+            Save Changes
+          </button>
+
+          <button
+            class="danger-button withdraw-maaladharan-registration"
+            type="button"
+          >
+            Withdraw Registration
+          </button>
+
+          <button
+            class="secondary-button cancel-maaladharan-edit"
+            type="button"
+          >
+            Cancel
+          </button>
+        </div>
+
+        <div
+          class="inline-message full-width maaladharan-edit-message"
+          role="status"
+          aria-live="polite"
+        ></div>
+      </form>
+    `;
+  }
+
+
+  function setupMaaladharanRegistrationActions() {
+
+    document
+      .querySelectorAll(
+        ".edit-maaladharan-button"
+      )
+      .forEach(button => {
+        button.addEventListener(
+          "click",
+          () => {
+            const registration =
+              currentMaaladharan
+                ?.registrations
+                ?.find(item =>
+                  String(item.id) ===
+                    String(
+                      button.dataset
+                        .registrationId
+                    )
+                );
+
+            if (!registration) {
+              return;
+            }
+
+            const container =
+              document.getElementById(
+                `maaladharanRegistration-${registration.id}`
+              );
+
+            if (!container) {
+              return;
+            }
+
+            container.insertAdjacentHTML(
+              "beforeend",
+              renderMaaladharanEditForm(
+                registration
+              )
+            );
+
+            button.disabled = true;
+
+            setupMaaladharanEditForm(
+              container.querySelector(
+                ".maaladharan-edit-form"
+              )
+            );
+          }
+        );
+      });
+  }
+
+
+  function setupMaaladharanEditForm(form) {
+
+    if (!form) {
+      return;
+    }
+
+    const registrationId =
+      form.dataset.registrationId;
+
+    form.querySelector(
+      ".cancel-maaladharan-edit"
+    ).addEventListener(
+      "click",
+      () => refreshMaaladharanSection()
+    );
+
+    form.querySelector(
+      ".withdraw-maaladharan-registration"
+    ).addEventListener(
+      "click",
+      async () => {
+        if (
+          !window.confirm(
+            "Withdraw this Maaladharan registration?"
+          )
+        ) {
+          return;
+        }
+
+        await updateMaaladharanRegistration(
+          form,
+          {
+            id: registrationId,
+            action: "withdraw",
+            memberNotes:
+              form.elements.memberNotes.value
+          }
+        );
+      }
+    );
+
+    form.addEventListener(
+      "submit",
+      async event => {
+        event.preventDefault();
+
+        await updateMaaladharanRegistration(
+          form,
+          {
+            id: registrationId,
+            action: "update",
+            maaladharanDate:
+              form.elements
+                .maaladharanDate.value,
+            padiStatus:
+              form.elements.padiStatus.value,
+            memberNotes:
+              form.elements.memberNotes.value
+          }
+        );
+      }
+    );
+  }
+
+
+  async function updateMaaladharanRegistration(
+    form,
+    update
+  ) {
+
+    const buttons =
+      form.querySelectorAll("button");
+
+    const message =
+      form.querySelector(
+        ".maaladharan-edit-message"
+      );
+
+    buttons.forEach(button => {
+      button.disabled = true;
+    });
+
+    message.className =
+      "inline-message full-width maaladharan-edit-message";
+    message.textContent =
+      update.action === "withdraw"
+        ? "Withdrawing registration..."
+        : "Saving changes...";
+
+    try {
+      const response =
+        await fetch(
+          "/api/my-volunteers?resource=maaladharan",
+          {
+            method: "PATCH",
+            credentials: "include",
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+            body: JSON.stringify(update)
+          }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+          "Unable to update registration."
+        );
+      }
+
+      currentMaaladharan = data;
+
+      refreshMaaladharanSection();
+
+    } catch (error) {
+      console.error(error);
+
+      message.className =
+        "inline-message error full-width maaladharan-edit-message";
+      message.textContent =
+        error.message ||
+        "Unable to update registration.";
+
+      buttons.forEach(button => {
+        button.disabled = false;
+      });
+    }
+  }
+
+
+  function refreshMaaladharanSection() {
+
+    const section =
+      document.getElementById(
+        "maaladharanSection"
+      );
+
+    if (!section) {
+      return;
+    }
+
+    section.outerHTML =
+      renderMaaladharanSection(
+        currentMaaladharan
+      );
+
+    setupMaaladharanForm();
   }
 
 
@@ -2122,6 +2503,8 @@
 
 
   function setupMaaladharanForm() {
+
+    setupMaaladharanRegistrationActions();
 
     const form =
       document.getElementById(

@@ -138,6 +138,11 @@ The old Supabase magic-link callback route was removed after switching to passco
   - Creates a family-scoped participant registration.
   - Rejects duplicate participant names for the active season.
   - Uses the server-controlled season window of October 25 through December 4, 2026.
+
+- `PATCH /api/my-volunteers?resource=maaladharan`
+  - Updates the Maaladharan date, Padi count, and optional member note.
+  - Supports withdrawing an active registration by setting its status to `Cancelled`.
+  - Verifies that the requested registration belongs to the authenticated family.
   - Shares the existing `my-volunteers` function to keep the Vercel Hobby route count stable.
 
 - `GET /api/admin-stats`

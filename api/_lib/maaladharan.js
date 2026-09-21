@@ -13,7 +13,7 @@ const SEASON_START = "2026-10-25";
 const SEASON_END = "2026-12-04";
 
 export async function handleMaaladharan(req, res) {
-  if (!["GET", "POST"].includes(req.method)) {
+  if (!["GET", "POST", "PATCH"].includes(req.method)) {
     return res.status(405).json({
       success: false,
       message: "Method not allowed."
@@ -47,6 +47,65 @@ export async function handleMaaladharan(req, res) {
         seasonStart: SEASON_START,
         seasonEnd: SEASON_END,
         registrations
+      });
+    }
+
+    if (req.method === "PATCH") {
+      const registrationId =
+        Number(req.body?.id);
+
+      const existing =
+        registrations.find(item =>
+          Number(item.id) === registrationId
+        );
+
+      if (!existing) {
+        return res.status(404).json({
+          success: false,
+          message:
+            "Maaladharan registration not found."
+        });
+      }
+
+      if (existing.status === "Cancelled") {
+        return res.status(409).json({
+          success: false,
+          message:
+            "A withdrawn registration cannot be edited."
+        });
+      }
+
+      const update =
+        normalizeRegistrationUpdate(req.body);
+
+      const validationError =
+        validateRegistrationUpdate(update);
+
+      if (validationError) {
+        return res.status(400).json({
+          success: false,
+          message: validationError
+        });
+      }
+
+      await updateRegistration({
+        registrationId,
+        fields,
+        update
+      });
+
+      const updatedRegistrations =
+        await fetchFamilyRegistrations(
+          auth.memberRow.id,
+          fields
+        );
+
+      return res.status(200).json({
+        success: true,
+        season: SEASON,
+        seasonStart: SEASON_START,
+        seasonEnd: SEASON_END,
+        registrations: updatedRegistrations
       });
     }
 
@@ -157,7 +216,8 @@ async function fetchRegistrationFields() {
     "Maaladharan Date",
     "First Deeksha",
     "Padi Count",
-    "Registration Status"
+    "Registration Status",
+    "Member Notes"
   ];
 
   const missing =
@@ -342,6 +402,73 @@ async function createRegistration({
   }
 }
 
+async function updateRegistration({
+  registrationId,
+  fields,
+  update
+}) {
+  const values = {};
+
+  if (update.action === "withdraw") {
+    setSelectField(
+      values,
+      fields,
+      "Registration Status",
+      "Cancelled"
+    );
+  } else {
+    setField(
+      values,
+      fields,
+      "Maaladharan Date",
+      update.maaladharanDate
+    );
+    setSelectField(
+      values,
+      fields,
+      "Padi Count",
+      update.padiStatus
+    );
+    setField(
+      values,
+      fields,
+      "First Deeksha",
+      update.padiStatus ===
+        "1 (Kanni Swamy)"
+    );
+  }
+
+  setField(
+    values,
+    fields,
+    "Member Notes",
+    update.memberNotes,
+    { optional: true }
+  );
+
+  const response =
+    await fetch(
+      `${getBaserowBaseUrl()}/api/database/rows/table/${TABLE_ID}/${registrationId}/?user_field_names=false`,
+      {
+        method: "PATCH",
+        headers: getBaserowHeaders(),
+        body: JSON.stringify(values)
+      }
+    );
+
+  if (!response.ok) {
+    console.error(
+      "Registration update failed:",
+      response.status,
+      await response.text()
+    );
+
+    throw new Error(
+      "Unable to update Maaladharan registration."
+    );
+  }
+}
+
 function mapRegistrationRow(row, fields) {
   return {
     id: row.id,
@@ -376,8 +503,71 @@ function mapRegistrationRow(row, fields) {
     status:
       getSelectValue(
         row[fieldKey(fields, "Registration Status")]
+      ),
+    memberNotes:
+      cleanString(
+        row[fieldKey(fields, "Member Notes")]
       )
   };
+}
+
+function normalizeRegistrationUpdate(body) {
+  return {
+    action:
+      cleanString(body?.action)
+        .toLowerCase(),
+    maaladharanDate:
+      cleanString(body?.maaladharanDate),
+    padiStatus:
+      cleanString(body?.padiStatus),
+    memberNotes:
+      cleanString(body?.memberNotes)
+        .slice(0, 1000)
+  };
+}
+
+function validateRegistrationUpdate(update) {
+  if (
+    !["update", "withdraw"]
+      .includes(update.action)
+  ) {
+    return "Select a valid registration action.";
+  }
+
+  if (update.action === "withdraw") {
+    return "";
+  }
+
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/
+      .test(update.maaladharanDate) ||
+    update.maaladharanDate < SEASON_START ||
+    update.maaladharanDate > SEASON_END
+  ) {
+    return (
+      "Maaladharan date must be between " +
+      "October 25 and December 4, 2026."
+    );
+  }
+
+  const validPadiValues = [
+    "1 (Kanni Swamy)",
+    ...Array.from(
+      { length: 16 },
+      (_, index) => String(index + 2)
+    ),
+    "18 (Guru Swamy)"
+  ];
+
+  if (
+    !validPadiValues.includes(
+      update.padiStatus
+    )
+  ) {
+    return "Select a valid Padi count.";
+  }
+
+  return "";
 }
 
 function normalizeRegistration(body) {
