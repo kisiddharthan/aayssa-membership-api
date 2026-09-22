@@ -217,7 +217,7 @@ async function fetchRegistrationFields() {
     "First Deeksha",
     "Padi Count",
     "Registration Status",
-    "Joining AAYSSA Yatra",
+    "Irumudi Offering",
     "Member Notes"
   ];
 
@@ -349,21 +349,28 @@ async function createRegistration({
     values,
     fields,
     "First Deeksha",
-    registration.firstDeeksha
+    registration.padiStatus ===
+      "0 (Kanni Swamy)"
   );
   setSelectField(
     values,
     fields,
     "Padi Count",
-    registration.firstDeeksha
-      ? "1 (Kanni Swamy)"
-      : registration.padiStatus
+    registration.padiStatus
   );
   setField(
     values,
     fields,
     "Joining AAYSSA Yatra",
-    registration.joiningYatra
+    registration.irumudiOffering ===
+      "Tampa Temple",
+    { optional: true }
+  );
+  setSelectField(
+    values,
+    fields,
+    "Irumudi Offering",
+    registration.irumudiOffering
   );
   setSelectField(
     values,
@@ -434,13 +441,21 @@ async function updateRegistration({
       fields,
       "First Deeksha",
       update.padiStatus ===
-        "1 (Kanni Swamy)"
+        "0 (Kanni Swamy)"
     );
     setField(
       values,
       fields,
       "Joining AAYSSA Yatra",
-      update.joiningYatra
+      update.irumudiOffering ===
+        "Tampa Temple",
+      { optional: true }
+    );
+    setSelectField(
+      values,
+      fields,
+      "Irumudi Offering",
+      update.irumudiOffering
     );
   }
 
@@ -510,9 +525,9 @@ function mapRegistrationRow(row, fields) {
       getSelectValue(
         row[fieldKey(fields, "Registration Status")]
       ),
-    joiningYatra:
-      Boolean(
-        row[fieldKey(fields, "Joining AAYSSA Yatra")]
+    irumudiOffering:
+      getSelectValue(
+        row[fieldKey(fields, "Irumudi Offering")]
       ),
     memberNotes:
       cleanString(
@@ -530,8 +545,8 @@ function normalizeRegistrationUpdate(body) {
       cleanString(body?.maaladharanDate),
     padiStatus:
       cleanString(body?.padiStatus),
-    joiningYatra:
-      Boolean(body?.joiningYatra),
+    irumudiOffering:
+      cleanString(body?.irumudiOffering),
     memberNotes:
       cleanString(body?.memberNotes)
         .slice(0, 1000)
@@ -551,6 +566,13 @@ function validateRegistrationUpdate(update) {
   }
 
   if (
+    !["Tampa Temple", "AAYSSA Temple"]
+      .includes(update.irumudiOffering)
+  ) {
+    return "Select where Irumudi will be offered.";
+  }
+
+  if (
     !/^\d{4}-\d{2}-\d{2}$/
       .test(update.maaladharanDate) ||
     update.maaladharanDate < SEASON_START ||
@@ -563,6 +585,7 @@ function validateRegistrationUpdate(update) {
   }
 
   const validPadiValues = [
+    "0 (Kanni Swamy)",
     "1 (Kanni Swamy)",
     ...Array.from(
       { length: 16 },
@@ -596,11 +619,12 @@ function normalizeRegistration(body) {
     maaladharanDate:
       cleanString(body?.maaladharanDate),
     firstDeeksha:
-      Boolean(body?.firstDeeksha),
+      cleanString(body?.padiStatus) ===
+        "0 (Kanni Swamy)",
     padiStatus:
       cleanString(body?.padiStatus),
-    joiningYatra:
-      Boolean(body?.joiningYatra),
+    irumudiOffering:
+      cleanString(body?.irumudiOffering),
     memberNotes:
       cleanString(body?.memberNotes)
   };
@@ -631,6 +655,13 @@ function validateRegistration(registration) {
   }
 
   if (
+    !["Tampa Temple", "AAYSSA Temple"]
+      .includes(registration.irumudiOffering)
+  ) {
+    return "Select where Irumudi will be offered.";
+  }
+
+  if (
     !/^\d{4}-\d{2}-\d{2}$/
       .test(registration.maaladharanDate) ||
     registration.maaladharanDate < SEASON_START ||
@@ -643,6 +674,7 @@ function validateRegistration(registration) {
   }
 
   const validPadiValues = [
+    "0 (Kanni Swamy)",
     "1 (Kanni Swamy)",
     ...Array.from(
       { length: 16 },
@@ -801,6 +833,7 @@ export async function fetchMaaladharanDashboardSummary() {
       );
 
   const padiValues = [
+    "0 (Kanni Swamy)",
     "1 (Kanni Swamy)",
     ...Array.from(
       { length: 16 },
@@ -846,14 +879,16 @@ export async function fetchMaaladharanDashboardSummary() {
     season: SEASON,
     totalSwamies: registrations.length,
     padiCounts:
-      padiValues.map((value, index) => ({
+      padiValues.map(value => ({
         value,
         label:
-          index === 0
-            ? "1 (Kanni)"
-            : index === 17
-              ? "18 (Guru)"
-              : value,
+          value === "0 (Kanni Swamy)"
+            ? "0 (Kanni)"
+            : value === "1 (Kanni Swamy)"
+              ? "1"
+              : value === "18 (Guru Swamy)"
+                ? "18 (Guru)"
+                : value,
         count: padiMap.get(value) || 0
       })),
     dateCounts:

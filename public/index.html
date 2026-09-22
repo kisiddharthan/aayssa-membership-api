@@ -322,6 +322,13 @@
       font-weight: 700;
     }
 
+    .field-help {
+      color: #777;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+
     .form-field input[type="text"],
     .form-field input[type="tel"],
     .form-field input[type="date"],
@@ -2001,7 +2008,10 @@
                 : ""
             )
           )}
-          · Tampa Yatra ${registration.joiningYatra ? "Yes" : "No"}
+          · Irumudi ${escapeHtml(
+            registration.irumudiOffering ||
+              "Not selected"
+          )}
         </div>
 
         ${
@@ -2025,6 +2035,7 @@
   ) {
 
     const padiOptions = [
+      "0 (Kanni Swamy)",
       "1 (Kanni Swamy)",
       ...Array.from(
         { length: 16 },
@@ -2060,6 +2071,11 @@
           <label>
             Padi Count
           </label>
+          <span class="field-help">
+            Count one Padi per year, including Irumudi taken
+            in Sabarimala or the United States. Select Guru
+            Swamy after more than 18 years.
+          </span>
           <select
             name="padiStatus"
             required
@@ -2080,14 +2096,43 @@
           </select>
         </div>
 
-        <label class="checkbox-label full-width">
+        <label
+          class="checkbox-label full-width first-deeksha-edit-indicator"
+          ${registration.padiStatus === "0 (Kanni Swamy)" ? "" : "hidden"}
+        >
           <input
-            name="joiningYatra"
             type="checkbox"
-            ${registration.joiningYatra ? "checked" : ""}
+            checked
+            disabled
           >
-          Joining AAYSSA Tampa Yatra
+          This is the swamy's first Deeksha
         </label>
+
+        <div class="form-field full-width">
+          <label>
+            Irumudi Offering
+          </label>
+          <select
+            name="irumudiOffering"
+            required
+          >
+            <option value="">
+              Select an option
+            </option>
+            <option
+              value="Tampa Temple"
+              ${registration.irumudiOffering === "Tampa Temple" ? "selected" : ""}
+            >
+              Tampa Temple — Shared bus expense approximately $340/person
+            </option>
+            <option
+              value="AAYSSA Temple"
+              ${registration.irumudiOffering === "AAYSSA Temple" ? "selected" : ""}
+            >
+              AAYSSA Temple — Estimated cost approximately $60/person
+            </option>
+          </select>
+        </div>
 
         <div class="form-field full-width">
           <label>
@@ -2197,6 +2242,28 @@
     const registrationId =
       form.dataset.registrationId;
 
+    const padiInput =
+      form.elements.padiStatus;
+
+    const firstDeekshaIndicator =
+      form.querySelector(
+        ".first-deeksha-edit-indicator"
+      );
+
+    const updateFirstDeekshaIndicator =
+      () => {
+        if (firstDeekshaIndicator) {
+          firstDeekshaIndicator.hidden =
+            padiInput.value !==
+              "0 (Kanni Swamy)";
+        }
+      };
+
+    padiInput.addEventListener(
+      "change",
+      updateFirstDeekshaIndicator
+    );
+
     form.querySelector(
       ".cancel-maaladharan-edit"
     ).addEventListener(
@@ -2244,8 +2311,8 @@
                 .maaladharanDate.value,
             padiStatus:
               form.elements.padiStatus.value,
-            joiningYatra:
-              form.elements.joiningYatra.checked,
+            irumudiOffering:
+              form.elements.irumudiOffering.value,
             memberNotes:
               form.elements.memberNotes.value
           }
@@ -2353,6 +2420,7 @@
       getCurrentSpouseName(currentMember);
 
     const padiOptions = [
+      "0 (Kanni Swamy)",
       "1 (Kanni Swamy)",
       ...Array.from(
         { length: 16 },
@@ -2452,8 +2520,13 @@
 
         <div class="form-field">
           <label for="maaladharanPadiStatus">
-            Padi Status
+            Padi Count
           </label>
+          <span class="field-help">
+            Count one Padi per year, including Irumudi taken
+            in Sabarimala or the United States. Select Guru
+            Swamy after more than 18 years.
+          </span>
           <select
             id="maaladharanPadiStatus"
             name="padiStatus"
@@ -2467,29 +2540,40 @@
           </select>
         </div>
 
-        <label class="checkbox-label full-width">
+        <label
+          id="maaladharanFirstDeekshaIndicator"
+          class="checkbox-label full-width"
+        >
           <input
             id="maaladharanFirstDeeksha"
             name="firstDeeksha"
             type="checkbox"
+            checked
+            disabled
           >
-          This is the participant’s first Deeksha
+          This is the swamy's first Deeksha
         </label>
 
-        <label class="checkbox-label full-width">
-          <input
-            id="maaladharanJoiningYatra"
-            name="joiningYatra"
-            type="checkbox"
+        <div class="form-field full-width">
+          <label for="maaladharanIrumudiOffering">
+            Irumudi Offering
+          </label>
+          <select
+            id="maaladharanIrumudiOffering"
+            name="irumudiOffering"
+            required
           >
-          Joining AAYSSA Tampa Yatra
-        </label>
-
-        <p class="donation-meta full-width">
-          Count one Padi per year, including Irumudi taken
-          in Sabarimala or the United States. Select Guru
-          after more than 18 years.
-        </p>
+            <option value="">
+              Select an option
+            </option>
+            <option value="Tampa Temple">
+              Tampa Temple — Shared bus expense approximately $340/person
+            </option>
+            <option value="AAYSSA Temple">
+              AAYSSA Temple — Estimated cost approximately $60/person
+            </option>
+          </select>
+        </div>
 
         <div class="form-field full-width">
           <label for="maaladharanNotes">
@@ -2545,6 +2629,11 @@
     const firstDeekshaInput =
       form.elements.firstDeeksha;
 
+    const firstDeekshaIndicator =
+      document.getElementById(
+        "maaladharanFirstDeekshaIndicator"
+      );
+
     const padiInput =
       form.elements.padiStatus;
 
@@ -2566,18 +2655,27 @@
       }
     );
 
-    firstDeekshaInput.addEventListener(
-      "change",
+    const updateFirstDeekshaIndicator =
       () => {
-        if (firstDeekshaInput.checked) {
-          padiInput.value =
-            "1 (Kanni Swamy)";
-        }
+        const isFirstDeeksha =
+          padiInput.value ===
+            "0 (Kanni Swamy)";
 
-        padiInput.disabled =
-          firstDeekshaInput.checked;
-      }
+        firstDeekshaInput.checked =
+          isFirstDeeksha;
+
+        if (firstDeekshaIndicator) {
+          firstDeekshaIndicator.hidden =
+            !isFirstDeeksha;
+        }
+      };
+
+    padiInput.addEventListener(
+      "change",
+      updateFirstDeekshaIndicator
     );
+
+    updateFirstDeekshaIndicator();
 
     form.addEventListener(
       "submit",
@@ -2622,11 +2720,9 @@
       firstDeeksha:
         form.elements.firstDeeksha.checked,
       padiStatus:
-        form.elements.firstDeeksha.checked
-          ? "1 (Kanni Swamy)"
-          : formData.get("padiStatus"),
-      joiningYatra:
-        form.elements.joiningYatra.checked,
+        formData.get("padiStatus"),
+      irumudiOffering:
+        formData.get("irumudiOffering"),
       memberNotes:
         formData.get("memberNotes")
     };
