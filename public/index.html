@@ -2030,6 +2030,14 @@
   }
 
 
+  function displayPadiOption(option) {
+
+    return option === "1 (Kanni Swamy)"
+      ? "1"
+      : option;
+  }
+
+
   function renderMaaladharanEditForm(
     registration
   ) {
@@ -2069,7 +2077,7 @@
 
         <div class="form-field">
           <label>
-            Padi Count
+            Padi Count Completed
           </label>
           <span class="field-help">
             Count one Padi per year, including Irumudi taken
@@ -2090,7 +2098,9 @@
                     : ""
                 }
               >
-                ${escapeHtml(option)}
+                ${escapeHtml(
+                  displayPadiOption(option)
+                )}
               </option>
             `).join("")}
           </select>
@@ -2123,13 +2133,19 @@
               value="Tampa Temple"
               ${registration.irumudiOffering === "Tampa Temple" ? "selected" : ""}
             >
-              Tampa Temple — Shared bus expense approximately $340/person
+              Tampa Temple — December 5, 2026 — Shared bus expense approximately $340/person
             </option>
             <option
               value="AAYSSA Temple"
               ${registration.irumudiOffering === "AAYSSA Temple" ? "selected" : ""}
             >
-              AAYSSA Temple — Estimated cost approximately $60/person
+              AAYSSA Temple — December 12, 2026 — Estimated cost approximately $60/person
+            </option>
+            <option
+              value="Other Temple or Self"
+              ${registration.irumudiOffering === "Other Temple or Self" ? "selected" : ""}
+            >
+              Other Temple or Self
             </option>
           </select>
         </div>
@@ -2520,7 +2536,7 @@
 
         <div class="form-field">
           <label for="maaladharanPadiStatus">
-            Padi Count
+            Padi Count Completed
           </label>
           <span class="field-help">
             Count one Padi per year, including Irumudi taken
@@ -2534,7 +2550,9 @@
           >
             ${padiOptions.map(option => `
               <option value="${escapeHtml(option)}">
-                ${escapeHtml(option)}
+                ${escapeHtml(
+                  displayPadiOption(option)
+                )}
               </option>
             `).join("")}
           </select>
@@ -2567,10 +2585,13 @@
               Select an option
             </option>
             <option value="Tampa Temple">
-              Tampa Temple — Shared bus expense approximately $340/person
+              Tampa Temple — December 5, 2026 — Shared bus expense approximately $340/person
             </option>
             <option value="AAYSSA Temple">
-              AAYSSA Temple — Estimated cost approximately $60/person
+              AAYSSA Temple — December 12, 2026 — Estimated cost approximately $60/person
+            </option>
+            <option value="Other Temple or Self">
+              Other Temple or Self
             </option>
           </select>
         </div>

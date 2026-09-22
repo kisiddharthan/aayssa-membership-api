@@ -167,7 +167,8 @@ Member portal (`public/index.html`) includes:
   - Displays the Mandalam start and closing dates.
   - Registers primary, spouse, or additional family members individually.
   - Captures age, phone, Maaladharan date, Padi count, Irumudi offering location, and optional notes.
-  - Irumudi offering choices are `Tampa Temple` (shared bus expense approximately $340/person) and `AAYSSA Temple` (estimated cost approximately $60/person).
+  - Irumudi offering choices are `Tampa Temple` (December 5, 2026; shared bus expense approximately $340/person), `AAYSSA Temple` (December 12, 2026; estimated cost approximately $60/person), and `Other Temple or Self`.
+  - The form labels Padi as “Padi Count Completed”; the existing Baserow value `1 (Kanni Swamy)` is displayed as `1`.
   - Selecting `0 (Kanni Swamy)` automatically marks the participant as taking Deeksha for the first time.
   - Displays existing family registrations and prevents duplicates.
 - Donations & Tax Receipts card:

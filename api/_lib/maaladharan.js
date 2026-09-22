@@ -566,8 +566,11 @@ function validateRegistrationUpdate(update) {
   }
 
   if (
-    !["Tampa Temple", "AAYSSA Temple"]
-      .includes(update.irumudiOffering)
+    ![
+      "Tampa Temple",
+      "AAYSSA Temple",
+      "Other Temple or Self"
+    ].includes(update.irumudiOffering)
   ) {
     return "Select where Irumudi will be offered.";
   }
@@ -655,8 +658,11 @@ function validateRegistration(registration) {
   }
 
   if (
-    !["Tampa Temple", "AAYSSA Temple"]
-      .includes(registration.irumudiOffering)
+    ![
+      "Tampa Temple",
+      "AAYSSA Temple",
+      "Other Temple or Self"
+    ].includes(registration.irumudiOffering)
   ) {
     return "Select where Irumudi will be offered.";
   }
