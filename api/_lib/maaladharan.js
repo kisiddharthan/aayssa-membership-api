@@ -924,7 +924,8 @@ function formatMaaladharanDateLabel(value) {
     {
       timeZone: "UTC",
       month: "short",
-      day: "numeric"
+      day: "numeric",
+      year: "numeric"
     }
   ).format(date);
 }

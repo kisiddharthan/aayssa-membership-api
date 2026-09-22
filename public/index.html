@@ -364,6 +364,10 @@
       margin-top: 8px;
     }
 
+    .checkbox-label[hidden] {
+      display: none;
+    }
+
     .area-options {
       display: flex;
       flex-wrap: wrap;
@@ -410,6 +414,19 @@
       display: block;
       color: #8b5100;
       margin-bottom: 4px;
+    }
+
+    .registered-swamies-panel {
+      margin-bottom: 22px;
+      padding: 16px;
+      border: 1px solid #d5e7da;
+      border-radius: 10px;
+      background: #f0f7f2;
+    }
+
+    .registered-swamies-panel .label {
+      color: #26783c;
+      margin-bottom: 8px;
     }
 
     .maaladharan-registration {
@@ -1912,9 +1929,9 @@
         ${
           registrations.length
             ? `
-              <div class="info-row">
+              <div class="info-row registered-swamies-panel">
                 <span class="label">
-                  Your Registered Participants
+                  Registered Swamies
                 </span>
 
                 ${registrations.map(
@@ -1923,12 +1940,12 @@
               </div>
             `
             : `
-              <div class="info-row">
+              <div class="info-row registered-swamies-panel">
                 <span class="label">
-                  Your Registered Participants
+                  Registered Swamies
                 </span>
                 <span class="value">
-                  No registrations submitted yet.
+                  No Swamies registered yet.
                 </span>
               </div>
             `
@@ -2111,8 +2128,9 @@
           ${registration.padiStatus === "0 (Kanni Swamy)" ? "" : "hidden"}
         >
           <input
+            class="first-deeksha-edit-checkbox"
             type="checkbox"
-            checked
+            ${registration.padiStatus === "0 (Kanni Swamy)" ? "checked" : ""}
             disabled
           >
           This is the swamy's first Deeksha
@@ -2266,12 +2284,25 @@
         ".first-deeksha-edit-indicator"
       );
 
+    const firstDeekshaCheckbox =
+      form.querySelector(
+        ".first-deeksha-edit-checkbox"
+      );
+
     const updateFirstDeekshaIndicator =
       () => {
+        const isFirstDeeksha =
+          padiInput.value ===
+            "0 (Kanni Swamy)";
+
         if (firstDeekshaIndicator) {
           firstDeekshaIndicator.hidden =
-            padiInput.value !==
-              "0 (Kanni Swamy)";
+            !isFirstDeeksha;
+        }
+
+        if (firstDeekshaCheckbox) {
+          firstDeekshaCheckbox.checked =
+            isFirstDeeksha;
         }
       };
 
