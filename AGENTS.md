@@ -23,6 +23,7 @@ Public member login:
 - Public embeds:
   - `public/login-embed.html`
   - `public/register-embed.html`
+  - `public/maaladharan-register-embed.html`
 - Authentication: Supabase email OTP/passcode.
 - Membership database: Baserow.
 - Donation data: Zeffy API.
@@ -57,7 +58,10 @@ Maaladharan registration table:
 - Name: `AAYSSA_Maaladharan_Registrations`
 - Table ID: `1210688`
 - One row per registered participant.
-- The API resolves Baserow fields by name and always derives the family link and email from the authenticated session.
+- The API resolves Baserow fields by name.
+- Member-portal submissions derive the family link and email from the authenticated session.
+- Public submissions require a Supabase email passcode, store the verified normalized email, and link the family automatically when that email matches a member.
+- An authenticated member lookup claims current-season public registrations that have the same verified email and no family link.
 
 Volunteer records are per person:
 - Primary
@@ -103,6 +107,12 @@ The old Supabase magic-link callback route was removed after switching to passco
 - `POST /api/register`
   - Creates a Baserow member row.
   - Creates per-person volunteer rows.
+- `POST /api/register?resource=maaladharan`
+  - Public, create-only Maaladharan registration flow.
+  - The `request-code` action sends a Supabase email passcode.
+  - The `submit` action verifies the passcode before saving.
+  - Links an existing member family by normalized verified email without revealing whether a membership matched.
+  - Does not expose public read, edit, or withdrawal operations.
 
 - `POST /api/login`
   - Starts Supabase email OTP/passcode login.
@@ -215,6 +225,16 @@ It uses:
 `https://portal.atlantaayyappasevasangam.org/api`
 
 When this file changes, copy the updated embed into GoDaddy for the public login page.
+
+## Public Maaladharan Registration Embed
+
+`public/maaladharan-register-embed.html` is intended for GoDaddy.
+
+- Members and non-members can submit a 2026-27 Maaladharan registration.
+- The visitor must verify the submitted email with a Supabase passcode.
+- Existing members are linked by normalized email; non-members remain unlinked until a membership with the same email signs in.
+- The public flow is create-only. Editing and withdrawal require member-portal authentication.
+- When this file changes, copy the updated embed into GoDaddy for the public Maaladharan registration page.
 
 ## Zeffy Integration
 

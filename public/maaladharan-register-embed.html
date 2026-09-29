@@ -1,0 +1,604 @@
+<div id="aayssa-maaladharan">
+  <style>
+    #aayssa-maaladharan {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 10px;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #30251f;
+      box-sizing: border-box;
+    }
+
+    #aayssa-maaladharan * {
+      box-sizing: border-box;
+    }
+
+    #aayssa-maaladharan .card {
+      overflow: hidden;
+      background: #fffdf9;
+      border: 1px solid #ead8c5;
+      border-radius: 14px;
+      box-shadow: 0 5px 20px rgba(80, 45, 20, 0.1);
+    }
+
+    #aayssa-maaladharan .header {
+      padding: 30px 20px;
+      color: #fff;
+      text-align: center;
+      background: linear-gradient(135deg, #7b2607, #a64b0a);
+    }
+
+    #aayssa-maaladharan .header h2 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+
+    #aayssa-maaladharan .header p {
+      margin: 5px 0;
+      line-height: 1.5;
+    }
+
+    #aayssa-maaladharan .body {
+      padding: 28px;
+    }
+
+    #aayssa-maaladharan .notice {
+      margin-bottom: 24px;
+      padding: 14px 16px;
+      line-height: 1.5;
+      background: #fff6e8;
+      border-left: 4px solid #a64b0a;
+      border-radius: 7px;
+    }
+
+    #aayssa-maaladharan .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    #aayssa-maaladharan .full {
+      grid-column: 1 / -1;
+    }
+
+    #aayssa-maaladharan label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 600;
+    }
+
+    #aayssa-maaladharan input,
+    #aayssa-maaladharan select,
+    #aayssa-maaladharan textarea {
+      width: 100%;
+      padding: 12px;
+      font: inherit;
+      background: #fff;
+      border: 1px solid #cfc4ba;
+      border-radius: 7px;
+    }
+
+    #aayssa-maaladharan input:focus,
+    #aayssa-maaladharan select:focus,
+    #aayssa-maaladharan textarea:focus {
+      outline: none;
+      border-color: #a64b0a;
+      box-shadow: 0 0 0 2px rgba(166, 75, 10, 0.12);
+    }
+
+    #aayssa-maaladharan textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    #aayssa-maaladharan .help {
+      display: block;
+      margin: -2px 0 8px;
+      color: #6f655e;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    #aayssa-maaladharan .deeksha {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 12px;
+      background: #f0f7f2;
+      border: 1px solid #d5e7da;
+      border-radius: 7px;
+      font-weight: 600;
+    }
+
+    #aayssa-maaladharan .deeksha[hidden] {
+      display: none;
+    }
+
+    #aayssa-maaladharan .deeksha input {
+      width: auto;
+      margin: 0;
+    }
+
+    #aayssa-maaladharan button {
+      padding: 12px 18px;
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      background: #8c3508;
+      border: 0;
+      border-radius: 7px;
+    }
+
+    #aayssa-maaladharan button.secondary {
+      color: #5f2b10;
+      background: #f3e6d8;
+    }
+
+    #aayssa-maaladharan button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    #aayssa-maaladharan .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    #aayssa-maaladharan .message {
+      min-height: 22px;
+      margin-top: 14px;
+      line-height: 1.45;
+    }
+
+    #aayssa-maaladharan .message.error {
+      color: #a83220;
+    }
+
+    #aayssa-maaladharan .message.success {
+      color: #26783c;
+      font-weight: 600;
+    }
+
+    #aayssa-maaladharan .verification {
+      margin-top: 22px;
+      padding-top: 22px;
+      border-top: 1px solid #ead8c5;
+    }
+
+    #aayssa-maaladharan .honeypot {
+      position: absolute;
+      left: -10000px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+
+    @media (max-width: 640px) {
+      #aayssa-maaladharan .body {
+        padding: 20px;
+      }
+
+      #aayssa-maaladharan .grid {
+        grid-template-columns: 1fr;
+      }
+
+      #aayssa-maaladharan .full {
+        grid-column: auto;
+      }
+    }
+  </style>
+
+  <div class="card">
+    <div class="header">
+      <h2>2026–27 Maaladharan Registration</h2>
+      <p>Atlanta Ayyappa Seva Sangam</p>
+      <p>October 25 through December 4, 2026</p>
+    </div>
+
+    <div class="body">
+      <div class="notice">
+        Members and non-members may register here. We will verify your
+        email before submission. If you are an AAYSSA member, use the
+        email associated with your membership so the registration appears
+        in your member portal. Non-members must register for AAYSSA
+        membership before they can edit or withdraw a registration.
+      </div>
+
+      <form id="publicMaaladharanForm">
+        <div class="grid">
+          <div class="full">
+            <label for="publicMaaladharanEmail">Email Address</label>
+            <input
+              id="publicMaaladharanEmail"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+            >
+          </div>
+
+          <div class="honeypot" aria-hidden="true">
+            <label for="publicMaaladharanWebsite">Website</label>
+            <input
+              id="publicMaaladharanWebsite"
+              name="website"
+              type="text"
+              tabindex="-1"
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="actions full" id="emailActions">
+            <button id="sendCodeButton" type="button">
+              Send Verification Passcode
+            </button>
+          </div>
+        </div>
+
+        <div id="registrationFields" class="verification" hidden>
+          <div class="grid">
+            <div class="full">
+              <label for="publicMaaladharanCode">
+                Email Verification Passcode
+              </label>
+              <span class="help">
+                Enter the passcode sent to the email address above.
+              </span>
+              <input
+                id="publicMaaladharanCode"
+                name="code"
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                pattern="[0-9]*"
+                required
+              >
+            </div>
+
+            <div>
+              <label for="publicParticipantType">Participant Type</label>
+              <select
+                id="publicParticipantType"
+                name="participantType"
+                required
+              >
+                <option value="primary">Self / Primary</option>
+                <option value="spouse">Spouse</option>
+                <option value="additional">Additional Family Member</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="publicParticipantName">Swamy Name</label>
+              <input
+                id="publicParticipantName"
+                name="participantName"
+                type="text"
+                autocomplete="name"
+                required
+              >
+            </div>
+
+            <div>
+              <label for="publicParticipantAge">Age</label>
+              <input
+                id="publicParticipantAge"
+                name="age"
+                type="number"
+                min="1"
+                max="120"
+                required
+              >
+            </div>
+
+            <div>
+              <label for="publicParticipantPhone">Phone Number</label>
+              <input
+                id="publicParticipantPhone"
+                name="phoneNumber"
+                type="tel"
+                autocomplete="tel"
+                required
+              >
+            </div>
+
+            <div>
+              <label for="publicMaaladharanDate">Maaladharan Date</label>
+              <input
+                id="publicMaaladharanDate"
+                name="maaladharanDate"
+                type="date"
+                min="2026-10-25"
+                max="2026-12-04"
+                value="2026-10-25"
+                required
+              >
+            </div>
+
+            <div>
+              <label for="publicPadiStatus">Padi Count Completed</label>
+              <span class="help">
+                Count one Padi per year, including Irumudi taken in
+                Sabarimala or the United States. Select Guru Swamy after
+                more than 18 years.
+              </span>
+              <select
+                id="publicPadiStatus"
+                name="padiStatus"
+                required
+              >
+                <option value="0 (Kanni Swamy)">0 (Kanni Swamy)</option>
+                <option value="1 (Kanni Swamy)">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+                <option value="17">17</option>
+                <option value="18 (Guru Swamy)">18 (Guru Swamy)</option>
+              </select>
+            </div>
+
+            <label
+              id="publicFirstDeekshaIndicator"
+              class="deeksha full"
+            >
+              <input
+                name="firstDeeksha"
+                type="checkbox"
+                checked
+                disabled
+              >
+              This is the swamy's first Deeksha
+            </label>
+
+            <div class="full">
+              <label for="publicIrumudiOffering">Irumudi Offering</label>
+              <select
+                id="publicIrumudiOffering"
+                name="irumudiOffering"
+                required
+              >
+                <option value="">Select an option</option>
+                <option value="Tampa Temple">
+                  Tampa Temple — December 5, 2026 — Shared bus expense approximately $340/person
+                </option>
+                <option value="AAYSSA Temple">
+                  AAYSSA Temple — December 12, 2026 — Estimated cost approximately $60/person
+                </option>
+                <option value="Other Temple or Self">
+                  Other Temple or Self
+                </option>
+              </select>
+            </div>
+
+            <div class="full">
+              <label for="publicMaaladharanNotes">Notes (optional)</label>
+              <textarea
+                id="publicMaaladharanNotes"
+                name="memberNotes"
+                maxlength="1000"
+              ></textarea>
+            </div>
+
+            <div class="actions full">
+              <button id="submitRegistrationButton" type="submit">
+                Submit Registration
+              </button>
+              <button
+                id="changeEmailButton"
+                class="secondary"
+                type="button"
+              >
+                Use a Different Email
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="publicMaaladharanMessage"
+          class="message"
+          role="status"
+          aria-live="polite"
+        ></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var apiUrl =
+        "https://aayssa-membership-api.vercel.app/api/register?resource=maaladharan";
+
+      var form =
+        document.getElementById("publicMaaladharanForm");
+      var emailInput =
+        document.getElementById("publicMaaladharanEmail");
+      var codeInput =
+        document.getElementById("publicMaaladharanCode");
+      var padiInput =
+        document.getElementById("publicPadiStatus");
+      var firstDeekshaIndicator =
+        document.getElementById("publicFirstDeekshaIndicator");
+      var registrationFields =
+        document.getElementById("registrationFields");
+      var sendCodeButton =
+        document.getElementById("sendCodeButton");
+      var submitButton =
+        document.getElementById("submitRegistrationButton");
+      var changeEmailButton =
+        document.getElementById("changeEmailButton");
+      var message =
+        document.getElementById("publicMaaladharanMessage");
+
+      function setMessage(text, type) {
+        message.textContent = text || "";
+        message.className =
+          "message" + (type ? " " + type : "");
+      }
+
+      function updateFirstDeeksha() {
+        var isFirst =
+          padiInput.value === "0 (Kanni Swamy)";
+
+        form.elements.firstDeeksha.checked = isFirst;
+        firstDeekshaIndicator.hidden = !isFirst;
+      }
+
+      async function post(payload) {
+        var response =
+          await fetch(apiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+
+        var data =
+          await response.json().catch(function () {
+            return {};
+          });
+
+        if (!response.ok || !data.success) {
+          throw new Error(
+            data.message ||
+              "Unable to complete the request right now."
+          );
+        }
+
+        return data;
+      }
+
+      sendCodeButton.addEventListener(
+        "click",
+        async function () {
+          if (!emailInput.reportValidity()) {
+            return;
+          }
+
+          sendCodeButton.disabled = true;
+          sendCodeButton.textContent = "Sending...";
+          setMessage("");
+
+          try {
+            var data =
+              await post({
+                action: "request-code",
+                email: emailInput.value,
+                website: form.elements.website.value
+              });
+
+            emailInput.readOnly = true;
+            registrationFields.hidden = false;
+            codeInput.focus();
+            setMessage(data.message, "success");
+          } catch (error) {
+            setMessage(error.message, "error");
+          } finally {
+            sendCodeButton.disabled = false;
+            sendCodeButton.textContent =
+              "Resend Verification Passcode";
+          }
+        }
+      );
+
+      changeEmailButton.addEventListener(
+        "click",
+        function () {
+          emailInput.readOnly = false;
+          registrationFields.hidden = true;
+          codeInput.value = "";
+          sendCodeButton.textContent =
+            "Send Verification Passcode";
+          setMessage("");
+          emailInput.focus();
+        }
+      );
+
+      padiInput.addEventListener(
+        "change",
+        updateFirstDeeksha
+      );
+
+      form.addEventListener(
+        "submit",
+        async function (event) {
+          event.preventDefault();
+
+          if (!form.reportValidity()) {
+            return;
+          }
+
+          var values =
+            new FormData(form);
+
+          var payload = {
+            action: "submit",
+            email: values.get("email"),
+            code: values.get("code"),
+            website: values.get("website"),
+            participantType:
+              values.get("participantType"),
+            participantName:
+              values.get("participantName"),
+            age:
+              Number(values.get("age")),
+            phoneNumber:
+              values.get("phoneNumber"),
+            maaladharanDate:
+              values.get("maaladharanDate"),
+            padiStatus:
+              values.get("padiStatus"),
+            irumudiOffering:
+              values.get("irumudiOffering"),
+            memberNotes:
+              values.get("memberNotes")
+          };
+
+          submitButton.disabled = true;
+          submitButton.textContent = "Submitting...";
+          setMessage("");
+
+          try {
+            var data =
+              await post(payload);
+
+            form.reset();
+            emailInput.readOnly = false;
+            registrationFields.hidden = true;
+            sendCodeButton.textContent =
+              "Send Verification Passcode";
+            updateFirstDeeksha();
+            setMessage(data.message, "success");
+          } catch (error) {
+            setMessage(
+              error.message +
+                " If your passcode was already verified, request a new one before trying again.",
+              "error"
+            );
+          } finally {
+            submitButton.disabled = false;
+            submitButton.textContent =
+              "Submit Registration";
+          }
+        }
+      );
+
+      updateFirstDeeksha();
+    }());
+  </script>
+</div>

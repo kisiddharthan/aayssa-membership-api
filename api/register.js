@@ -4,6 +4,9 @@ import {
   getPrimaryName,
   getSpouseName
 } from "./_lib/aayssa.js";
+import {
+  handlePublicMaaladharan
+} from "./_lib/maaladharan.js";
 
 export default async function handler(req, res) {
 
@@ -12,10 +15,22 @@ export default async function handler(req, res) {
   // Allow the AAYSSA website to call this API
   // =========================================================
 
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "https://atlantaayyappasevasangam.org"
-  );
+  const allowedOrigins = [
+    "https://atlantaayyappasevasangam.org",
+    "https://www.atlantaayyappasevasangam.org"
+  ];
+
+  const origin =
+    req.headers.origin;
+
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader(
+      "Access-Control-Allow-Origin",
+      origin
+    );
+  }
+
+  res.setHeader("Vary", "Origin");
 
   res.setHeader(
     "Access-Control-Allow-Methods",
@@ -37,6 +52,10 @@ export default async function handler(req, res) {
       success: false,
       message: "Method not allowed."
     });
+  }
+
+  if (req.query?.resource === "maaladharan") {
+    return handlePublicMaaladharan(req, res);
   }
 
   try {

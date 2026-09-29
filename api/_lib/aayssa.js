@@ -87,6 +87,52 @@ export function assertServerConfig() {
   }
 }
 
+export async function findMemberByEmail(email) {
+  assertServerConfig();
+
+  const normalizedEmail =
+    String(email || "")
+      .trim()
+      .toLowerCase();
+
+  if (!normalizedEmail) {
+    return null;
+  }
+
+  const lookupUrl =
+    `${getBaserowBaseUrl()}/api/database/rows/table/${MEMBERS_TABLE_ID}/` +
+    `?user_field_names=false` +
+    `&filter__field_10464593__equal=${encodeURIComponent(normalizedEmail)}`;
+
+  const lookupResponse =
+    await fetch(
+      lookupUrl,
+      {
+        headers:
+          getBaserowHeaders()
+      }
+    );
+
+  if (!lookupResponse.ok) {
+    console.error(
+      "Member email lookup failed:",
+      lookupResponse.status
+    );
+
+    throw new Error(
+      "Unable to look up membership."
+    );
+  }
+
+  const lookupData =
+    await lookupResponse.json();
+
+  return Array.isArray(lookupData.results) &&
+    lookupData.results.length > 0
+      ? lookupData.results[0]
+      : null;
+}
+
 export async function getAuthenticatedMember(req) {
   assertServerConfig();
 

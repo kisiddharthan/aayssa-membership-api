@@ -1,5 +1,6 @@
 import {
   cleanString,
+  findMemberByEmail,
   getAuthenticatedMember,
   getBaserowBaseUrl,
   getBaserowHeaders
@@ -11,6 +12,246 @@ const TABLE_ID =
 const SEASON = "2026-27 Mandalam";
 const SEASON_START = "2026-10-25";
 const SEASON_END = "2026-12-04";
+
+export async function handlePublicMaaladharan(req, res) {
+  const action =
+    cleanString(req.body?.action)
+      .toLowerCase();
+
+  const normalizedEmail =
+    cleanString(req.body?.email)
+      .toLowerCase();
+
+  const successMessage =
+    "Your Maaladharan registration has been submitted. AAYSSA members can sign in with the same email to view or edit it. Non-members must first register for membership to make changes.";
+
+  try {
+    if (cleanString(req.body?.website)) {
+      return res.status(201).json({
+        success: true,
+        message:
+          action === "request-code"
+            ? "A verification passcode has been sent to your email."
+            : successMessage
+      });
+    }
+
+    if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        .test(normalizedEmail)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Enter a valid email address."
+      });
+    }
+
+    if (action === "request-code") {
+      await sendPublicVerificationCode(
+        normalizedEmail
+      );
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "A verification passcode has been sent to your email."
+      });
+    }
+
+    if (action !== "submit") {
+      return res.status(400).json({
+        success: false,
+        message: "Select a valid registration action."
+      });
+    }
+
+    const registration =
+      normalizeRegistration(req.body);
+
+    const validationError =
+      validateRegistration(registration);
+
+    if (validationError) {
+      return res.status(400).json({
+        success: false,
+        message: validationError
+      });
+    }
+
+    const verification =
+      await verifyPublicEmailCode(
+        normalizedEmail,
+        req.body?.code
+      );
+
+    if (!verification.valid) {
+      return res.status(401).json({
+        success: false,
+        message:
+          "The verification passcode is invalid or expired."
+      });
+    }
+
+    const fields =
+      await fetchRegistrationFields();
+
+    const existingRows =
+      await fetchRegistrationsByEmail(
+        normalizedEmail,
+        fields
+      );
+
+    const duplicate =
+      existingRows
+        .map(row =>
+          mapRegistrationRow(row, fields)
+        )
+        .find(item =>
+          item.season === SEASON &&
+          item.status !== "Cancelled" &&
+          item.participantName.toLowerCase() ===
+            registration.participantName.toLowerCase()
+        );
+
+    if (duplicate) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "This participant is already registered for the 2026-27 season."
+      });
+    }
+
+    const memberRow =
+      await findMemberByEmail(
+        normalizedEmail
+      );
+
+    await createRegistration({
+      auth: {
+        normalizedEmail,
+        memberRow
+      },
+      fields,
+      registration
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: successMessage
+    });
+  } catch (error) {
+    console.error(
+      "Public Maaladharan registration API error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Unable to submit the Maaladharan registration right now."
+    });
+  }
+}
+
+async function sendPublicVerificationCode(email) {
+  const supabaseUrl =
+    process.env.SUPABASE_URL;
+
+  const publishableKey =
+    process.env.SUPABASE_PUBLISHABLE_KEY;
+
+  if (!supabaseUrl || !publishableKey) {
+    throw new Error(
+      "Email verification is not configured."
+    );
+  }
+
+  const response =
+    await fetch(
+      supabaseUrl + "/auth/v1/otp",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: publishableKey,
+          Authorization:
+            "Bearer " + publishableKey
+        },
+        body: JSON.stringify({
+          email,
+          create_user: true
+        })
+      }
+    );
+
+  if (!response.ok) {
+    console.error(
+      "Public Maaladharan passcode request failed:",
+      response.status,
+      await response.text()
+    );
+
+    throw new Error(
+      "Unable to send verification passcode."
+    );
+  }
+}
+
+async function verifyPublicEmailCode(email, code) {
+  const supabaseUrl =
+    process.env.SUPABASE_URL;
+
+  const publishableKey =
+    process.env.SUPABASE_PUBLISHABLE_KEY;
+
+  const token =
+    String(code || "")
+      .replace(/\D/g, "");
+
+  if (
+    !supabaseUrl ||
+    !publishableKey ||
+    !token
+  ) {
+    return { valid: false };
+  }
+
+  const response =
+    await fetch(
+      supabaseUrl + "/auth/v1/verify",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: publishableKey,
+          Authorization:
+            "Bearer " + publishableKey
+        },
+        body: JSON.stringify({
+          email,
+          token,
+          type: "email"
+        })
+      }
+    );
+
+  if (!response.ok) {
+    return { valid: false };
+  }
+
+  const data =
+    await response.json();
+
+  const verifiedEmail =
+    cleanString(data?.user?.email)
+      .toLowerCase();
+
+  return {
+    valid:
+      Boolean(data?.access_token) &&
+      verifiedEmail === email
+  };
+}
 
 export async function handleMaaladharan(req, res) {
   if (!["GET", "POST", "PATCH"].includes(req.method)) {
@@ -33,6 +274,12 @@ export async function handleMaaladharan(req, res) {
 
     const fields =
       await fetchRegistrationFields();
+
+    await linkUnlinkedRegistrationsByEmail(
+      auth.normalizedEmail,
+      auth.memberRow.id,
+      fields
+    );
 
     const registrations =
       await fetchFamilyRegistrations(
@@ -238,6 +485,98 @@ async function fetchRegistrationFields() {
   };
 }
 
+async function fetchRegistrationsByEmail(
+  email,
+  fields
+) {
+  const emailField =
+    getField(fields, "Email");
+
+  const url =
+    `${getBaserowBaseUrl()}/api/database/rows/table/${TABLE_ID}/` +
+    `?user_field_names=false` +
+    `&filter__field_${emailField.id}__equal=${encodeURIComponent(email)}`;
+
+  const response =
+    await fetch(url, {
+      headers: getBaserowHeaders()
+    });
+
+  if (!response.ok) {
+    console.error(
+      "Registration email lookup failed:",
+      response.status,
+      await response.text()
+    );
+
+    throw new Error(
+      "Unable to check Maaladharan registrations."
+    );
+  }
+
+  const data =
+    await response.json();
+
+  return Array.isArray(data.results)
+    ? data.results
+    : [];
+}
+
+async function linkUnlinkedRegistrationsByEmail(
+  email,
+  familyRowId,
+  fields
+) {
+  const rows =
+    await fetchRegistrationsByEmail(
+      email,
+      fields
+    );
+
+  const familyField =
+    getField(fields, "Family");
+
+  const familyKey =
+    `field_${familyField.id}`;
+
+  const unlinkedRows =
+    rows.filter(row =>
+      (!Array.isArray(row[familyKey]) ||
+        row[familyKey].length === 0) &&
+      mapRegistrationRow(row, fields).season ===
+        SEASON
+    );
+
+  for (const row of unlinkedRows) {
+    const response =
+      await fetch(
+        `${getBaserowBaseUrl()}/api/database/rows/table/${TABLE_ID}/${row.id}/?user_field_names=false`,
+        {
+          method: "PATCH",
+          headers: getBaserowHeaders(),
+          body: JSON.stringify({
+            [familyKey]: [
+              Number(familyRowId)
+            ]
+          })
+        }
+      );
+
+    if (!response.ok) {
+      console.error(
+        "Registration family link failed:",
+        row.id,
+        response.status,
+        await response.text()
+      );
+
+      throw new Error(
+        "Unable to link Maaladharan registration."
+      );
+    }
+  }
+}
+
 async function fetchFamilyRegistrations(
   familyRowId,
   fields
@@ -299,7 +638,9 @@ async function createRegistration({
     values,
     fields,
     "Family",
-    [Number(auth.memberRow.id)]
+    auth.memberRow
+      ? [Number(auth.memberRow.id)]
+      : []
   );
   setSelectField(
     values,
@@ -630,6 +971,7 @@ function normalizeRegistration(body) {
       cleanString(body?.irumudiOffering),
     memberNotes:
       cleanString(body?.memberNotes)
+        .slice(0, 1000)
   };
 }
 
