@@ -2049,9 +2049,26 @@
 
   function displayPadiOption(option) {
 
-    return option === "1 (Kanni Swamy)"
-      ? "1"
-      : option;
+    return option;
+  }
+
+
+  function getMaaladharanPadiOptions() {
+
+    return [
+      "0 (Kanni Swamy)",
+      "1",
+      ...Array.from(
+        { length: 16 },
+        (_, index) => String(index + 2)
+      ),
+      "18 (Guru Swamy)",
+      ...Array.from(
+        { length: 21 },
+        (_, index) => String(index + 19)
+      ),
+      "40+"
+    ];
   }
 
 
@@ -2059,15 +2076,8 @@
     registration
   ) {
 
-    const padiOptions = [
-      "0 (Kanni Swamy)",
-      "1 (Kanni Swamy)",
-      ...Array.from(
-        { length: 16 },
-        (_, index) => String(index + 2)
-      ),
-      "18 (Guru Swamy)"
-    ];
+    const padiOptions =
+      getMaaladharanPadiOptions();
 
     return `
       <form
@@ -2098,8 +2108,9 @@
           </label>
           <span class="field-help">
             Count one Padi per year, including Irumudi taken
-            in Sabarimala or the United States. Select Guru
-            Swamy after more than 18 years.
+            in Sabarimala or the United States. The 18th Padi
+            is marked Guru Swamy; select the exact count through
+            39 or choose 40+.
           </span>
           <select
             name="padiStatus"
@@ -2466,15 +2477,8 @@
     const spouseName =
       getCurrentSpouseName(currentMember);
 
-    const padiOptions = [
-      "0 (Kanni Swamy)",
-      "1 (Kanni Swamy)",
-      ...Array.from(
-        { length: 16 },
-        (_, index) => String(index + 2)
-      ),
-      "18 (Guru Swamy)"
-    ];
+    const padiOptions =
+      getMaaladharanPadiOptions();
 
     return `
       <form
@@ -2571,8 +2575,9 @@
           </label>
           <span class="field-help">
             Count one Padi per year, including Irumudi taken
-            in Sabarimala or the United States. Select Guru
-            Swamy after more than 18 years.
+            in Sabarimala or the United States. The 18th Padi
+            is marked Guru Swamy; select the exact count through
+            39 or choose 40+.
           </span>
           <select
             id="maaladharanPadiStatus"

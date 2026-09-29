@@ -13,6 +13,21 @@ const SEASON = "2026-27 Mandalam";
 const SEASON_START = "2026-10-25";
 const SEASON_END = "2026-12-04";
 
+const PADI_VALUES = [
+  "0 (Kanni Swamy)",
+  "1",
+  ...Array.from(
+    { length: 16 },
+    (_, index) => String(index + 2)
+  ),
+  "18 (Guru Swamy)",
+  ...Array.from(
+    { length: 21 },
+    (_, index) => String(index + 19)
+  ),
+  "40+"
+];
+
 export async function handlePublicMaaladharan(req, res) {
   const action =
     cleanString(req.body?.action)
@@ -928,15 +943,8 @@ function validateRegistrationUpdate(update) {
     );
   }
 
-  const validPadiValues = [
-    "0 (Kanni Swamy)",
-    "1 (Kanni Swamy)",
-    ...Array.from(
-      { length: 16 },
-      (_, index) => String(index + 2)
-    ),
-    "18 (Guru Swamy)"
-  ];
+  const validPadiValues =
+    PADI_VALUES;
 
   if (
     !validPadiValues.includes(
@@ -1021,15 +1029,8 @@ function validateRegistration(registration) {
     );
   }
 
-  const validPadiValues = [
-    "0 (Kanni Swamy)",
-    "1 (Kanni Swamy)",
-    ...Array.from(
-      { length: 16 },
-      (_, index) => String(index + 2)
-    ),
-    "18 (Guru Swamy)"
-  ];
+  const validPadiValues =
+    PADI_VALUES;
 
   if (
     !registration.firstDeeksha &&
@@ -1180,15 +1181,8 @@ export async function fetchMaaladharanDashboardSummary() {
         registration.status !== "Cancelled"
       );
 
-  const padiValues = [
-    "0 (Kanni Swamy)",
-    "1 (Kanni Swamy)",
-    ...Array.from(
-      { length: 16 },
-      (_, index) => String(index + 2)
-    ),
-    "18 (Guru Swamy)"
-  ];
+  const padiValues =
+    PADI_VALUES;
 
   const padiMap =
     new Map(
@@ -1232,11 +1226,9 @@ export async function fetchMaaladharanDashboardSummary() {
         label:
           value === "0 (Kanni Swamy)"
             ? "0 (Kanni)"
-            : value === "1 (Kanni Swamy)"
-              ? "1"
-              : value === "18 (Guru Swamy)"
-                ? "18 (Guru)"
-                : value,
+            : value === "18 (Guru Swamy)"
+              ? "18 (Guru)"
+              : value,
         count: padiMap.get(value) || 0
       })),
     dateCounts:
