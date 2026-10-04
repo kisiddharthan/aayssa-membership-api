@@ -1671,6 +1671,7 @@
   let currentVolunteers = [];
   let currentDonations = null;
   let currentMaaladharan = null;
+  let maaladharanRegistrationSucceeded = false;
   let currentHomePooja = null;
   let homePoojaCalendarMonth = "";
 
@@ -2558,14 +2559,20 @@
           registration for every participant.
         </p>
 
-        <div class="maaladharan-whatsapp-invite">
-          Stay connected for Maaladharan updates.
-          <a
-            href="https://chat.whatsapp.com/Ggon3OSjwHX444MlXJqKVv?s=cl&amp;p=i&amp;mlu=0"
-            target="_blank"
-            rel="noopener noreferrer"
-          >Join the Maaladharan WhatsApp Group</a>.
-        </div>
+        ${
+          maaladharanRegistrationSucceeded
+            ? `
+              <div class="maaladharan-whatsapp-invite">
+                Stay connected for Maaladharan updates.
+                <a
+                  href="https://chat.whatsapp.com/Ggon3OSjwHX444MlXJqKVv?s=cl&amp;p=i&amp;mlu=0"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >Join the Maaladharan WhatsApp Group</a>.
+              </div>
+            `
+            : ""
+        }
 
         <div class="maaladharan-schedule">
           <div class="maaladharan-date">
@@ -3482,6 +3489,7 @@
       }
 
       currentMaaladharan = data;
+      maaladharanRegistrationSucceeded = true;
 
       const section =
         document.getElementById(

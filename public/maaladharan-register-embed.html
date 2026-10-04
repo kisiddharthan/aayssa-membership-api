@@ -220,14 +220,6 @@
         membership before they can edit or withdraw a registration.
       </div>
 
-      <div class="whatsapp-invite">
-        Stay connected for Maaladharan updates.
-        <a
-          href="https://chat.whatsapp.com/Ggon3OSjwHX444MlXJqKVv?s=cl&amp;p=i&amp;mlu=0"
-          target="_top"
-        >Join the Maaladharan WhatsApp Group</a>.
-      </div>
-
       <form id="publicMaaladharanForm">
         <div class="grid">
           <div class="full">
@@ -459,6 +451,18 @@
           role="status"
           aria-live="polite"
         ></div>
+
+        <div
+          id="publicMaaladharanWhatsappInvite"
+          class="whatsapp-invite"
+          hidden
+        >
+          Stay connected for Maaladharan updates.
+          <a
+            href="https://chat.whatsapp.com/Ggon3OSjwHX444MlXJqKVv?s=cl&amp;p=i&amp;mlu=0"
+            target="_top"
+          >Join the Maaladharan WhatsApp Group</a>.
+        </div>
       </form>
     </div>
   </div>
@@ -488,6 +492,8 @@
         document.getElementById("changeEmailButton");
       var message =
         document.getElementById("publicMaaladharanMessage");
+      var whatsappInvite =
+        document.getElementById("publicMaaladharanWhatsappInvite");
 
       function setMessage(text, type) {
         message.textContent = text || "";
@@ -569,6 +575,7 @@
           codeInput.value = "";
           sendCodeButton.textContent =
             "Send Verification Passcode";
+          whatsappInvite.hidden = true;
           setMessage("");
           emailInput.focus();
         }
@@ -629,6 +636,7 @@
               "Send Verification Passcode";
             updateFirstDeeksha();
             setMessage(data.message, "success");
+            whatsappInvite.hidden = false;
           } catch (error) {
             setMessage(
               error.message +

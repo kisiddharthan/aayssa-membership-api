@@ -234,7 +234,7 @@ Member portal (`public/index.html`) includes:
   - Padi choices run from `0 (Kanni Swamy)` through `39`, followed by `40+`; `18 (Guru Swamy)` retains its existing label.
   - Selecting `0 (Kanni Swamy)` automatically marks the participant as taking Deeksha for the first time.
   - Displays existing family registrations and prevents duplicates.
-  - Includes a link to join the Maaladharan WhatsApp group.
+  - Shows the link to join the Maaladharan WhatsApp group after a successful registration.
 - Home Pooja booking card:
   - Shows the shared availability calendar and the family's submitted requests.
   - Presents availability in a responsive month-at-a-time calendar with Previous/Next navigation and privacy-safe Available, Booked, and Blocked states.
@@ -303,7 +303,7 @@ When this file changes, copy the updated embed into GoDaddy for the public login
 - Existing members are linked by normalized email; non-members remain unlinked until a membership with the same email signs in.
 - The public flow is create-only. Editing and withdrawal require member-portal authentication.
 - Successful registrations receive a Resend confirmation email containing the registration details and WhatsApp group link; delivery failure does not roll back the saved registration.
-- The form includes a direct link to join the Maaladharan WhatsApp group.
+- The form reveals a direct link to join the Maaladharan WhatsApp group only after a successful registration.
 - Its WhatsApp link uses `target="_top"` to escape the GoDaddy iframe safely in Safari.
 - When this file changes, copy the updated embed into GoDaddy for the public Maaladharan registration page.
 
