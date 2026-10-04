@@ -287,6 +287,7 @@ It posts to:
 
 - Its Member Login banner matches the gradient header treatment used by the member registration embed.
 - It includes a link to join the AAYSSA Family WhatsApp group.
+- External WhatsApp links use `target="_top"` so Safari can leave the cross-origin GoDaddy iframe without triggering Cross-Origin-Opener-Policy errors.
 
 It uses:
 `https://portal.atlantaayyappasevasangam.org/api`
@@ -303,6 +304,7 @@ When this file changes, copy the updated embed into GoDaddy for the public login
 - The public flow is create-only. Editing and withdrawal require member-portal authentication.
 - Successful registrations receive a Resend confirmation email containing the registration details and WhatsApp group link; delivery failure does not roll back the saved registration.
 - The form includes a direct link to join the Maaladharan WhatsApp group.
+- Its WhatsApp link uses `target="_top"` to escape the GoDaddy iframe safely in Safari.
 - When this file changes, copy the updated embed into GoDaddy for the public Maaladharan registration page.
 
 ## Public Home Pooja Booking Embed
