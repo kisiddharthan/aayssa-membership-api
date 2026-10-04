@@ -429,6 +429,99 @@
       margin-bottom: 8px;
     }
 
+    .pooja-calendar-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+
+    .pooja-calendar-legend span::before {
+      content: "";
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      margin-right: 5px;
+      border-radius: 3px;
+      vertical-align: -1px;
+      background: var(--calendar-color);
+    }
+
+    .pooja-calendar-months {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin: 16px 0 24px;
+    }
+
+    .pooja-calendar-month {
+      padding: 14px;
+      border: 1px solid #e3ded4;
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    .pooja-calendar-month h3 {
+      margin: 0 0 12px;
+      text-align: center;
+      color: #5b3510;
+    }
+
+    .pooja-calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 5px;
+    }
+
+    .pooja-calendar-weekday {
+      padding-bottom: 4px;
+      color: #716b63;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .pooja-calendar-day {
+      min-height: 45px;
+      padding: 5px 3px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      color: #aaa49c;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .pooja-calendar-day strong,
+    .pooja-calendar-day small {
+      display: block;
+    }
+
+    .pooja-calendar-day small {
+      margin-top: 3px;
+      font-size: 9px;
+      line-height: 1.15;
+    }
+
+    .pooja-calendar-day.available {
+      border-color: #b9dbc3;
+      background: #e9f6ed;
+      color: #1f6834;
+    }
+
+    .pooja-calendar-day.booked {
+      border-color: #e3b95e;
+      background: #fff0c9;
+      color: #704300;
+      font-weight: 700;
+    }
+
+    .pooja-calendar-day.blocked {
+      border-color: #d5d1cc;
+      background: #ece9e5;
+      color: #6f6962;
+    }
+
     .maaladharan-registration {
       padding: 12px 0;
       border-bottom: 1px solid #eee;
@@ -1969,6 +2062,8 @@
           5–8 PM.
         </p>
 
+        ${renderHomePoojaCalendar(dates)}
+
         <div class="info-row registered-swamies-panel">
           <span class="label">Your Requests</span>
           ${
@@ -2040,6 +2135,87 @@
             role="status" aria-live="polite"></div>
         </form>
       </section>
+    `;
+  }
+
+
+  function renderHomePoojaCalendar(dates) {
+    if (!dates.length) {
+      return `
+        <p class="section-description">
+          Calendar availability is temporarily unavailable.
+        </p>
+      `;
+    }
+
+    const dateMap = new Map(
+      dates.map(item => [item.date, item])
+    );
+
+    const monthKeys = [...new Set(
+      dates.map(item => item.date.slice(0, 7))
+    )];
+
+    const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    const months = monthKeys.map(monthKey => {
+      const [year, month] = monthKey
+        .split("-")
+        .map(Number);
+      const firstDay = new Date(year, month - 1, 1);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const cells = [];
+
+      for (let index = 0; index < firstDay.getDay(); index += 1) {
+        cells.push('<div class="pooja-calendar-day" aria-hidden="true"></div>');
+      }
+
+      for (let day = 1; day <= daysInMonth; day += 1) {
+        const date = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const item = dateMap.get(date);
+        const status = item?.status || "";
+        const statusClass = status.toLowerCase();
+        const detail = status === "Booked"
+          ? "Booked"
+          : status === "Blocked"
+            ? "Blocked"
+            : item
+              ? item.time.replace("5:00 PM–8:00 PM", "5–8 PM")
+                .replace("9:00 AM–12:00 PM", "9–12")
+              : "";
+
+        cells.push(`
+          <div class="pooja-calendar-day ${escapeHtml(statusClass)}"
+            title="${escapeHtml(item?.reason || item?.time || "Not offered")}">
+            <strong>${day}</strong>
+            ${detail ? `<small>${escapeHtml(detail)}</small>` : ""}
+          </div>
+        `);
+      }
+
+      return `
+        <section class="pooja-calendar-month">
+          <h3>${escapeHtml(new Intl.DateTimeFormat("en-US", {
+            month: "long",
+            year: "numeric"
+          }).format(firstDay))}</h3>
+          <div class="pooja-calendar-grid">
+            ${weekdays.map(day => `
+              <div class="pooja-calendar-weekday">${day}</div>
+            `).join("")}
+            ${cells.join("")}
+          </div>
+        </section>
+      `;
+    }).join("");
+
+    return `
+      <div class="pooja-calendar-legend" aria-label="Calendar legend">
+        <span style="--calendar-color:#e9f6ed">Available</span>
+        <span style="--calendar-color:#fff0c9">Booked</span>
+        <span style="--calendar-color:#ece9e5">Blocked</span>
+      </div>
+      <div class="pooja-calendar-months">${months}</div>
     `;
   }
 
@@ -2392,7 +2568,8 @@
           </label>
           <span class="field-help">
             Count one Padi per year, including Irumudi taken
-            in Sabarimala or the United States. The 18th Padi
+            in Sabarimala or the United States. Do not count
+            this year's Padi in the completed count. The 18th Padi
             is marked Guru Swamy; select the exact count through
             39 or choose 40+.
           </span>
@@ -2859,7 +3036,8 @@
           </label>
           <span class="field-help">
             Count one Padi per year, including Irumudi taken
-            in Sabarimala or the United States. The 18th Padi
+            in Sabarimala or the United States. Do not count
+            this year's Padi in the completed count. The 18th Padi
             is marked Guru Swamy; select the exact count through
             39 or choose 40+.
           </span>

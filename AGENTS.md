@@ -219,11 +219,13 @@ Member portal (`public/index.html`) includes:
   - Captures age, phone, Maaladharan date, Padi count, Irumudi offering location, and optional notes.
   - Irumudi offering choices are `Tampa Temple` (December 5, 2026; shared bus expense approximately $340/person), `AAYSSA Temple` (December 12, 2026; estimated cost approximately $60/person), and `Other Temple or Self`.
   - The form labels Padi as “Padi Count Completed”; the Baserow value and displayed choice are both `1`.
+  - Padi guidance explicitly tells registrants not to include the current year's Padi in the completed count; this wording is shared by member create/edit forms and the public embed.
   - Padi choices run from `0 (Kanni Swamy)` through `39`, followed by `40+`; `18 (Guru Swamy)` retains its existing label.
   - Selecting `0 (Kanni Swamy)` automatically marks the participant as taking Deeksha for the first time.
   - Displays existing family registrations and prevents duplicates.
 - Home Pooja booking card:
   - Shows the shared availability calendar and the family's submitted requests.
+  - Presents availability in responsive monthly calendars with privacy-safe Available, Booked, and Blocked states.
   - Allows an authenticated family to submit a request for administrator approval.
   - Does not mark a requested date booked until the request is approved.
 - During preview, appears only for authenticated Board/Admin users and the member API enforces the same role restriction.
