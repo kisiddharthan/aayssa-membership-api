@@ -1377,6 +1377,25 @@ export async function fetchMaaladharanDashboardSummary() {
     available: true,
     season: SEASON,
     totalSwamies: registrations.length,
+    registeredSwamies:
+      registrations
+        .map(registration => ({
+          name: registration.participantName,
+          padiCount: registration.padiStatus,
+          age: registration.age,
+          maaladharanDate:
+            registration.maaladharanDate,
+          maaladharanDateLabel:
+            formatMaaladharanDateLabel(
+              registration.maaladharanDate
+            )
+        }))
+        .sort((first, second) =>
+          first.maaladharanDate.localeCompare(
+            second.maaladharanDate
+          ) ||
+          first.name.localeCompare(second.name)
+        ),
     padiCounts:
       padiValues.map(value => ({
         value,

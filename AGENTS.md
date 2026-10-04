@@ -260,7 +260,9 @@ Board/Admin dashboard includes:
 - Volunteer participation, including total volunteers.
 - Monthly donations chart from Zeffy.
 - Registration trends chart.
-- 2026-27 Maaladharan charts showing active Swamies by Padi count and planned Maaladharan date.
+- A full-width 2026-27 Maaladharan Padi-count chart.
+- Monthly donations and registration trends displayed side by side.
+- A second Maaladharan row with the date chart and a compact registered-Swamies list showing name, Padi count, age, and Maaladharan date.
 - Member directory with search, pagination, and sorting.
 - Admin-only Home Pooja request review with Approve and Reject actions.
 - Admin-only date blocking with a required reason and custom-block removal.

@@ -721,6 +721,7 @@ async function safeFetchMaaladharanDashboardSummary() {
       available: false,
       season: "2026-27 Mandalam",
       totalSwamies: 0,
+      registeredSwamies: [],
       padiCounts: [],
       dateCounts: []
     };

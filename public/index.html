@@ -969,6 +969,39 @@
       margin-top: 0;
     }
 
+    .dashboard-trend-grid .trend-card {
+      min-width: 0;
+      margin-top: 0;
+    }
+
+    .registered-swamies-list {
+      max-height: 340px;
+      overflow-y: auto;
+    }
+
+    .registered-swamy-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .registered-swamy-line:last-child {
+      border-bottom: 0;
+    }
+
+    .registered-swamy-name {
+      color: #5f2b10;
+      font-weight: 800;
+    }
+
+    .registered-swamy-detail {
+      color: #666;
+    }
+
     .trend-subtitle,
     .directory-subtitle {
       color: #777;
@@ -4750,19 +4783,26 @@
   ) {
 
     return `
-      <div class="dashboard-grid maaladharan-dashboard-grid">
-        ${renderCountChart({
-          title: "Swamies by Padi Count",
-          subtitle:
-            `2026–27 Mandalam · ${Number(
-              summary?.totalSwamies || 0
-            )} registered Swamies`,
-          items:
-            summary?.padiCounts,
-          emptyMessage:
-            "No Maaladharan registrations are available yet."
-        })}
+      ${renderCountChart({
+        title: "Swamies by Padi Count",
+        subtitle:
+          `2026–27 Mandalam · ${Number(
+            summary?.totalSwamies || 0
+          )} registered Swamies`,
+        items:
+          summary?.padiCounts,
+        emptyMessage:
+          "No Maaladharan registrations are available yet."
+      })}
+    `;
+  }
 
+
+  function renderMaaladharanDetailDashboard(
+    summary
+  ) {
+    return `
+      <div class="dashboard-grid maaladharan-dashboard-grid">
         ${renderCountChart({
           title: "Swamies by Maaladharan Date",
           subtitle:
@@ -4772,6 +4812,58 @@
           emptyMessage:
             "No Maaladharan dates are available yet."
         })}
+
+        ${renderRegisteredSwamies(
+          summary?.registeredSwamies
+        )}
+      </div>
+    `;
+  }
+
+
+  function renderRegisteredSwamies(swamies) {
+    const values =
+      Array.isArray(swamies)
+        ? swamies
+        : [];
+
+    return `
+      <div class="trend-card">
+        <h3>Registered Swamies</h3>
+        <div class="trend-subtitle">
+          2026–27 Mandalam participant details
+        </div>
+
+        ${
+          values.length
+            ? `
+              <div class="registered-swamies-list">
+                ${values.map(swamy => `
+                  <div class="registered-swamy-line">
+                    <span class="registered-swamy-name">
+                      ${escapeHtml(swamy.name || "-")}
+                    </span>
+                    <span class="registered-swamy-detail">
+                      Padi ${escapeHtml(swamy.padiCount || "-")}
+                    </span>
+                    <span class="registered-swamy-detail">
+                      Age ${escapeHtml(swamy.age || "-")}
+                    </span>
+                    <span class="registered-swamy-detail">
+                      Maaladharan ${escapeHtml(
+                        swamy.maaladharanDateLabel || "-"
+                      )}
+                    </span>
+                  </div>
+                `).join("")}
+              </div>
+            `
+            : `
+              <div class="directory-empty">
+                No registered Swamies are available yet.
+              </div>
+            `
+        }
       </div>
     `;
   }
@@ -6290,16 +6382,19 @@
           maaladharanSummary
         )}
 
+        <div class="dashboard-grid dashboard-trend-grid">
+          ${renderDonationTrend(
+            donationSummary
+          )}
 
-        ${renderDonationTrend(
-          donationSummary
-        )}
+          ${renderRegistrationTrend(
+            stats.registrationTrends,
+            stats.registrationTrendAvailable
+          )}
+        </div>
 
-
-
-        ${renderRegistrationTrend(
-          stats.registrationTrends,
-          stats.registrationTrendAvailable
+        ${renderMaaladharanDetailDashboard(
+          maaladharanSummary
         )}
 
 
