@@ -9,10 +9,17 @@ import {
 import {
   handleMaaladharan
 } from "./_lib/maaladharan.js";
+import {
+  handleMemberHomePooja
+} from "./_lib/home-pooja.js";
 
 export default async function handler(req, res) {
   if (req.query?.resource === "maaladharan") {
     return handleMaaladharan(req, res);
+  }
+
+  if (req.query?.resource === "home-pooja") {
+    return handleMemberHomePooja(req, res);
   }
 
   if (req.method !== "GET") {

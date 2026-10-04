@@ -7,6 +7,9 @@ import {
 import {
   handlePublicMaaladharan
 } from "./_lib/maaladharan.js";
+import {
+  handlePublicHomePooja
+} from "./_lib/home-pooja.js";
 
 export default async function handler(req, res) {
 
@@ -34,7 +37,7 @@ export default async function handler(req, res) {
 
   res.setHeader(
     "Access-Control-Allow-Methods",
-    "POST, OPTIONS"
+    "GET, POST, OPTIONS"
   );
 
   res.setHeader(
@@ -45,6 +48,10 @@ export default async function handler(req, res) {
   // Handle browser preflight request
   if (req.method === "OPTIONS") {
     return res.status(200).end();
+  }
+
+  if (req.query?.resource === "home-pooja") {
+    return handlePublicHomePooja(req, res);
   }
 
   if (req.method !== "POST") {

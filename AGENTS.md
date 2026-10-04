@@ -24,6 +24,7 @@ Public member login:
   - `public/login-embed.html`
   - `public/register-embed.html`
   - `public/maaladharan-register-embed.html`
+  - Home Pooja embed is held at `drafts/home-pooja-booking-embed.html` during Board preview and is not publicly served.
 - Authentication: Supabase email OTP/passcode.
 - Membership database: Baserow.
 - Donation data: Zeffy API.
@@ -40,6 +41,8 @@ Do not expose server-side tokens in browser code.
 - `BASEROW_TABLE_ID`
 - `BASEROW_VOLUNTEERS_TABLE_ID`
 - `BASEROW_MAALADHARAN_TABLE_ID` (defaults to `1210688`)
+- `BASEROW_HOME_POOJA_TABLE_ID` (defaults to `1240702`)
+- `HOME_POOJA_PUBLIC_ENABLED` (set to exactly `true` to open the public Home Pooja API; unset/false keeps Board preview mode)
 - `ZEFFY_API_KEY`
 
 `.env.local` is ignored by Git. Never commit secrets.
@@ -62,6 +65,14 @@ Maaladharan registration table:
 - Member-portal submissions derive the family link and email from the authenticated session.
 - Public submissions require a Supabase email passcode, store the verified normalized email, and link the family automatically when that email matches a member.
 - An authenticated member lookup claims current-season public registrations that have the same verified email and no family link.
+
+Home Pooja booking table:
+- Name: `AAYSSA_Pooja_Bookings`
+- Table ID: `1240702`
+- Stores booking requests and administrator-created blocked dates.
+- Public requests require Supabase email verification; matching members are linked by normalized email.
+- Statuses are `Submitted`, `Approved`, `Rejected`, `Cancelled`, and `Blocked`.
+- Only approved bookings are exposed on the privacy-safe public calendar.
 
 Volunteer records are per person:
 - Primary
@@ -114,6 +125,17 @@ The old Supabase magic-link callback route was removed after switching to passco
   - Links an existing member family by normalized verified email without revealing whether a membership matched.
   - Does not expose public read, edit, or withdrawal operations.
 
+- `GET /api/register?resource=home-pooja`
+  - Returns the privacy-safe Home Pooja calendar for the public embed.
+  - Exposes availability and booked/blocked state, but no requester details.
+  - Returns 404 unless `HOME_POOJA_PUBLIC_ENABLED=true`.
+
+- `POST /api/register?resource=home-pooja`
+  - Public Home Pooja request flow using `request-code` and `submit` actions.
+  - Verifies the requester email with Supabase before creating a `Submitted` request.
+  - Links the family automatically when the verified email matches a member.
+  - Returns 404 unless `HOME_POOJA_PUBLIC_ENABLED=true`.
+
 - `POST /api/login`
   - Starts Supabase email OTP/passcode login.
 
@@ -155,6 +177,14 @@ The old Supabase magic-link callback route was removed after switching to passco
   - Verifies that the requested registration belongs to the authenticated family.
   - Shares the existing `my-volunteers` function to keep the Vercel Hobby route count stable.
 
+- `GET /api/my-volunteers?resource=home-pooja`
+  - Returns the authenticated family's requests plus the privacy-safe booking calendar.
+  - Claims unlinked public requests whose verified email matches the signed-in member.
+
+- `POST /api/my-volunteers?resource=home-pooja`
+  - Creates a family-linked Home Pooja request with `Submitted` status.
+  - Validates the date against server-controlled availability and blocked dates.
+
 - `GET /api/admin-stats`
   - Board/Admin only.
   - Returns membership counts, volunteer stats, registration trend, Zeffy donation total, and monthly donation trend.
@@ -163,6 +193,16 @@ The old Supabase magic-link callback route was removed after switching to passco
   - Board/Admin only.
   - Returns paginated member directory.
   - Supports search and sorting by primary name or registered date.
+
+- `GET /api/admin-members?resource=home-pooja`
+  - Admin-only list of Home Pooja requests, blocks, and calendar state.
+
+- `POST /api/admin-members?resource=home-pooja`
+  - Admin-only creation of a blocked calendar date with a reason.
+
+- `PATCH /api/admin-members?resource=home-pooja`
+  - Admin-only approval/rejection of requests and removal of custom date blocks.
+  - Approval is refused when another approved booking or block occupies the date.
 
 ## Portal Features
 
@@ -182,6 +222,11 @@ Member portal (`public/index.html`) includes:
   - Padi choices run from `0 (Kanni Swamy)` through `39`, followed by `40+`; `18 (Guru Swamy)` retains its existing label.
   - Selecting `0 (Kanni Swamy)` automatically marks the participant as taking Deeksha for the first time.
   - Displays existing family registrations and prevents duplicates.
+- Home Pooja booking card:
+  - Shows the shared availability calendar and the family's submitted requests.
+  - Allows an authenticated family to submit a request for administrator approval.
+  - Does not mark a requested date booked until the request is approved.
+  - During preview, appears only for authenticated Board/Admin users and the member API enforces the same role restriction.
 - Donations & Tax Receipts card:
   - Current-year Zeffy donation total.
   - Payment list.
@@ -201,6 +246,8 @@ Board/Admin dashboard includes:
 - Registration trends chart.
 - 2026-27 Maaladharan charts showing active Swamies by Padi count and planned Maaladharan date.
 - Member directory with search, pagination, and sorting.
+- Admin-only Home Pooja request review with Approve and Reject actions.
+- Admin-only date blocking with a required reason and custom-block removal.
 
 ## Public Registration Embed
 
@@ -236,6 +283,20 @@ When this file changes, copy the updated embed into GoDaddy for the public login
 - Existing members are linked by normalized email; non-members remain unlinked until a membership with the same email signs in.
 - The public flow is create-only. Editing and withdrawal require member-portal authentication.
 - When this file changes, copy the updated embed into GoDaddy for the public Maaladharan registration page.
+
+## Public Home Pooja Booking Embed
+
+`drafts/home-pooja-booking-embed.html` is the pre-launch GoDaddy embed. It is intentionally outside `public/` during Board preview.
+
+- Visitors can view a privacy-safe availability calendar and submit a request after verifying their email with a Supabase passcode.
+- Saturdays are offered from 5:00–8:00 PM and Sundays from 9:00 AM–12:00 PM year-round.
+- During the 2026 Mandalam window, October 30 through November 29, Fridays are also offered from 5:00–8:00 PM.
+- Thanksgiving dates November 25 and 26, 2026 are offered from 5:00–8:00 PM.
+- November 14–15 and November 21–22, 2026 are fixed blocked dates for event preparation and the Pushpabhishekam/Sastha Preethi events.
+- Administrator-created blocks and approved requests remove dates from availability; submitted requests do not reserve a date.
+- Public requests start with `Submitted` status. The public flow cannot approve or edit requests.
+- The public API is disabled by default during Board preview; launch it by setting `HOME_POOJA_PUBLIC_ENABLED=true`.
+- At launch, move/copy the reviewed embed into the public deployment workflow, set `HOME_POOJA_PUBLIC_ENABLED=true`, and copy it into GoDaddy.
 
 ## Zeffy Integration
 

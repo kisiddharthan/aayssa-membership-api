@@ -1456,6 +1456,7 @@
   let currentVolunteers = [];
   let currentDonations = null;
   let currentMaaladharan = null;
+  let currentHomePooja = null;
 
 
   function formatCurrency(
@@ -1873,6 +1874,240 @@
         error: error.message
       };
     }
+  }
+
+
+  async function loadHomePoojaBookings() {
+    try {
+      const response =
+        await fetch(
+          "/api/my-volunteers?resource=home-pooja",
+          { credentials: "include" }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message ||
+          "Unable to load Home Pooja bookings."
+        );
+      }
+
+      return data;
+    } catch (error) {
+      console.error(error);
+
+      return {
+        requests: [],
+        calendar: { dates: [] },
+        error: error.message
+      };
+    }
+  }
+
+
+  function renderHomePoojaSection(data) {
+    const requests =
+      Array.isArray(data?.requests)
+        ? data.requests
+        : [];
+
+    const dates =
+      Array.isArray(data?.calendar?.dates)
+        ? data.calendar.dates
+        : [];
+
+    const available =
+      dates.filter(item =>
+        item.status === "Available"
+      );
+
+    return `
+      <section
+        id="homePoojaSection"
+        class="section-card"
+      >
+        <div class="section-heading-row">
+          <h2>Home Pooja Booking — Board Preview</h2>
+          <span class="status-badge">
+            Not Public Yet
+          </span>
+        </div>
+
+        <p class="section-description">
+          Saturday: 5–8 PM · Sunday: 9 AM–12 PM.
+          Mandalam Fridays and November 25–26, 2026:
+          5–8 PM.
+        </p>
+
+        <div class="info-row registered-swamies-panel">
+          <span class="label">Your Requests</span>
+          ${
+            requests.length
+              ? requests.map(request => `
+                  <div class="maaladharan-registration">
+                    <strong>
+                      ${escapeHtml(formatPortalDate(request.poojaDate))}
+                    </strong>
+                    <span>
+                      ${escapeHtml(request.preferredTime || "")}
+                      · ${escapeHtml(request.status)}
+                    </span>
+                    ${
+                      request.adminNotes
+                        ? `<span>${escapeHtml(request.adminNotes)}</span>`
+                        : ""
+                    }
+                  </div>
+                `).join("")
+              : "<span>No Home Pooja requests yet.</span>"
+          }
+        </div>
+
+        <form id="homePoojaMemberForm" class="maaladharan-form">
+          <div class="form-field">
+            <label for="memberHomePoojaName">Requester Name</label>
+            <input id="memberHomePoojaName" name="requesterName"
+              type="text"
+              value="${escapeHtml(getCurrentFullName(currentMember))}"
+              required>
+          </div>
+          <div class="form-field">
+            <label for="memberHomePoojaPhone">Phone Number</label>
+            <input id="memberHomePoojaPhone" name="phoneNumber"
+              type="tel"
+              value="${escapeHtml(currentMember?.mobileNumber || "")}"
+              required>
+          </div>
+          <div class="form-field full-width">
+            <label for="memberHomePoojaDate">Available Date</label>
+            <select id="memberHomePoojaDate" name="poojaDate" required>
+              <option value="">Select an available date</option>
+              ${available.map(item => `
+                <option value="${escapeHtml(item.date)}">
+                  ${escapeHtml(formatPortalDate(item.date))}
+                  — ${escapeHtml(item.time)}
+                </option>
+              `).join("")}
+            </select>
+          </div>
+          <div class="form-field full-width">
+            <label for="memberHomePoojaAddress">Pooja Address</label>
+            <textarea id="memberHomePoojaAddress"
+              name="poojaAddress" required></textarea>
+          </div>
+          <div class="form-field full-width">
+            <label for="memberHomePoojaNote">Notes (optional)</label>
+            <textarea id="memberHomePoojaNote"
+              name="requesterNote" maxlength="1000"></textarea>
+          </div>
+          <div class="form-actions full-width">
+            <button class="small-action-button" type="submit">
+              Submit Request
+            </button>
+          </div>
+          <div id="homePoojaMemberMessage"
+            class="inline-message full-width"
+            role="status" aria-live="polite"></div>
+        </form>
+      </section>
+    `;
+  }
+
+
+  function setupHomePoojaForm() {
+    const form =
+      document.getElementById(
+        "homePoojaMemberForm"
+      );
+
+    if (!form) {
+      return;
+    }
+
+    form.addEventListener(
+      "submit",
+      async event => {
+        event.preventDefault();
+
+        const button =
+          form.querySelector(
+            'button[type="submit"]'
+          );
+
+        const message =
+          document.getElementById(
+            "homePoojaMemberMessage"
+          );
+
+        const values =
+          new FormData(form);
+
+        button.disabled = true;
+        button.textContent = "Submitting…";
+        message.textContent = "";
+
+        try {
+          const response =
+            await fetch(
+              "/api/my-volunteers?resource=home-pooja",
+              {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                  requesterName:
+                    values.get("requesterName"),
+                  phoneNumber:
+                    values.get("phoneNumber"),
+                  poojaDate:
+                    values.get("poojaDate"),
+                  poojaAddress:
+                    values.get("poojaAddress"),
+                  requesterNote:
+                    values.get("requesterNote")
+                })
+              }
+            );
+
+          const data =
+            await response.json();
+
+          if (!response.ok || !data.success) {
+            throw new Error(
+              data.message ||
+              "Unable to submit the request."
+            );
+          }
+
+          currentHomePooja =
+            await loadHomePoojaBookings();
+
+          const section =
+            document.getElementById(
+              "homePoojaSection"
+            );
+
+          section.outerHTML =
+            renderHomePoojaSection(
+              currentHomePooja
+            );
+
+          setupHomePoojaForm();
+        } catch (error) {
+          message.className =
+            "inline-message error full-width";
+          message.textContent = error.message;
+        } finally {
+          button.disabled = false;
+          button.textContent = "Submit Request";
+        }
+      }
+    );
   }
 
 
@@ -3813,6 +4048,265 @@
      REGISTRATION TREND
      ===================================================== */
 
+  function renderHomePoojaAdminShell() {
+    return `
+      <section class="dashboard-card full-width">
+        <h3>Home Pooja Administration</h3>
+        <div id="homePoojaAdminContent">
+          Loading Home Pooja requests…
+        </div>
+      </section>
+    `;
+  }
+
+
+  async function loadHomePoojaAdmin() {
+    const container =
+      document.getElementById(
+        "homePoojaAdminContent"
+      );
+
+    if (!container) {
+      return;
+    }
+
+    try {
+      const response =
+        await fetch(
+          "/api/admin-members?resource=home-pooja",
+          { credentials: "include" }
+        );
+
+      const data =
+        await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message ||
+          "Unable to load Home Pooja requests."
+        );
+      }
+
+      const entries =
+        Array.isArray(data.entries)
+          ? data.entries
+          : [];
+
+      const requests =
+        entries.filter(item =>
+          item.entryType === "Booking"
+        );
+
+      const blocks =
+        entries.filter(item =>
+          item.entryType === "Blocked" &&
+          item.status === "Blocked"
+        );
+
+      container.innerHTML = `
+        <form id="homePoojaBlockForm"
+          class="maaladharan-form">
+          <div class="form-field">
+            <label for="adminBlockDate">Block Date</label>
+            <input id="adminBlockDate" name="poojaDate"
+              type="date" required>
+          </div>
+          <div class="form-field">
+            <label for="adminBlockReason">Reason</label>
+            <input id="adminBlockReason" name="blockReason"
+              type="text" required>
+          </div>
+          <div class="form-actions full-width">
+            <button class="small-action-button" type="submit">
+              Block Date
+            </button>
+          </div>
+        </form>
+
+        <h4>Booking Requests</h4>
+        ${
+          requests.length
+            ? requests.map(item => `
+                <div class="maaladharan-registration"
+                  data-home-pooja-id="${item.id}">
+                  <strong>
+                    ${escapeHtml(formatPortalDate(item.poojaDate))}
+                    · ${escapeHtml(item.preferredTime || "")}
+                  </strong>
+                  <span>
+                    ${escapeHtml(item.requesterName)}
+                    · ${escapeHtml(item.status)}
+                  </span>
+                  <span>
+                    ${escapeHtml(item.email)}
+                    · ${escapeHtml(item.phoneNumber)}
+                  </span>
+                  <span>${escapeHtml(item.poojaAddress)}</span>
+                  <input class="admin-note" type="text"
+                    placeholder="Admin note (optional)"
+                    value="${escapeHtml(item.adminNotes || "")}">
+                  ${
+                    item.status === "Submitted"
+                      ? `
+                        <div class="form-actions">
+                          <button class="small-action-button"
+                            type="button" data-action="approve">
+                            Approve
+                          </button>
+                          <button class="small-action-button secondary-button"
+                            type="button" data-action="reject">
+                            Reject
+                          </button>
+                        </div>
+                      `
+                      : ""
+                  }
+                </div>
+              `).join("")
+            : "<p>No booking requests.</p>"
+        }
+
+        <h4>Administrator Blocks</h4>
+        ${
+          blocks.length
+            ? blocks.map(item => `
+                <div class="maaladharan-registration"
+                  data-home-pooja-id="${item.id}">
+                  <strong>
+                    ${escapeHtml(formatPortalDate(item.poojaDate))}
+                  </strong>
+                  <span>${escapeHtml(item.blockReason)}</span>
+                  <button class="small-action-button secondary-button"
+                    type="button" data-action="unblock">
+                    Unblock
+                  </button>
+                </div>
+              `).join("")
+            : "<p>No additional blocked dates.</p>"
+        }
+        <div id="homePoojaAdminMessage"
+          class="inline-message" role="status"></div>
+      `;
+
+      setupHomePoojaAdmin();
+    } catch (error) {
+      container.innerHTML =
+        `<div class="error">${escapeHtml(error.message)}</div>`;
+    }
+  }
+
+
+  function setupHomePoojaAdmin() {
+    const container =
+      document.getElementById(
+        "homePoojaAdminContent"
+      );
+
+    const blockForm =
+      document.getElementById(
+        "homePoojaBlockForm"
+      );
+
+    if (!container || !blockForm) {
+      return;
+    }
+
+    blockForm.addEventListener(
+      "submit",
+      async event => {
+        event.preventDefault();
+
+        const values =
+          new FormData(blockForm);
+
+        await submitHomePoojaAdminAction(
+          "POST",
+          {
+            poojaDate: values.get("poojaDate"),
+            blockReason: values.get("blockReason")
+          }
+        );
+      }
+    );
+
+    container.addEventListener(
+      "click",
+      async event => {
+        const button =
+          event.target.closest(
+            "button[data-action]"
+          );
+
+        if (!button) {
+          return;
+        }
+
+        const row =
+          button.closest(
+            "[data-home-pooja-id]"
+          );
+
+        const note =
+          row.querySelector(".admin-note");
+
+        await submitHomePoojaAdminAction(
+          "PATCH",
+          {
+            id: Number(
+              row.dataset.homePoojaId
+            ),
+            action:
+              button.dataset.action,
+            adminNotes:
+              note?.value || ""
+          }
+        );
+      }
+    );
+  }
+
+
+  async function submitHomePoojaAdminAction(
+    method,
+    payload
+  ) {
+    const response =
+      await fetch(
+        "/api/admin-members?resource=home-pooja",
+        {
+          method,
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok || !data.success) {
+      const message =
+        document.getElementById(
+          "homePoojaAdminMessage"
+        );
+
+      if (message) {
+        message.className =
+          "inline-message error";
+        message.textContent =
+          data.message ||
+          "Unable to update the request.";
+      }
+
+      return;
+    }
+
+    await loadHomePoojaAdmin();
+  }
+
+
   function renderMaaladharanDashboard(
     summary
   ) {
@@ -4869,12 +5363,16 @@
       const [
         volunteers,
         donations,
-        maaladharan
+        maaladharan,
+        homePooja
       ] =
         await Promise.all([
           loadMyVolunteers(),
           loadMyDonations(),
-          loadMaaladharanRegistrations()
+          loadMaaladharanRegistrations(),
+          hasDashboardAccess(member.role)
+            ? loadHomePoojaBookings()
+            : Promise.resolve(null)
         ]);
 
       currentVolunteers =
@@ -4885,6 +5383,9 @@
 
       currentMaaladharan =
         maaladharan;
+
+      currentHomePooja =
+        homePooja;
 
 
       const fullName =
@@ -4942,6 +5443,15 @@
           ${renderMaaladharanSection(
             currentMaaladharan
           )}
+
+
+          ${
+            hasDashboardAccess(member.role)
+              ? renderHomePoojaSection(
+                  currentHomePooja
+                )
+              : ""
+          }
 
 
           ${renderDonationSection(
@@ -5014,6 +5524,9 @@
       setupVolunteerEditing();
       setupProfileEditing();
       setupMaaladharanForm();
+      if (hasDashboardAccess(member.role)) {
+        setupHomePoojaForm();
+      }
 
 
       if (
@@ -5336,12 +5849,22 @@
         )}
 
 
+        ${
+          currentMember?.role === "Admin"
+            ? renderHomePoojaAdminShell()
+            : ""
+        }
+
 
         ${renderMemberDirectoryShell()}
       `;
 
 
       setupDirectorySearch();
+
+      if (currentMember?.role === "Admin") {
+        await loadHomePoojaAdmin();
+      }
 
 
       await loadMemberDirectory(1);

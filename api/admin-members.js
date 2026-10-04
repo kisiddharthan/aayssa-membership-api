@@ -1,10 +1,17 @@
 import {
+  handleAdminHomePooja
+} from "./_lib/home-pooja.js";
+import {
   VOLUNTEER_FIELDS,
   VOLUNTEERS_TABLE_ID,
   mapVolunteerRow
 } from "./_lib/aayssa.js";
 
 export default async function handler(req, res) {
+
+  if (req.query?.resource === "home-pooja") {
+    return handleAdminHomePooja(req, res);
+  }
 
   if (req.method !== "GET") {
     return res.status(405).json({
