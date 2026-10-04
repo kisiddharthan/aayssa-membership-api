@@ -13,7 +13,7 @@ Member portal:
 `https://portal.atlantaayyappasevasangam.org`
 
 Public member login:
-`https://atlantaayyappasevasangam.org/member-login`
+`https://portal.atlantaayyappasevasangam.org/login-embed.html`
 
 ## Tech Stack
 
@@ -28,6 +28,7 @@ Public member login:
 - Authentication: Supabase email OTP/passcode.
 - Membership database: Baserow.
 - Donation data: Zeffy API.
+- Transactional email: Resend REST API.
 - Secrets: Vercel environment variables and local `.env.local`.
 
 Do not expose server-side tokens in browser code.
@@ -44,6 +45,9 @@ Do not expose server-side tokens in browser code.
 - `BASEROW_HOME_POOJA_TABLE_ID` (defaults to `1240702`)
 - `HOME_POOJA_PUBLIC_ENABLED` (set to exactly `true` to open the public Home Pooja API; unset/false keeps Board preview mode)
 - `ZEFFY_API_KEY`
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL` (verified Resend sender; `RESEND_FROM`, `EMAIL_FROM`, and `FROM_EMAIL` are accepted as fallbacks)
+- `RESEND_REPLY_TO_EMAIL` (optional)
 
 `.env.local` is ignored by Git. Never commit secrets.
 
@@ -123,6 +127,7 @@ The old Supabase magic-link callback route was removed after switching to passco
   - The `request-code` action sends a Supabase email passcode.
   - The `submit` action verifies the passcode before saving.
   - Links an existing member family by normalized verified email without revealing whether a membership matched.
+  - Sends the registrant a best-effort confirmation email through Resend after the Baserow row is created.
   - Does not expose public read, edit, or withdrawal operations.
 
 - `GET /api/register?resource=home-pooja`
@@ -168,6 +173,7 @@ The old Supabase magic-link callback route was removed after switching to passco
 
 - `POST /api/my-volunteers?resource=maaladharan`
   - Creates a family-scoped participant registration.
+  - Sends the authenticated member a best-effort confirmation email through Resend after the Baserow row is created.
   - Rejects duplicate participant names for the active season.
   - Uses the server-controlled season window of October 25 through December 4, 2026.
 
@@ -211,6 +217,7 @@ Member portal (`public/index.html`) includes:
 - A desktop header matching the public AAYSSA website, with its hosted transparent logo, complete navigation labels, and responsive mobile menu.
   - Member, Events, and Sevas are direct links without dropdown indicators and currently point to the public home page because standalone destination routes are unavailable.
 - Top member header with welcome text, role badge, and logout button.
+- An unauthenticated portal visit links directly to the deployed portal login form; do not use the removed public `/member-login` route.
 - Family details card with edit controls.
 - Contact information card with edit controls.
 - Seva & Volunteering card with edit controls.
@@ -225,6 +232,7 @@ Member portal (`public/index.html`) includes:
   - Padi choices run from `0 (Kanni Swamy)` through `39`, followed by `40+`; `18 (Guru Swamy)` retains its existing label.
   - Selecting `0 (Kanni Swamy)` automatically marks the participant as taking Deeksha for the first time.
   - Displays existing family registrations and prevents duplicates.
+  - Includes a link to join the Maaladharan WhatsApp group.
 - Home Pooja booking card:
   - Shows the shared availability calendar and the family's submitted requests.
   - Presents availability in a responsive month-at-a-time calendar with Previous/Next navigation and privacy-safe Available, Booked, and Blocked states.
@@ -290,6 +298,8 @@ When this file changes, copy the updated embed into GoDaddy for the public login
 - The visitor must verify the submitted email with a Supabase passcode.
 - Existing members are linked by normalized email; non-members remain unlinked until a membership with the same email signs in.
 - The public flow is create-only. Editing and withdrawal require member-portal authentication.
+- Successful registrations receive a Resend confirmation email containing the registration details and WhatsApp group link; delivery failure does not roll back the saved registration.
+- The form includes a direct link to join the Maaladharan WhatsApp group.
 - When this file changes, copy the updated embed into GoDaddy for the public Maaladharan registration page.
 
 ## Public Home Pooja Booking Embed

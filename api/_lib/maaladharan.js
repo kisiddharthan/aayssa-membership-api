@@ -12,6 +12,8 @@ const TABLE_ID =
 const SEASON = "2026-27 Mandalam";
 const SEASON_START = "2026-10-25";
 const SEASON_END = "2026-12-04";
+const WHATSAPP_GROUP_URL =
+  "https://chat.whatsapp.com/Ggon3OSjwHX444MlXJqKVv?s=cl&p=i&mlu=0";
 
 const PADI_VALUES = [
   "0 (Kanni Swamy)",
@@ -150,9 +152,19 @@ export async function handlePublicMaaladharan(req, res) {
       registration
     });
 
+    const confirmationEmailSent =
+      await sendMaaladharanConfirmationSafely({
+        email: normalizedEmail,
+        registration
+      });
+
     return res.status(201).json({
       success: true,
-      message: successMessage
+      message: confirmationEmailSent
+        ? successMessage +
+          " A confirmation email has been sent."
+        : successMessage,
+      confirmationEmailSent
     });
   } catch (error) {
     console.error(
@@ -405,6 +417,12 @@ export async function handleMaaladharan(req, res) {
       registration
     });
 
+    const confirmationEmailSent =
+      await sendMaaladharanConfirmationSafely({
+        email: auth.normalizedEmail,
+        registration
+      });
+
     const updatedRegistrations =
       await fetchFamilyRegistrations(
         auth.memberRow.id,
@@ -416,6 +434,7 @@ export async function handleMaaladharan(req, res) {
       season: SEASON,
       seasonStart: SEASON_START,
       seasonEnd: SEASON_END,
+      confirmationEmailSent,
       registrations: updatedRegistrations
     });
   } catch (error) {
@@ -433,6 +452,144 @@ export async function handleMaaladharan(req, res) {
           : "Unable to process Maaladharan registration."
     });
   }
+}
+
+async function sendMaaladharanConfirmationSafely({
+  email,
+  registration
+}) {
+  try {
+    await sendMaaladharanConfirmation({
+      email,
+      registration
+    });
+    return true;
+  } catch (error) {
+    console.error(
+      "Maaladharan confirmation email error:",
+      error
+    );
+    return false;
+  }
+}
+
+async function sendMaaladharanConfirmation({
+  email,
+  registration
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from =
+    process.env.RESEND_FROM_EMAIL ||
+    process.env.RESEND_FROM ||
+    process.env.EMAIL_FROM ||
+    process.env.FROM_EMAIL;
+
+  if (!apiKey || !from) {
+    throw new Error(
+      "Resend confirmation email is not configured."
+    );
+  }
+
+  const participantName =
+    registration.participantName;
+  const date = formatEmailDate(
+    registration.maaladharanDate
+  );
+  const firstDeeksha = registration.firstDeeksha
+    ? "Yes"
+    : "No";
+  const replyTo =
+    process.env.RESEND_REPLY_TO_EMAIL;
+
+  const response = await fetch(
+    "https://api.resend.com/emails",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from,
+        to: [email],
+        subject:
+          `AAYSSA Maaladharan Registration Confirmation — ${participantName}`,
+        ...(replyTo ? { reply_to: replyTo } : {}),
+        text: [
+          `Swamiye Saranam Ayyappa, ${participantName}.`,
+          "",
+          `Your ${SEASON} Maaladharan registration has been received.`,
+          `Maaladharan date: ${date}`,
+          `Padi count completed: ${registration.padiStatus}`,
+          `First Deeksha: ${firstDeeksha}`,
+          `Irumudi offering: ${registration.irumudiOffering}`,
+          "Status: Submitted",
+          "",
+          `Join the Maaladharan WhatsApp Group: ${WHATSAPP_GROUP_URL}`,
+          "",
+          "Swamiye Saranam Ayyappa,",
+          "Atlanta Ayyappa Seva Sangam"
+        ].join("\n"),
+        html: `
+          <div style="font-family:Arial,sans-serif;color:#2c211a;line-height:1.6;max-width:620px;margin:auto">
+            <h2 style="color:#8a3f12">Maaladharan Registration Confirmed</h2>
+            <p>Swamiye Saranam Ayyappa, ${escapeEmailHtml(participantName)}.</p>
+            <p>Your <strong>${escapeEmailHtml(SEASON)}</strong> Maaladharan registration has been received.</p>
+            <table style="border-collapse:collapse;width:100%;margin:20px 0">
+              <tr><td style="padding:8px;border-bottom:1px solid #ead8c5"><strong>Maaladharan date</strong></td><td style="padding:8px;border-bottom:1px solid #ead8c5">${escapeEmailHtml(date)}</td></tr>
+              <tr><td style="padding:8px;border-bottom:1px solid #ead8c5"><strong>Padi count completed</strong></td><td style="padding:8px;border-bottom:1px solid #ead8c5">${escapeEmailHtml(registration.padiStatus)}</td></tr>
+              <tr><td style="padding:8px;border-bottom:1px solid #ead8c5"><strong>First Deeksha</strong></td><td style="padding:8px;border-bottom:1px solid #ead8c5">${firstDeeksha}</td></tr>
+              <tr><td style="padding:8px;border-bottom:1px solid #ead8c5"><strong>Irumudi offering</strong></td><td style="padding:8px;border-bottom:1px solid #ead8c5">${escapeEmailHtml(registration.irumudiOffering)}</td></tr>
+              <tr><td style="padding:8px"><strong>Status</strong></td><td style="padding:8px">Submitted</td></tr>
+            </table>
+            <p><a href="${WHATSAPP_GROUP_URL}" style="display:inline-block;padding:11px 18px;background:#26783c;color:#fff;text-decoration:none;border-radius:7px;font-weight:bold">Join the Maaladharan WhatsApp Group</a></p>
+            <p>Swamiye Saranam Ayyappa,<br>Atlanta Ayyappa Seva Sangam</p>
+          </div>
+        `
+      })
+    }
+  );
+
+  if (!response.ok) {
+    console.error(
+      "Resend Maaladharan confirmation failed:",
+      response.status,
+      await response.text()
+    );
+    throw new Error(
+      "Unable to send Maaladharan confirmation email."
+    );
+  }
+}
+
+function formatEmailDate(value) {
+  const [year, month, day] =
+    String(value || "")
+      .split("-")
+      .map(Number);
+
+  if (!year || !month || !day) {
+    return value || "Not provided";
+  }
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone: "UTC"
+    }
+  ).format(new Date(Date.UTC(year, month - 1, day)));
+}
+
+function escapeEmailHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 async function fetchRegistrationFields() {
