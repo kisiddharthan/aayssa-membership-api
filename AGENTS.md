@@ -273,6 +273,8 @@ It posts to:
 
 `public/login-embed.html` is intended for GoDaddy.
 
+- Its Member Login banner matches the gradient header treatment used by the member registration embed.
+
 It uses:
 `https://portal.atlantaayyappasevasangam.org/api`
 

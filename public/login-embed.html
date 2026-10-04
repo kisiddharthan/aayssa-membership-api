@@ -1,14 +1,16 @@
 <div id="aayssa-login">
   <div class="aayssa-card">
 
-    <div class="aayssa-mantra">
-      Swamiye Saranam Ayyappa
+    <div class="aayssa-header">
+      <h2>Member Login</h2>
+      <p>Swamiye Saranam Ayyappa</p>
     </div>
 
-    <p class="aayssa-description">
-      Sign in securely to access your AAYSSA membership information,
-      volunteer preferences and member services.
-    </p>
+    <div class="aayssa-body">
+      <p class="aayssa-description">
+        Sign in securely to access your AAYSSA membership information,
+        volunteer preferences and member services.
+      </p>
 
     <form id="memberLoginForm">
 
@@ -59,14 +61,15 @@
       A one-time passcode will be sent to your registered email address.
     </div>
 
-    <div class="register-area">
-      <span>Not an AAYSSA member?</span>
-      <a
-        href="https://atlantaayyappasevasangam.org/register"
-        target="_top"
-      >
-        Register Here
-      </a>
+      <div class="register-area">
+        <span>Not an AAYSSA member?</span>
+        <a
+          href="https://atlantaayyappasevasangam.org/register"
+          target="_top"
+        >
+          Register Here
+        </a>
+      </div>
     </div>
 
   </div>
@@ -87,30 +90,32 @@
 .aayssa-card {
   max-width: 580px;
   margin: 0 auto;
-  padding: 38px 42px;
   background: #ffffff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #ead8c5;
   border-radius: 14px;
+  overflow: hidden;
   box-shadow: 0 6px 24px rgba(0,0,0,0.08);
   text-align: center;
 }
 
-.aayssa-symbol {
-  font-size: 36px;
-  margin-bottom: 8px;
+.aayssa-header {
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #7b2607, #a64b0a);
+  color: #ffffff;
 }
 
-.aayssa-card h1 {
-  margin: 5px 0 8px;
-  font-size: 30px;
-  color: #222222;
+.aayssa-header h2 {
+  margin: 0 0 8px;
+  font-size: 28px;
 }
 
-.aayssa-mantra {
-  color: #b36b00;
-  font-size: 17px;
-  font-weight: 600;
-  margin-bottom: 20px;
+.aayssa-header p {
+  margin: 5px 0;
+  line-height: 1.5;
+}
+
+.aayssa-body {
+  padding: 38px 42px;
 }
 
 .aayssa-description {
@@ -247,12 +252,12 @@
     padding: 25px 12px;
   }
 
-  .aayssa-card {
+  .aayssa-body {
     padding: 30px 20px;
   }
 
-  .aayssa-card h1 {
-    font-size: 25px;
+  .aayssa-header h2 {
+    font-size: 23px;
   }
 }
 </style>
