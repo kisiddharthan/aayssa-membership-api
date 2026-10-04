@@ -1726,7 +1726,6 @@
   let currentVolunteers = [];
   let currentDonations = null;
   let currentMaaladharan = null;
-  let maaladharanRegistrationSucceeded = false;
   let currentHomePooja = null;
   let homePoojaCalendarMonth = "";
 
@@ -2614,21 +2613,6 @@
           registration for every participant.
         </p>
 
-        ${
-          maaladharanRegistrationSucceeded
-            ? `
-              <div class="maaladharan-whatsapp-invite">
-                Stay connected for Maaladharan updates.
-                <a
-                  href="https://chat.whatsapp.com/Ggon3OSjwHX444MlXJqKVv?s=cl&amp;p=i&amp;mlu=0"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >Join the Maaladharan WhatsApp Group</a>.
-              </div>
-            `
-            : ""
-        }
-
         <div class="maaladharan-schedule">
           <div class="maaladharan-date">
             <strong>Mandalam Starts</strong>
@@ -2662,6 +2646,23 @@
                 ${registrations.map(
                   renderMaaladharanRegistration
                 ).join("")}
+
+                ${
+                  registrations.some(registration =>
+                    registration.status !== "Cancelled"
+                  )
+                    ? `
+                      <div class="maaladharan-whatsapp-invite">
+                        Stay connected for Maaladharan updates.
+                        <a
+                          href="https://chat.whatsapp.com/Ggon3OSjwHX444MlXJqKVv?s=cl&amp;p=i&amp;mlu=0"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >Join the Maaladharan WhatsApp Group</a>.
+                      </div>
+                    `
+                    : ""
+                }
               </div>
             `
             : `
@@ -3544,7 +3545,6 @@
       }
 
       currentMaaladharan = data;
-      maaladharanRegistrationSucceeded = true;
 
       const section =
         document.getElementById(
@@ -6088,6 +6088,15 @@
             Logout
           </button>
 
+        </div>
+
+        <div class="maaladharan-whatsapp-invite">
+          Stay connected with the AAYSSA family on WhatsApp.
+          <a
+            href="https://chat.whatsapp.com/CDH3nm4UUslCpLUxeoBVab?mode=gi_t"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Join the AAYSSA Family WhatsApp Group</a>.
         </div>
 
 

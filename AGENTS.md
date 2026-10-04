@@ -219,6 +219,7 @@ Member portal (`public/index.html`) includes:
 - A desktop header matching the public AAYSSA website, with its hosted transparent logo, complete navigation labels, and responsive mobile menu.
   - Member, Events, and Sevas are direct links without dropdown indicators and currently point to the public home page because standalone destination routes are unavailable.
 - Top member header with welcome text, role badge, and logout button.
+- After authentication, shows a “Stay connected” link to the AAYSSA Family WhatsApp group; the public login/sign-up embed does not show WhatsApp links.
 - An unauthenticated portal visit links directly to the deployed portal login form; do not use the removed public `/member-login` route.
 - Family details card with edit controls.
 - Contact information card with edit controls.
@@ -234,7 +235,7 @@ Member portal (`public/index.html`) includes:
   - Padi choices run from `0 (Kanni Swamy)` through `39`, followed by `40+`; `18 (Guru Swamy)` retains its existing label.
   - Selecting `0 (Kanni Swamy)` automatically marks the participant as taking Deeksha for the first time.
   - Displays existing family registrations and prevents duplicates.
-  - Shows the link to join the Maaladharan WhatsApp group after a successful registration.
+  - Shows the Maaladharan WhatsApp group link inside Registered Swamies whenever the family has an active Swamy registration.
 - Home Pooja booking card:
   - Shows the shared availability calendar and the family's submitted requests.
   - Presents availability in a responsive month-at-a-time calendar with Previous/Next navigation and privacy-safe Available, Booked, and Blocked states.
@@ -288,7 +289,6 @@ It posts to:
 `public/login-embed.html` is intended for GoDaddy.
 
 - Its Member Login banner matches the gradient header treatment used by the member registration embed.
-- It includes a link to join the AAYSSA Family WhatsApp group.
 - External WhatsApp links use `target="_top"` so Safari can leave the cross-origin GoDaddy iframe without triggering Cross-Origin-Opener-Policy errors.
 
 It uses:
