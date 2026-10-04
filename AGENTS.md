@@ -225,7 +225,7 @@ Member portal (`public/index.html`) includes:
   - Displays existing family registrations and prevents duplicates.
 - Home Pooja booking card:
   - Shows the shared availability calendar and the family's submitted requests.
-  - Presents availability in responsive monthly calendars with privacy-safe Available, Booked, and Blocked states.
+  - Presents availability in a responsive month-at-a-time calendar with Previous/Next navigation and privacy-safe Available, Booked, and Blocked states.
   - Allows an authenticated family to submit a request for administrator approval.
   - Does not mark a requested date booked until the request is approved.
 - During preview, appears only for authenticated Board/Admin users and the member API enforces the same role restriction.

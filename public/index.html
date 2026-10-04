@@ -449,10 +449,38 @@
     }
 
     .pooja-calendar-months {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 18px;
       margin: 16px 0 24px;
+    }
+
+    .pooja-calendar-navigation {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .pooja-calendar-navigation button {
+      min-width: 92px;
+      padding: 8px 12px;
+      border: 1px solid #b97716;
+      border-radius: 8px;
+      background: #fffaf2;
+      color: #774500;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .pooja-calendar-navigation button:disabled {
+      border-color: #d8d3cc;
+      color: #aaa49c;
+      cursor: not-allowed;
+    }
+
+    .pooja-calendar-navigation strong {
+      color: #5b3510;
+      text-align: center;
     }
 
     .pooja-calendar-month {
@@ -1550,6 +1578,7 @@
   let currentDonations = null;
   let currentMaaladharan = null;
   let currentHomePooja = null;
+  let homePoojaCalendarMonth = "";
 
 
   function formatCurrency(
@@ -2156,9 +2185,17 @@
       dates.map(item => item.date.slice(0, 7))
     )];
 
+    if (!monthKeys.includes(homePoojaCalendarMonth)) {
+      homePoojaCalendarMonth = monthKeys[0];
+    }
+
+    const monthIndex = monthKeys.indexOf(
+      homePoojaCalendarMonth
+    );
+
     const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-    const months = monthKeys.map(monthKey => {
+    const renderMonth = monthKey => {
       const [year, month] = monthKey
         .split("-")
         .map(Number);
@@ -2195,10 +2232,6 @@
 
       return `
         <section class="pooja-calendar-month">
-          <h3>${escapeHtml(new Intl.DateTimeFormat("en-US", {
-            month: "long",
-            year: "numeric"
-          }).format(firstDay))}</h3>
           <div class="pooja-calendar-grid">
             ${weekdays.map(day => `
               <div class="pooja-calendar-weekday">${day}</div>
@@ -2207,16 +2240,82 @@
           </div>
         </section>
       `;
-    }).join("");
+    };
+
+    const [selectedYear, selectedMonth] =
+      homePoojaCalendarMonth.split("-").map(Number);
+    const monthLabel = new Intl.DateTimeFormat(
+      "en-US",
+      { month: "long", year: "numeric" }
+    ).format(new Date(selectedYear, selectedMonth - 1, 1));
 
     return `
-      <div class="pooja-calendar-legend" aria-label="Calendar legend">
-        <span style="--calendar-color:#e9f6ed">Available</span>
-        <span style="--calendar-color:#fff0c9">Booked</span>
-        <span style="--calendar-color:#ece9e5">Blocked</span>
+      <div id="homePoojaCalendar">
+        <div class="pooja-calendar-legend" aria-label="Calendar legend">
+          <span style="--calendar-color:#e9f6ed">Available</span>
+          <span style="--calendar-color:#fff0c9">Booked</span>
+          <span style="--calendar-color:#ece9e5">Blocked</span>
+        </div>
+        <div class="pooja-calendar-months">
+          <div class="pooja-calendar-navigation">
+            <button type="button" data-pooja-calendar="previous"
+              ${monthIndex === 0 ? "disabled" : ""}>
+              ← Previous
+            </button>
+            <strong>${escapeHtml(monthLabel)}</strong>
+            <button type="button" data-pooja-calendar="next"
+              ${monthIndex === monthKeys.length - 1 ? "disabled" : ""}>
+              Next →
+            </button>
+          </div>
+          ${renderMonth(homePoojaCalendarMonth)}
+        </div>
       </div>
-      <div class="pooja-calendar-months">${months}</div>
     `;
+  }
+
+
+  function setupHomePoojaCalendar() {
+    const calendar = document.getElementById(
+      "homePoojaCalendar"
+    );
+
+    const dates = Array.isArray(
+      currentHomePooja?.calendar?.dates
+    )
+      ? currentHomePooja.calendar.dates
+      : [];
+
+    if (!calendar || !dates.length) {
+      return;
+    }
+
+    const monthKeys = [...new Set(
+      dates.map(item => item.date.slice(0, 7))
+    )];
+
+    calendar.querySelectorAll(
+      "[data-pooja-calendar]"
+    ).forEach(button => {
+      button.addEventListener("click", () => {
+        const currentIndex = monthKeys.indexOf(
+          homePoojaCalendarMonth
+        );
+        const direction =
+          button.dataset.poojaCalendar === "next"
+            ? 1
+            : -1;
+        const nextMonth = monthKeys[currentIndex + direction];
+
+        if (!nextMonth) {
+          return;
+        }
+
+        homePoojaCalendarMonth = nextMonth;
+        calendar.outerHTML = renderHomePoojaCalendar(dates);
+        setupHomePoojaCalendar();
+      });
+    });
   }
 
 
@@ -2323,6 +2422,7 @@
             );
 
           setupHomePoojaForm();
+          setupHomePoojaCalendar();
         } catch (error) {
           message.className =
             "inline-message error full-width";
@@ -5762,6 +5862,7 @@
       if (hasDashboardAccess(member.role)) {
         try {
           setupHomePoojaForm();
+          setupHomePoojaCalendar();
         } catch (error) {
           console.error(
             "Home Pooja preview setup error:",
