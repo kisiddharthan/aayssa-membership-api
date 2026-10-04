@@ -11,6 +11,9 @@ import {
   handlePublicHomePooja
 } from "./_lib/home-pooja.js";
 
+const AAYSSA_FAMILY_WHATSAPP_URL =
+  "https://chat.whatsapp.com/CDH3nm4UUslCpLUxeoBVab?mode=gi_t";
+
 export default async function handler(req, res) {
 
   // =========================================================
@@ -451,6 +454,13 @@ export default async function handler(req, res) {
       );
     }
 
+    const confirmationEmailSent =
+      await sendMembershipConfirmationSafely({
+        email: normalizedEmail,
+        firstName: String(firstName).trim(),
+        lastName: String(lastName).trim()
+      });
+
 
     // =========================================================
     // 13. Successful registration
@@ -463,7 +473,11 @@ export default async function handler(req, res) {
       duplicate: false,
 
       message:
-        "Thank you! Your AAYSSA membership registration has been successfully submitted.",
+        confirmationEmailSent
+          ? "Thank you! Your AAYSSA membership registration has been successfully submitted. A confirmation email has been sent."
+          : "Thank you! Your AAYSSA membership registration has been successfully submitted.",
+
+      confirmationEmailSent,
 
       memberRowId:
         createdMember.id
@@ -485,6 +499,108 @@ export default async function handler(req, res) {
         "Unable to process your registration at this time. Please try again later."
     });
   }
+}
+
+async function sendMembershipConfirmationSafely({
+  email,
+  firstName,
+  lastName
+}) {
+  try {
+    await sendMembershipConfirmation({
+      email,
+      firstName,
+      lastName
+    });
+    return true;
+  } catch (error) {
+    console.error(
+      "Membership confirmation email error:",
+      error
+    );
+    return false;
+  }
+}
+
+async function sendMembershipConfirmation({
+  email,
+  firstName,
+  lastName
+}) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from =
+    process.env.RESEND_FROM_EMAIL ||
+    process.env.RESEND_FROM ||
+    process.env.EMAIL_FROM ||
+    process.env.FROM_EMAIL;
+
+  if (!apiKey || !from) {
+    throw new Error(
+      "Resend confirmation email is not configured."
+    );
+  }
+
+  const fullName =
+    `${firstName} ${lastName}`.trim();
+  const replyTo =
+    process.env.RESEND_REPLY_TO_EMAIL;
+
+  const response = await fetch(
+    "https://api.resend.com/emails",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from,
+        to: [email],
+        subject:
+          "Welcome to the AAYSSA Family",
+        ...(replyTo ? { reply_to: replyTo } : {}),
+        text: [
+          `Swamiye Saranam Ayyappa, ${fullName}.`,
+          "",
+          "Thank you for registering with Atlanta Ayyappa Seva Sangam. Your AAYSSA membership registration has been received.",
+          "",
+          `Join the AAYSSA Family WhatsApp Group: ${AAYSSA_FAMILY_WHATSAPP_URL}`,
+          "",
+          "Swamiye Saranam Ayyappa,",
+          "Atlanta Ayyappa Seva Sangam"
+        ].join("\n"),
+        html: `
+          <div style="font-family:Arial,sans-serif;color:#2c211a;line-height:1.6;max-width:620px;margin:auto">
+            <h2 style="color:#8a3f12">Welcome to the AAYSSA Family</h2>
+            <p>Swamiye Saranam Ayyappa, ${escapeEmailHtml(fullName)}.</p>
+            <p>Thank you for registering with Atlanta Ayyappa Seva Sangam. Your AAYSSA membership registration has been received.</p>
+            <p><a href="${AAYSSA_FAMILY_WHATSAPP_URL}" style="display:inline-block;padding:11px 18px;background:#26783c;color:#fff;text-decoration:none;border-radius:7px;font-weight:bold">Join the AAYSSA Family WhatsApp Group</a></p>
+            <p>Swamiye Saranam Ayyappa,<br>Atlanta Ayyappa Seva Sangam</p>
+          </div>
+        `
+      })
+    }
+  );
+
+  if (!response.ok) {
+    console.error(
+      "Resend membership confirmation failed:",
+      response.status,
+      await response.text()
+    );
+    throw new Error(
+      "Unable to send membership confirmation email."
+    );
+  }
+}
+
+function escapeEmailHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 async function createRegistrationVolunteerRows({

@@ -122,6 +122,8 @@ The old Supabase magic-link callback route was removed after switching to passco
 - `POST /api/register`
   - Creates a Baserow member row.
   - Creates per-person volunteer rows.
+  - Sends a best-effort Resend confirmation to the registered email after the member row is created.
+  - The confirmation includes the AAYSSA Family WhatsApp group link in its HTML and plain-text versions.
 - `POST /api/register?resource=maaladharan`
   - Public, create-only Maaladharan registration flow.
   - The `request-code` action sends a Supabase email passcode.
@@ -284,6 +286,7 @@ It posts to:
 `public/login-embed.html` is intended for GoDaddy.
 
 - Its Member Login banner matches the gradient header treatment used by the member registration embed.
+- It includes a link to join the AAYSSA Family WhatsApp group.
 
 It uses:
 `https://portal.atlantaayyappasevasangam.org/api`
