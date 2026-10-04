@@ -31,14 +31,14 @@
 
     .site-header {
       width: 100%;
-      background: #000;
+      background: #151515;
     }
 
     .site-header-inner {
-      max-width: 1650px;
-      min-height: 184px;
+      max-width: 2048px;
+      min-height: 235px;
       margin: 0 auto;
-      padding: 18px 70px;
+      padding: 24px 100px;
 
       display: flex;
       align-items: center;
@@ -51,8 +51,8 @@
     }
 
     .site-logo {
-      width: 145px;
-      height: 145px;
+      width: 170px;
+      height: 170px;
       object-fit: contain;
       display: block;
     }
@@ -60,14 +60,15 @@
     .site-nav {
       display: flex;
       align-items: center;
-      gap: 46px;
+      gap: clamp(24px, 3vw, 52px);
+      margin-left: auto;
     }
 
     .site-nav a {
-      color: #ddd;
+      color: #e5e3e3;
       text-decoration: none;
-      font-size: 16px;
-      letter-spacing: 1.4px;
+      font-size: 18px;
+      letter-spacing: 1.7px;
       font-weight: 400;
       white-space: nowrap;
       transition: color 0.2s ease;
@@ -79,6 +80,19 @@
 
     .site-nav .active {
       color: #fff;
+      font-weight: 700;
+    }
+
+    .nav-with-chevron::after {
+      content: "";
+      display: inline-block;
+      width: 0;
+      height: 0;
+      margin-left: 9px;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid currentColor;
+      vertical-align: 2px;
     }
 
     .mobile-menu-button {
@@ -1179,6 +1193,44 @@
 
     }
 
+    @media (max-width: 1320px) {
+      .site-header-inner {
+        min-height: auto;
+        padding: 16px 30px;
+        flex-wrap: wrap;
+      }
+
+      .site-logo {
+        width: 100px;
+        height: 100px;
+      }
+
+      .mobile-menu-button {
+        display: block;
+      }
+
+      .site-nav {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0;
+        margin-left: 0;
+        padding: 12px 0 8px;
+      }
+
+      .site-nav.open {
+        display: flex;
+      }
+
+      .site-nav a {
+        width: 100%;
+        padding: 14px 4px;
+        border-top: 1px solid #303030;
+        font-size: 14px;
+      }
+    }
+
 
     /* =====================================================
        MOBILE HEADER
@@ -1290,7 +1342,7 @@
     >
 
       <img
-        src="/aayssa-logo.jpg"
+        src="https://img1.wsimg.com/isteam/ip/e97baa43-87af-41b2-a556-36e5f7165670/blob-1444af7.png"
         alt="Atlanta Ayyappa Seva Sangam"
         class="site-logo"
       >
@@ -1317,6 +1369,7 @@
 
       <a
         href="https://atlantaayyappasevasangam.org/"
+        class="active"
       >
         HOME
       </a>
@@ -1330,9 +1383,39 @@
 
 
       <a
-        href="https://atlantaayyappasevasangam.org/membership"
+        href="https://atlantaayyappasevasangam.org/member-login"
+        class="nav-with-chevron"
       >
-        MEMBERSHIP
+        MEMBER
+      </a>
+
+      <a
+        href="https://atlantaayyappasevasangam.org/events"
+        class="nav-with-chevron"
+      >
+        EVENTS
+      </a>
+
+      <a
+        href="https://atlantaayyappasevasangam.org/sevas"
+        class="nav-with-chevron"
+      >
+        SEVAS
+      </a>
+
+      <a href="https://atlantaayyappasevasangam.org/gallery">
+        GALLERY
+      </a>
+
+      <a href="https://atlantaayyappasevasangam.org/contact-us">
+        CONTACT US
+      </a>
+
+      <a
+        href="https://atlantaayyappasevasangam.org/"
+        class="nav-with-chevron"
+      >
+        MORE
       </a>
 
     </nav>

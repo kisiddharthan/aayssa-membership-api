@@ -208,6 +208,7 @@ The old Supabase magic-link callback route was removed after switching to passco
 
 Member portal (`public/index.html`) includes:
 
+- A desktop header matching the public AAYSSA website, with its hosted transparent logo, complete navigation labels, and responsive mobile menu.
 - Top member header with welcome text, role badge, and logout button.
 - Family details card with edit controls.
 - Contact information card with edit controls.
