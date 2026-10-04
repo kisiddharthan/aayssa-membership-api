@@ -226,7 +226,8 @@ Member portal (`public/index.html`) includes:
   - Shows the shared availability calendar and the family's submitted requests.
   - Allows an authenticated family to submit a request for administrator approval.
   - Does not mark a requested date booked until the request is approved.
-  - During preview, appears only for authenticated Board/Admin users and the member API enforces the same role restriction.
+- During preview, appears only for authenticated Board/Admin users and the member API enforces the same role restriction.
+  - Preview loading is isolated from the core member profile so an optional booking or dashboard failure cannot prevent portal access.
 - Donations & Tax Receipts card:
   - Current-year Zeffy donation total.
   - Payment list.

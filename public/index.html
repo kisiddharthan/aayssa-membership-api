@@ -2017,6 +2017,28 @@
   }
 
 
+  function renderHomePoojaPreview(data) {
+    try {
+      return renderHomePoojaSection(data);
+    } catch (error) {
+      console.error(
+        "Home Pooja preview render error:",
+        error
+      );
+
+      return `
+        <section class="section-card">
+          <h2>Home Pooja Booking — Board Preview</h2>
+          <p class="section-description">
+            The preview could not be loaded. The rest of your
+            membership portal remains available.
+          </p>
+        </section>
+      `;
+    }
+  }
+
+
   function setupHomePoojaForm() {
     const form =
       document.getElementById(
@@ -5360,13 +5382,8 @@
       currentMember =
         member;
 
-      const [
-        volunteers,
-        donations,
-        maaladharan,
-        homePooja
-      ] =
-        await Promise.all([
+      const optionalResults =
+        await Promise.allSettled([
           loadMyVolunteers(),
           loadMyDonations(),
           loadMaaladharanRegistrations(),
@@ -5374,6 +5391,19 @@
             ? loadHomePoojaBookings()
             : Promise.resolve(null)
         ]);
+
+      const optionalValue =
+        (index, fallback) =>
+          optionalResults[index].status === "fulfilled"
+            ? optionalResults[index].value
+            : fallback;
+
+      const volunteers = optionalValue(0, []);
+      const donations = optionalValue(1, null);
+      const maaladharan = optionalValue(2, {
+        registrations: []
+      });
+      const homePooja = optionalValue(3, null);
 
       currentVolunteers =
         volunteers;
@@ -5447,7 +5477,7 @@
 
           ${
             hasDashboardAccess(member.role)
-              ? renderHomePoojaSection(
+              ? renderHomePoojaPreview(
                   currentHomePooja
                 )
               : ""
@@ -5525,7 +5555,14 @@
       setupProfileEditing();
       setupMaaladharanForm();
       if (hasDashboardAccess(member.role)) {
-        setupHomePoojaForm();
+        try {
+          setupHomePoojaForm();
+        } catch (error) {
+          console.error(
+            "Home Pooja preview setup error:",
+            error
+          );
+        }
       }
 
 
@@ -5555,9 +5592,9 @@
         </h2>
 
 
-        <p>
-          Please try again shortly.
-        </p>
+        <p>${escapeHtml(
+          error?.message || "Please try again shortly."
+        )}</p>
       `;
     }
   }
