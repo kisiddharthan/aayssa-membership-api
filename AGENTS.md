@@ -228,6 +228,7 @@ Member portal (`public/index.html`) includes:
   - Does not mark a requested date booked until the request is approved.
 - During preview, appears only for authenticated Board/Admin users and the member API enforces the same role restriction.
   - Preview loading is isolated from the core member profile so an optional booking or dashboard failure cannot prevent portal access.
+  - Calendar-only dates are formatted as local calendar dates to avoid UTC date shifts in the browser.
 - Donations & Tax Receipts card:
   - Current-year Zeffy donation total.
   - Payment list.
