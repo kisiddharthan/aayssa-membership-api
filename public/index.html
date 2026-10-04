@@ -974,32 +974,54 @@
       margin-top: 0;
     }
 
+    .dashboard-trend-grid .trend-chart {
+      min-width: 0;
+    }
+
+    .dashboard-trend-grid .trend-column {
+      min-width: 0;
+    }
+
     .registered-swamies-list {
       max-height: 340px;
+      overflow-x: auto;
       overflow-y: auto;
     }
 
-    .registered-swamy-line {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px 10px;
-      padding: 10px 0;
-      border-bottom: 1px solid #eee;
+    .registered-swamies-table {
+      width: 100%;
+      border-collapse: collapse;
       font-size: 13px;
-      line-height: 1.45;
     }
 
-    .registered-swamy-line:last-child {
-      border-bottom: 0;
+    .registered-swamies-table th,
+    .registered-swamies-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      white-space: nowrap;
     }
 
-    .registered-swamy-name {
+    .registered-swamies-table th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #fffaf3;
+    }
+
+    .swamy-sort-button {
+      padding: 0;
+      border: 0;
+      background: transparent;
       color: #5f2b10;
+      font: inherit;
       font-weight: 800;
+      cursor: pointer;
     }
 
-    .registered-swamy-detail {
-      color: #666;
+    .swamy-sort-button:hover,
+    .swamy-sort-button:focus-visible {
+      text-decoration: underline;
     }
 
     .trend-subtitle,
@@ -4838,24 +4860,46 @@
           values.length
             ? `
               <div class="registered-swamies-list">
-                ${values.map(swamy => `
-                  <div class="registered-swamy-line">
-                    <span class="registered-swamy-name">
-                      ${escapeHtml(swamy.name || "-")}
-                    </span>
-                    <span class="registered-swamy-detail">
-                      Padi ${escapeHtml(swamy.padiCount || "-")}
-                    </span>
-                    <span class="registered-swamy-detail">
-                      Age ${escapeHtml(swamy.age || "-")}
-                    </span>
-                    <span class="registered-swamy-detail">
-                      Maaladharan ${escapeHtml(
-                        swamy.maaladharanDateLabel || "-"
-                      )}
-                    </span>
-                  </div>
-                `).join("")}
+                <table
+                  id="registeredSwamiesTable"
+                  class="registered-swamies-table"
+                >
+                  <thead>
+                    <tr>
+                      ${[
+                        ["name", "Name"],
+                        ["padi", "Padi Count"],
+                        ["age", "Age"],
+                        ["date", "Maaladharan Date"]
+                      ].map(([key, label]) => `
+                        <th scope="col">
+                          <button
+                            class="swamy-sort-button"
+                            type="button"
+                            data-sort-key="${key}"
+                          >
+                            ${label}<span class="sort-indicator"></span>
+                          </button>
+                        </th>
+                      `).join("")}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${values.map(swamy => `
+                      <tr
+                        data-name="${escapeHtml(swamy.name || "")}"
+                        data-padi="${escapeHtml(swamy.padiCount || "")}"
+                        data-age="${escapeHtml(swamy.age || "")}"
+                        data-date="${escapeHtml(swamy.maaladharanDate || "")}"
+                      >
+                        <td><strong>${escapeHtml(swamy.name || "-")}</strong></td>
+                        <td>${escapeHtml(swamy.padiCount || "-")}</td>
+                        <td>${escapeHtml(swamy.age || "-")}</td>
+                        <td>${escapeHtml(swamy.maaladharanDateLabel || "-")}</td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>
               </div>
             `
             : `
@@ -4866,6 +4910,83 @@
         }
       </div>
     `;
+  }
+
+
+  function setupRegisteredSwamiesSorting() {
+    const table =
+      document.getElementById(
+        "registeredSwamiesTable"
+      );
+
+    if (!table) {
+      return;
+    }
+
+    const body = table.tBodies[0];
+    const buttons =
+      table.querySelectorAll(
+        ".swamy-sort-button"
+      );
+
+    buttons.forEach(button => {
+      button.addEventListener("click", () => {
+        const key = button.dataset.sortKey;
+        const previousKey = table.dataset.sortKey;
+        const previousDirection =
+          table.dataset.sortDirection;
+        const direction =
+          previousKey === key &&
+          previousDirection === "asc"
+            ? "desc"
+            : "asc";
+
+        const rows =
+          Array.from(body.rows);
+
+        rows.sort((first, second) => {
+          const firstValue = first.dataset[key] || "";
+          const secondValue = second.dataset[key] || "";
+          const numeric =
+            key === "age" || key === "padi";
+          const comparison = numeric
+            ? (parseInt(firstValue, 10) || 0) -
+              (parseInt(secondValue, 10) || 0)
+            : firstValue.localeCompare(
+                secondValue,
+                undefined,
+                { sensitivity: "base" }
+              );
+
+          return direction === "asc"
+            ? comparison
+            : -comparison;
+        });
+
+        rows.forEach(row => body.appendChild(row));
+        table.dataset.sortKey = key;
+        table.dataset.sortDirection = direction;
+
+        buttons.forEach(item => {
+          const indicator =
+            item.querySelector(".sort-indicator");
+          indicator.textContent =
+            item === button
+              ? direction === "asc"
+                ? " ▲"
+                : " ▼"
+              : "";
+          item.closest("th").setAttribute(
+            "aria-sort",
+            item === button
+              ? direction === "asc"
+                ? "ascending"
+                : "descending"
+              : "none"
+          );
+        });
+      });
+    });
   }
 
 
@@ -4991,7 +5112,7 @@
           </h3>
 
           <div class="trend-subtitle">
-            New family registrations during the last 12 months
+            New family registrations during the last 6 months
           </div>
 
           <div class="directory-empty">
@@ -5003,9 +5124,12 @@
     }
 
 
+    const recentTrends =
+      trends.slice(-6);
+
     const maxCount =
       Math.max(
-        ...trends.map(
+        ...recentTrends.map(
           item =>
             Number(item.count || 0)
         ),
@@ -5014,7 +5138,7 @@
 
 
     const bars =
-      trends.map(item => {
+      recentTrends.map(item => {
 
         const count =
           Number(
@@ -5072,7 +5196,7 @@
         </h3>
 
         <div class="trend-subtitle">
-          New family registrations during the last 12 months
+            New family registrations during the last 6 months
         </div>
 
 
@@ -5106,7 +5230,7 @@
           </h3>
 
           <div class="trend-subtitle">
-            Zeffy donations received during the last 12 months
+            Zeffy donations received during the last 6 months
           </div>
 
           <div class="directory-empty">
@@ -5119,7 +5243,7 @@
 
 
     const trends =
-      donationSummary.monthlyDonations;
+      donationSummary.monthlyDonations.slice(-6);
 
 
     const maxAmount =
@@ -5191,7 +5315,7 @@
         </h3>
 
         <div class="trend-subtitle">
-          Zeffy donations received during the last 12 months
+          Zeffy donations received during the last 6 months
         </div>
 
 
@@ -6410,6 +6534,7 @@
 
 
       setupDirectorySearch();
+      setupRegisteredSwamiesSorting();
 
       if (currentMember?.role === "Admin") {
         await loadHomePoojaAdmin();
