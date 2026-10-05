@@ -229,6 +229,7 @@ Member portal (`public/index.html`) includes:
   - Displays the Mandalam start and closing dates.
   - Registers primary, spouse, or additional family members individually.
   - Captures age, phone, Maaladharan date, Padi count, Irumudi offering location, and optional notes.
+  - Both member and standalone forms mark every mandatory field with an asterisk; notes remain optional.
   - Irumudi offering choices are `Tampa Temple` (December 5, 2026; shared bus expense approximately $340/person), `AAYSSA Temple` (December 12, 2026; estimated cost approximately $60/person), and `Other Temple or Self`.
   - The form labels Padi as “Padi Count Completed”; the Baserow value and displayed choice are both `1`.
   - Padi guidance explicitly tells registrants not to include the current year's Padi in the completed count; this wording is shared by member create/edit forms and the public embed.

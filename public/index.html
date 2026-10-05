@@ -619,6 +619,18 @@
       margin-top: 14px;
     }
 
+    .maaladharan-required-marker {
+      color: #b3261e;
+      font-weight: 800;
+    }
+
+    .maaladharan-required-note {
+      grid-column: 1 / -1;
+      margin: 0 0 8px;
+      color: #666;
+      font-size: 12px;
+    }
+
     .maaladharan-whatsapp-invite {
       margin: 16px 0;
       padding: 14px 16px;
@@ -3212,9 +3224,13 @@
         id="maaladharanForm"
         class="maaladharan-form"
       >
+        <p class="maaladharan-required-note">
+          <span class="maaladharan-required-marker" aria-hidden="true">*</span>
+          Required field
+        </p>
         <div class="form-field">
           <label for="maaladharanParticipantType">
-            Participant Type
+            Participant Type <span class="maaladharan-required-marker" aria-hidden="true">*</span>
           </label>
           <select
             id="maaladharanParticipantType"
@@ -3241,7 +3257,7 @@
 
         <div class="form-field">
           <label for="maaladharanParticipantName">
-            Participant Name
+            Participant Name <span class="maaladharan-required-marker" aria-hidden="true">*</span>
           </label>
           <input
             id="maaladharanParticipantName"
@@ -3254,7 +3270,7 @@
 
         <div class="form-field">
           <label for="maaladharanAge">
-            Age
+            Age <span class="maaladharan-required-marker" aria-hidden="true">*</span>
           </label>
           <input
             id="maaladharanAge"
@@ -3268,7 +3284,7 @@
 
         <div class="form-field">
           <label for="maaladharanPhone">
-            Phone Number
+            Phone Number <span class="maaladharan-required-marker" aria-hidden="true">*</span>
           </label>
           <input
             id="maaladharanPhone"
@@ -3283,7 +3299,7 @@
 
         <div class="form-field">
           <label for="maaladharanDate">
-            Maaladharan Date
+            Maaladharan Date <span class="maaladharan-required-marker" aria-hidden="true">*</span>
           </label>
           <input
             id="maaladharanDate"
@@ -3298,7 +3314,7 @@
 
         <div class="form-field">
           <label for="maaladharanPadiStatus">
-            Padi Count Completed
+            Padi Count Completed <span class="maaladharan-required-marker" aria-hidden="true">*</span>
           </label>
           <span class="field-help">
             Count one Padi per year, including Irumudi taken
@@ -3338,7 +3354,7 @@
 
         <div class="form-field full-width">
           <label for="maaladharanIrumudiOffering">
-            Irumudi Offering
+            Irumudi Offering <span class="maaladharan-required-marker" aria-hidden="true">*</span>
           </label>
           <select
             id="maaladharanIrumudiOffering"

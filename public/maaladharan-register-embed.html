@@ -99,6 +99,18 @@
       line-height: 1.45;
     }
 
+    #aayssa-maaladharan .required-marker {
+      color: #b3261e;
+      font-weight: 800;
+    }
+
+    #aayssa-maaladharan .required-note {
+      grid-column: 1 / -1;
+      margin: 0 0 8px;
+      color: #6f655e;
+      font-size: 12px;
+    }
+
     #aayssa-maaladharan .deeksha {
       display: flex;
       align-items: center;
@@ -222,8 +234,12 @@
 
       <form id="publicMaaladharanForm">
         <div class="grid">
+          <p class="required-note">
+            <span class="required-marker" aria-hidden="true">*</span>
+            Required field
+          </p>
           <div class="full">
-            <label for="publicMaaladharanEmail">Email Address</label>
+            <label for="publicMaaladharanEmail">Email Address <span class="required-marker" aria-hidden="true">*</span></label>
             <input
               id="publicMaaladharanEmail"
               name="email"
@@ -255,7 +271,7 @@
           <div class="grid">
             <div class="full">
               <label for="publicMaaladharanCode">
-                Email Verification Passcode
+                Email Verification Passcode <span class="required-marker" aria-hidden="true">*</span>
               </label>
               <span class="help">
                 Enter the passcode sent to the email address above.
@@ -272,7 +288,7 @@
             </div>
 
             <div>
-              <label for="publicParticipantType">Participant Type</label>
+              <label for="publicParticipantType">Participant Type <span class="required-marker" aria-hidden="true">*</span></label>
               <select
                 id="publicParticipantType"
                 name="participantType"
@@ -285,7 +301,7 @@
             </div>
 
             <div>
-              <label for="publicParticipantName">Swamy Name</label>
+              <label for="publicParticipantName">Swamy Name <span class="required-marker" aria-hidden="true">*</span></label>
               <input
                 id="publicParticipantName"
                 name="participantName"
@@ -296,7 +312,7 @@
             </div>
 
             <div>
-              <label for="publicParticipantAge">Age</label>
+              <label for="publicParticipantAge">Age <span class="required-marker" aria-hidden="true">*</span></label>
               <input
                 id="publicParticipantAge"
                 name="age"
@@ -308,7 +324,7 @@
             </div>
 
             <div>
-              <label for="publicParticipantPhone">Phone Number</label>
+              <label for="publicParticipantPhone">Phone Number <span class="required-marker" aria-hidden="true">*</span></label>
               <input
                 id="publicParticipantPhone"
                 name="phoneNumber"
@@ -319,7 +335,7 @@
             </div>
 
             <div>
-              <label for="publicMaaladharanDate">Maaladharan Date</label>
+              <label for="publicMaaladharanDate">Maaladharan Date <span class="required-marker" aria-hidden="true">*</span></label>
               <input
                 id="publicMaaladharanDate"
                 name="maaladharanDate"
@@ -332,7 +348,7 @@
             </div>
 
             <div>
-              <label for="publicPadiStatus">Padi Count Completed</label>
+              <label for="publicPadiStatus">Padi Count Completed <span class="required-marker" aria-hidden="true">*</span></label>
               <span class="help">
                 Count one Padi per year, including Irumudi taken in
                 Sabarimala or the United States. Do not count this year's
@@ -402,7 +418,7 @@
             </label>
 
             <div class="full">
-              <label for="publicIrumudiOffering">Irumudi Offering</label>
+              <label for="publicIrumudiOffering">Irumudi Offering <span class="required-marker" aria-hidden="true">*</span></label>
               <select
                 id="publicIrumudiOffering"
                 name="irumudiOffering"
