@@ -33,7 +33,8 @@ const DEFAULT_BLOCKS = new Map([
   ["2026-11-14", "Pushpabhishekam preparation"],
   ["2026-11-15", "Pushpabhishekam"],
   ["2026-11-21", "Sastha Preethi preparation"],
-  ["2026-11-22", "Sastha Preethi"]
+  ["2026-11-22", "Sastha Preethi"],
+  ["2026-12-04", "Mandalam Closing"]
 ]);
 
 const THANKSGIVING_DATES = new Set([
@@ -327,6 +328,41 @@ export async function handleAdminHomePooja(req, res) {
       });
     }
 
+    if (action === "edit-block") {
+      const originalDate =
+        cleanString(req.body?.originalDate);
+
+      const date =
+        cleanString(req.body?.poojaDate);
+
+      const reason =
+        cleanString(req.body?.blockReason)
+          .slice(0, 250);
+
+      if (
+        !isDateString(originalDate) ||
+        !isDateString(date) ||
+        !reason
+      ) {
+        return badRequest(
+          res,
+          "The original date, updated date, and event name are required."
+        );
+      }
+
+      await editBlockedDate({
+        originalDate,
+        date,
+        reason,
+        adminEmail: auth.normalizedEmail
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "The blocked event was updated."
+      });
+    }
+
     if (!Number.isInteger(id) || id < 1) {
       return badRequest(
         res,
@@ -594,10 +630,6 @@ async function buildPublicCalendar(query = {}) {
     const time =
       getTimeForDate(date);
 
-    if (!time) {
-      continue;
-    }
-
     const defaultReason =
       defaultBlockOverrides.has(date)
         ? ""
@@ -606,9 +638,17 @@ async function buildPublicCalendar(query = {}) {
     const current =
       state.get(date);
 
+    const isBlocked =
+      Boolean(defaultReason) ||
+      current?.status === "Blocked";
+
+    if (!time && !isBlocked) {
+      continue;
+    }
+
     dates.push({
       date,
-      time,
+      time: time || "",
       status:
         defaultReason
           ? "Blocked"
@@ -679,7 +719,7 @@ async function createBooking({
 
 async function createBlock(date, reason) {
   const current =
-    await getUnavailableReason(date);
+    await getBlockConflictReason(date);
 
   if (current) {
     const error =
@@ -709,6 +749,125 @@ async function createBlock(date, reason) {
     [fieldKey(FIELDS.blockReason)]:
       reason
   });
+}
+
+async function getBlockConflictReason(
+  date,
+  excludedId = null
+) {
+  const rows =
+    await fetchEntriesForDate(date);
+
+  const entries =
+    rows
+      .filter(row =>
+        Number(row.id) !== Number(excludedId)
+      )
+      .map(mapEntry);
+
+  const conflict =
+    entries.find(entry =>
+      (entry.entryType === "Blocked" &&
+        entry.status === "Blocked") ||
+      (entry.entryType === "Booking" &&
+        ["Approved", "Submitted"].includes(
+          entry.status
+        ))
+    );
+
+  const defaultBlockOverridden =
+    entries.some(entry =>
+      entry.entryType === "Blocked" &&
+      entry.status === "Cancelled"
+    );
+
+  return conflict
+    ? conflict.entryType === "Blocked"
+      ? conflict.blockReason || "This date is blocked."
+      : "This date is already booked."
+    : DEFAULT_BLOCKS.has(date) &&
+        !defaultBlockOverridden
+      ? DEFAULT_BLOCKS.get(date)
+      : "";
+}
+
+async function editBlockedDate({
+  originalDate,
+  date,
+  reason,
+  adminEmail
+}) {
+  const rows =
+    await fetchEntriesForDate(originalDate);
+
+  const activeBlock =
+    rows.find(row => {
+      const entry = mapEntry(row);
+
+      return (
+        entry.entryType === "Blocked" &&
+        entry.status === "Blocked"
+      );
+    });
+
+  const originalConflict =
+    await getBlockConflictReason(originalDate);
+
+  if (!activeBlock && !originalConflict) {
+    const error =
+      new Error("The blocked event no longer exists.");
+
+    error.status = 409;
+    throw error;
+  }
+
+  const destinationConflict =
+    await getBlockConflictReason(
+      date,
+      activeBlock?.id
+    );
+
+  if (
+    destinationConflict &&
+    !(
+      !activeBlock &&
+      date === originalDate &&
+      DEFAULT_BLOCKS.has(originalDate)
+    )
+  ) {
+    const error =
+      new Error(destinationConflict);
+
+    error.status = 409;
+    throw error;
+  }
+
+  if (activeBlock) {
+    await patchEntry(activeBlock.id, {
+      [fieldKey(FIELDS.calendarEntry)]:
+        "Blocked - " + date,
+      [fieldKey(FIELDS.poojaDate)]: date,
+      [fieldKey(FIELDS.preferredTime)]:
+        getTimeForDate(date),
+      [fieldKey(FIELDS.blockReason)]: reason,
+      [fieldKey(FIELDS.adminNotes)]:
+        "Blocked event edited",
+      [fieldKey(FIELDS.approvedBy)]:
+        adminEmail,
+      [fieldKey(FIELDS.approvedOn)]:
+        todayInEasternTime()
+    });
+
+    return;
+  }
+
+  await unblockDate(
+    originalDate,
+    "Built-in block edited",
+    adminEmail
+  );
+
+  await createBlock(date, reason);
 }
 
 async function unblockDate(

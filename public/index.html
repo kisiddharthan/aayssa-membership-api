@@ -581,6 +581,25 @@
       cursor: pointer;
     }
 
+    .home-pooja-block-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .home-pooja-block-edit-form {
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid #e3ded4;
+      border-radius: 8px;
+      background: #fffaf3;
+    }
+
+    .home-pooja-block-edit-form[hidden] {
+      display: none;
+    }
+
     .maaladharan-registration {
       padding: 12px 0;
       border-bottom: 1px solid #eee;
@@ -2402,9 +2421,9 @@
         const detail = status === "Booked"
           ? "Booked"
           : status === "Blocked"
-            ? formatHomePoojaBlockedLabel(
-                item?.reason
-              )
+            ? adminControls
+              ? formatHomePoojaBlockedLabel(item?.reason)
+              : formatHomePoojaEventLabel(item?.reason)
             : item
               ? item.time.replace("5:00 PM–8:00 PM", "5–8 PM")
                 .replace("9:00 AM–12:00 PM", "9–12")
@@ -2455,7 +2474,9 @@
         <div class="pooja-calendar-legend" aria-label="Calendar legend">
           <span style="--calendar-color:#e9f6ed">Available</span>
           <span style="--calendar-color:#fff0c9">Booked</span>
-          <span style="--calendar-color:#ece9e5">Blocked</span>
+          <span style="--calendar-color:#ece9e5">
+            ${adminControls ? "Blocked" : "AAYSSA Event"}
+          </span>
         </div>
         <div class="pooja-calendar-months">
           <div class="pooja-calendar-navigation">
@@ -2487,7 +2508,9 @@
       "Sastha Preethi preparation":
         "Sastha Preethi Prep",
       "Sastha Preethi":
-        "Sastha Preethi"
+        "Sastha Preethi",
+      "Mandalam Closing":
+        "Mandalam Closing"
     };
 
     const label =
@@ -2496,6 +2519,17 @@
       "Special Event";
 
     return `Blocked · ${label}`;
+  }
+
+
+  function formatHomePoojaEventLabel(reason) {
+    const blockedLabel =
+      formatHomePoojaBlockedLabel(reason);
+
+    return blockedLabel.replace(
+      /^Blocked · /,
+      "AAYSSA Event · "
+    );
   }
 
 
@@ -4716,21 +4750,27 @@
           { adminControls: true }
         )}
 
+        <p class="section-description">
+          Block any date for a special AAYSSA event, including days
+          when Home Pooja is not normally offered.
+        </p>
         <form id="homePoojaBlockForm"
           class="maaladharan-form">
           <div class="form-field">
-            <label for="adminBlockDate">Block Date</label>
+            <label for="adminBlockDate">Special Event Date</label>
             <input id="adminBlockDate" name="poojaDate"
               type="date" required>
           </div>
           <div class="form-field">
-            <label for="adminBlockReason">Reason</label>
+            <label for="adminBlockReason">AAYSSA Event</label>
             <input id="adminBlockReason" name="blockReason"
-              type="text" required>
+              type="text"
+              placeholder="Example: Special AAYSSA event"
+              required>
           </div>
           <div class="form-actions full-width">
             <button class="small-action-button" type="submit">
-              Block Date
+              Block for Special Event
             </button>
           </div>
         </form>
@@ -4770,7 +4810,8 @@
         ${
           blocks.length
             ? blocks.map(item => `
-                <div class="maaladharan-registration">
+                <div class="maaladharan-registration"
+                  data-block-date="${escapeHtml(item.date)}">
                   <strong>
                     ${escapeHtml(formatPortalDate(item.date))}
                   </strong>
@@ -4779,12 +4820,32 @@
                       formatHomePoojaBlockedLabel(item.reason)
                     )}
                   </span>
-                  <button class="small-action-button secondary-button"
-                    type="button"
-                    data-action="unblock-date"
-                    data-pooja-date="${escapeHtml(item.date)}">
-                    Unblock
-                  </button>
+                  <div class="home-pooja-block-actions">
+                    <button class="small-action-button"
+                      type="button" data-action="edit-block">Edit</button>
+                    <button class="small-action-button secondary-button"
+                      type="button" data-action="unblock-date"
+                      data-pooja-date="${escapeHtml(item.date)}">Unblock</button>
+                  </div>
+                  <form class="maaladharan-form home-pooja-block-edit-form"
+                    data-original-date="${escapeHtml(item.date)}" hidden>
+                    <div class="form-field">
+                      <label>Event Date</label>
+                      <input name="poojaDate" type="date"
+                        value="${escapeHtml(item.date)}" required>
+                    </div>
+                    <div class="form-field">
+                      <label>AAYSSA Event</label>
+                      <input name="blockReason" type="text"
+                        value="${escapeHtml(item.reason || "Special AAYSSA event")}" required>
+                    </div>
+                    <div class="form-actions full-width">
+                      <button class="small-action-button"
+                        type="submit">Save Changes</button>
+                      <button class="small-action-button secondary-button"
+                        type="button" data-action="cancel-block-edit">Cancel</button>
+                    </div>
+                  </form>
                 </div>
               `).join("")
             : "<p>No blocked dates.</p>"
@@ -4844,6 +4905,32 @@
     );
 
     container.addEventListener(
+      "submit",
+      async event => {
+        const editForm = event.target.closest(
+          ".home-pooja-block-edit-form"
+        );
+
+        if (!editForm) {
+          return;
+        }
+
+        event.preventDefault();
+        const values = new FormData(editForm);
+
+        await submitHomePoojaAdminAction(
+          "PATCH",
+          {
+            action: "edit-block",
+            originalDate: editForm.dataset.originalDate,
+            poojaDate: values.get("poojaDate"),
+            blockReason: values.get("blockReason")
+          }
+        );
+      }
+    );
+
+    container.addEventListener(
       "click",
       async event => {
         const button =
@@ -4852,6 +4939,34 @@
           );
 
         if (!button) {
+          return;
+        }
+
+        if (button.dataset.action === "edit-block") {
+          const row = button.closest("[data-block-date]");
+          const editForm = row?.querySelector(
+            ".home-pooja-block-edit-form"
+          );
+
+          if (editForm) {
+            editForm.hidden = false;
+            editForm.querySelector(
+              'input[name="poojaDate"]'
+            )?.focus();
+          }
+
+          return;
+        }
+
+        if (button.dataset.action === "cancel-block-edit") {
+          const editForm = button.closest(
+            ".home-pooja-block-edit-form"
+          );
+
+          if (editForm) {
+            editForm.hidden = true;
+          }
+
           return;
         }
 

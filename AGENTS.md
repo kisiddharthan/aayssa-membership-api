@@ -207,10 +207,11 @@ The old Supabase magic-link callback route was removed after switching to passco
   - Board/Admin-only list of Home Pooja bookings, blocks, and calendar state.
 
 - `POST /api/admin-members?resource=home-pooja`
-  - Board/Admin-only creation of a blocked calendar date with a reason.
+  - Board/Admin-only creation of a blocked calendar date with a reason; any valid date can be blocked for a special AAYSSA event even when Home Pooja is not normally offered that day.
 
 - `PATCH /api/admin-members?resource=home-pooja`
   - Board/Admin-only removal of custom and built-in date blocks.
+  - Board/Admin can edit the date and event name for custom or built-in blocked events; built-in edits persist by cancelling the default block and creating the edited block row.
   - Supports unblocking a date directly from the admin calendar, including built-in event and preparation blocks; built-in overrides are persisted as cancelled block rows.
 
 ## Portal Features
@@ -242,6 +243,7 @@ Member portal (`public/index.html`) includes:
 - Home Pooja booking card:
   - Spans the full member-portal content width instead of sharing a two-column row with another card.
   - Shows the shared availability calendar and the family's confirmed bookings.
+  - Labels blocked dates as `AAYSSA Event` in the member-facing calendar; administrative views continue to use `Blocked` terminology.
   - Presents availability in a responsive month-at-a-time calendar with Previous/Next navigation and privacy-safe Available, Booked, and Blocked states.
   - Allows an authenticated family to book an available date immediately on a first-come, first-served basis.
   - Marks the date booked as soon as the booking is saved; no administrator approval is required.
@@ -272,6 +274,8 @@ Board/Admin dashboard includes:
 - Member directory with search, pagination, and sorting.
 - Board/Admin Home Pooja booking review without an approval step.
 - Board/Admin date blocking with a required reason, plus calendar-level Unblock controls for custom and built-in blocked dates.
+- Administration Blocks provides Edit controls for changing a blocked event's date and event name.
+- December 4, 2026 is a built-in `Mandalam Closing` block, and blocked special-event dates appear in the calendar even when the day is outside normal Home Pooja availability.
 - The Administration Blocks list is derived from calendar state so it includes every active custom and built-in block, with concise event labels.
 
 ## Public Registration Embed
@@ -323,7 +327,7 @@ When this file changes, copy the updated embed into GoDaddy for the public login
 - Saturdays are offered from 5:00–8:00 PM and Sundays from 9:00 AM–12:00 PM year-round.
 - During the 2026 Mandalam window, October 30 through November 29, Fridays are also offered from 5:00–8:00 PM.
 - Thanksgiving dates November 25 and 26, 2026 are offered from 5:00–8:00 PM.
-- November 14–15 and November 21–22, 2026 are fixed blocked dates for event preparation and the Pushpabhishekam/Sastha Preethi events.
+- November 14–15, November 21–22, and December 4, 2026 are fixed blocked dates for event preparation, Pushpabhishekam, Sastha Preethi, and Mandalam Closing.
 - Administrator-created blocks and confirmed bookings remove dates from availability.
 - Public bookings are confirmed immediately with `Approved` status on a first-come, first-served basis.
 - The public API is disabled by default during Board preview; launch it by setting `HOME_POOJA_PUBLIC_ENABLED=true`.
