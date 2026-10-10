@@ -249,10 +249,10 @@ export async function handleAdminHomePooja(req, res) {
       });
     }
 
-    if (!isAdmin(auth.memberRow)) {
+    if (!hasBoardAccess(auth.memberRow)) {
       return res.status(403).json({
         success: false,
-        message: "Administrator access required."
+        message: "Board or administrator access required."
       });
     }
 
@@ -303,6 +303,29 @@ export async function handleAdminHomePooja(req, res) {
     const notes =
       cleanString(req.body?.adminNotes)
         .slice(0, 1000);
+
+    if (action === "unblock-date") {
+      const date =
+        cleanString(req.body?.poojaDate);
+
+      if (!isDateString(date)) {
+        return badRequest(
+          res,
+          "Select a valid blocked date."
+        );
+      }
+
+      await unblockDate(
+        date,
+        notes,
+        auth.normalizedEmail
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "The date is now available."
+      });
+    }
 
     if (!Number.isInteger(id) || id < 1) {
       return badRequest(
@@ -514,19 +537,18 @@ async function getUnavailableReason(
     return "Home Pooja is not available on this date.";
   }
 
-  if (DEFAULT_BLOCKS.has(date)) {
-    return DEFAULT_BLOCKS.get(date);
-  }
-
   const entries =
     await fetchEntriesForDate(date);
 
-  const conflict =
+  const mappedEntries =
     entries
       .filter(row =>
         Number(row.id) !== Number(excludedId)
       )
-      .map(mapEntry)
+      .map(mapEntry);
+
+  const conflict =
+    mappedEntries
       .find(entry =>
         (entry.entryType === "Blocked" &&
           entry.status === "Blocked") ||
@@ -534,13 +556,26 @@ async function getUnavailableReason(
           entry.status === "Approved")
       );
 
-  if (!conflict) {
-    return "";
+  if (conflict) {
+    return conflict.entryType === "Blocked"
+      ? conflict.blockReason || "This date is blocked."
+      : "This date is already booked.";
   }
 
-  return conflict.entryType === "Blocked"
-    ? conflict.blockReason || "This date is blocked."
-    : "This date is already booked.";
+  const defaultBlockOverridden =
+    mappedEntries.some(entry =>
+      entry.entryType === "Blocked" &&
+      entry.status === "Cancelled"
+    );
+
+  if (
+    DEFAULT_BLOCKS.has(date) &&
+    !defaultBlockOverridden
+  ) {
+    return DEFAULT_BLOCKS.get(date);
+  }
+
+  return "";
 }
 
 async function buildPublicCalendar(query = {}) {
@@ -566,10 +601,20 @@ async function buildPublicCalendar(query = {}) {
     await fetchEntriesBetween(from, to);
 
   const state = new Map();
+  const defaultBlockOverrides = new Set();
 
   for (const row of rows) {
     const entry =
       mapEntry(row);
+
+    if (
+      entry.entryType === "Blocked" &&
+      entry.status === "Cancelled"
+    ) {
+      defaultBlockOverrides.add(
+        entry.poojaDate
+      );
+    }
 
     if (
       entry.entryType === "Booking" &&
@@ -608,7 +653,9 @@ async function buildPublicCalendar(query = {}) {
     }
 
     const defaultReason =
-      DEFAULT_BLOCKS.get(date);
+      defaultBlockOverrides.has(date)
+        ? ""
+        : DEFAULT_BLOCKS.get(date);
 
     const current =
       state.get(date);
@@ -711,6 +758,75 @@ async function createBlock(date, reason) {
       ),
     [fieldKey(FIELDS.blockReason)]:
       reason
+  });
+}
+
+async function unblockDate(
+  date,
+  notes,
+  adminEmail
+) {
+  const rows =
+    await fetchEntriesForDate(date);
+
+  const activeBlock =
+    rows.find(row => {
+      const entry = mapEntry(row);
+
+      return (
+        entry.entryType === "Blocked" &&
+        entry.status === "Blocked"
+      );
+    });
+
+  const cancelledStatus =
+    await selectOptionId(
+      FIELDS.requestStatus,
+      "Cancelled"
+    );
+
+  if (activeBlock) {
+    await patchEntry(activeBlock.id, {
+      [fieldKey(FIELDS.requestStatus)]:
+        cancelledStatus,
+      [fieldKey(FIELDS.adminNotes)]: notes,
+      [fieldKey(FIELDS.approvedBy)]:
+        adminEmail,
+      [fieldKey(FIELDS.approvedOn)]:
+        todayInEasternTime()
+    });
+
+    return;
+  }
+
+  if (!DEFAULT_BLOCKS.has(date)) {
+    const error =
+      new Error("This date is not currently blocked.");
+
+    error.status = 409;
+    throw error;
+  }
+
+  await createRow({
+    [fieldKey(FIELDS.calendarEntry)]:
+      "Unblocked - " + date,
+    [fieldKey(FIELDS.entryType)]:
+      await selectOptionId(
+        FIELDS.entryType,
+        "Blocked"
+      ),
+    [fieldKey(FIELDS.poojaDate)]: date,
+    [fieldKey(FIELDS.preferredTime)]:
+      getTimeForDate(date),
+    [fieldKey(FIELDS.requestStatus)]:
+      cancelledStatus,
+    [fieldKey(FIELDS.blockReason)]:
+      DEFAULT_BLOCKS.get(date),
+    [fieldKey(FIELDS.adminNotes)]: notes,
+    [fieldKey(FIELDS.approvedBy)]:
+      adminEmail,
+    [fieldKey(FIELDS.approvedOn)]:
+      todayInEasternTime()
   });
 }
 
@@ -1031,17 +1147,6 @@ function getSelect(row, fieldId) {
 
   return cleanString(
     value?.value ?? value
-  );
-}
-
-function isAdmin(memberRow) {
-  const role =
-    memberRow?.field_10493689;
-
-  return (
-    Number(role?.id ?? role) === 7473606 ||
-    cleanString(role?.value)
-      .toLowerCase() === "admin"
   );
 }
 

@@ -203,13 +203,14 @@ The old Supabase magic-link callback route was removed after switching to passco
   - Supports search and sorting by primary name or registered date.
 
 - `GET /api/admin-members?resource=home-pooja`
-  - Admin-only list of Home Pooja requests, blocks, and calendar state.
+  - Board/Admin-only list of Home Pooja requests, blocks, and calendar state.
 
 - `POST /api/admin-members?resource=home-pooja`
-  - Admin-only creation of a blocked calendar date with a reason.
+  - Board/Admin-only creation of a blocked calendar date with a reason.
 
 - `PATCH /api/admin-members?resource=home-pooja`
-  - Admin-only approval/rejection of requests and removal of custom date blocks.
+  - Board/Admin-only approval/rejection of requests and removal of custom date blocks.
+  - Supports unblocking a date directly from the admin calendar, including built-in event and preparation blocks; built-in overrides are persisted as cancelled block rows.
   - Approval is refused when another approved booking or block occupies the date.
 
 ## Portal Features
@@ -266,8 +267,8 @@ Board/Admin dashboard includes:
 - Monthly donations and registration trends display the latest six months side by side without a forced horizontal scroll.
 - A second Maaladharan row has the date chart and a sortable registered-Swamies table showing name, Padi count, age, and Maaladharan date.
 - Member directory with search, pagination, and sorting.
-- Admin-only Home Pooja request review with Approve and Reject actions.
-- Admin-only date blocking with a required reason and custom-block removal.
+- Board/Admin Home Pooja request review with Approve and Reject actions.
+- Board/Admin date blocking with a required reason, plus calendar-level Unblock controls for custom and built-in blocked dates.
 
 ## Public Registration Embed
 
