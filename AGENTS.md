@@ -240,6 +240,7 @@ Member portal (`public/index.html`) includes:
   - The Registered Swamies card heading shows the total number of active family registrations.
   - Shows the Maaladharan WhatsApp group link inside Registered Swamies whenever the family has an active Swamy registration.
 - Home Pooja booking card:
+  - Spans the full member-portal content width instead of sharing a two-column row with another card.
   - Shows the shared availability calendar and the family's confirmed bookings.
   - Presents availability in a responsive month-at-a-time calendar with Previous/Next navigation and privacy-safe Available, Booked, and Blocked states.
   - Allows an authenticated family to book an available date immediately on a first-come, first-served basis.

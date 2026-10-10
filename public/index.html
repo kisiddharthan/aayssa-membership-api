@@ -175,6 +175,10 @@
       gap: 18px;
     }
 
+    .grid > .section-card.full-width {
+      grid-column: 1 / -1;
+    }
+
     .section-card,
     .dashboard-card,
     .trend-card,
@@ -2250,7 +2254,7 @@
     return `
       <section
         id="homePoojaSection"
-        class="section-card"
+        class="section-card full-width"
       >
         <div class="section-heading-row">
           <h2>Home Pooja Booking — Board Preview</h2>
