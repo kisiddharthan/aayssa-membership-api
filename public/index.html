@@ -2268,7 +2268,7 @@
         ${renderHomePoojaCalendar(dates)}
 
         <div class="info-row registered-swamies-panel">
-          <span class="label">Your Requests</span>
+          <span class="label">Your Bookings</span>
           ${
             requests.length
               ? requests.map(request => `
@@ -2278,7 +2278,9 @@
                     </strong>
                     <span>
                       ${escapeHtml(request.preferredTime || "")}
-                      · ${escapeHtml(request.status)}
+                      · ${escapeHtml(
+                        displayHomePoojaStatus(request.status)
+                      )}
                     </span>
                     ${
                       request.adminNotes
@@ -2287,7 +2289,7 @@
                     }
                   </div>
                 `).join("")
-              : "<span>No Home Pooja requests yet.</span>"
+              : "<span>No Home Pooja bookings yet.</span>"
           }
         </div>
 
@@ -2330,7 +2332,7 @@
           </div>
           <div class="form-actions full-width">
             <button class="small-action-button" type="submit">
-              Submit Request
+              Book Home Pooja
             </button>
           </div>
           <div id="homePoojaMemberMessage"
@@ -2396,7 +2398,9 @@
         const detail = status === "Booked"
           ? "Booked"
           : status === "Blocked"
-            ? "Blocked"
+            ? formatHomePoojaBlockedLabel(
+                item?.reason
+              )
             : item
               ? item.time.replace("5:00 PM–8:00 PM", "5–8 PM")
                 .replace("9:00 AM–12:00 PM", "9–12")
@@ -2465,6 +2469,36 @@
         </div>
       </div>
     `;
+  }
+
+
+  function formatHomePoojaBlockedLabel(
+    reason
+  ) {
+    const shortLabels = {
+      "Pushpabhishekam preparation":
+        "Pushpabhishekam Prep",
+      "Pushpabhishekam":
+        "Pushpabhishekam",
+      "Sastha Preethi preparation":
+        "Sastha Preethi Prep",
+      "Sastha Preethi":
+        "Sastha Preethi"
+    };
+
+    const label =
+      shortLabels[reason] ||
+      reason ||
+      "Special Event";
+
+    return `Blocked · ${label}`;
+  }
+
+
+  function displayHomePoojaStatus(status) {
+    return ["Approved", "Submitted"].includes(status)
+      ? "Booked"
+      : status;
   }
 
 
@@ -2578,7 +2612,7 @@
           new FormData(form);
 
         button.disabled = true;
-        button.textContent = "Submitting…";
+        button.textContent = "Booking…";
         message.textContent = "";
 
         try {
@@ -2612,7 +2646,7 @@
           if (!response.ok || !data.success) {
             throw new Error(
               data.message ||
-              "Unable to submit the request."
+              "Unable to complete the booking."
             );
           }
 
@@ -2637,7 +2671,7 @@
           message.textContent = error.message;
         } finally {
           button.disabled = false;
-          button.textContent = "Submit Request";
+          button.textContent = "Book Home Pooja";
         }
       }
     );
@@ -2650,6 +2684,11 @@
       Array.isArray(data?.registrations)
         ? data.registrations
         : [];
+
+    const activeRegistrationCount =
+      registrations.filter(registration =>
+        registration.status !== "Cancelled"
+      ).length;
 
     return `
       <section
@@ -2699,7 +2738,7 @@
             ? `
               <div class="info-row registered-swamies-panel">
                 <span class="label">
-                  Registered Swamies
+                  Registered Swamies (${activeRegistrationCount})
                 </span>
 
                 ${registrations.map(
@@ -2727,7 +2766,7 @@
             : `
               <div class="info-row registered-swamies-panel">
                 <span class="label">
-                  Registered Swamies
+                  Registered Swamies (0)
                 </span>
                 <span class="value">
                   No Swamies registered yet.
@@ -4609,7 +4648,7 @@
       <section class="dashboard-card full-width">
         <h3>Home Pooja Administration</h3>
         <div id="homePoojaAdminContent">
-          Loading Home Pooja requests…
+          Loading Home Pooja bookings…
         </div>
       </section>
     `;
@@ -4639,7 +4678,7 @@
       if (!response.ok || !data.success) {
         throw new Error(
           data.message ||
-          "Unable to load Home Pooja requests."
+          "Unable to load Home Pooja bookings."
         );
       }
 
@@ -4653,16 +4692,15 @@
           item.entryType === "Booking"
         );
 
-      const blocks =
-        entries.filter(item =>
-          item.entryType === "Blocked" &&
-          item.status === "Blocked"
-        );
-
       const calendarDates =
         Array.isArray(data.calendar?.dates)
           ? data.calendar.dates
           : [];
+
+      const blocks =
+        calendarDates.filter(item =>
+          item.status === "Blocked"
+        );
 
       container.innerHTML = `
         <h4>Booking Calendar</h4>
@@ -4693,7 +4731,7 @@
           </div>
         </form>
 
-        <h4>Booking Requests</h4>
+        <h4>Home Pooja Bookings</h4>
         ${
           requests.length
             ? requests.map(item => `
@@ -4705,54 +4743,47 @@
                   </strong>
                   <span>
                     ${escapeHtml(item.requesterName)}
-                    · ${escapeHtml(item.status)}
+                    · ${escapeHtml(
+                      displayHomePoojaStatus(item.status)
+                    )}
                   </span>
                   <span>
                     ${escapeHtml(item.email)}
                     · ${escapeHtml(item.phoneNumber)}
                   </span>
                   <span>${escapeHtml(item.poojaAddress)}</span>
-                  <input class="admin-note" type="text"
-                    placeholder="Admin note (optional)"
-                    value="${escapeHtml(item.adminNotes || "")}">
                   ${
-                    item.status === "Submitted"
-                      ? `
-                        <div class="form-actions">
-                          <button class="small-action-button"
-                            type="button" data-action="approve">
-                            Approve
-                          </button>
-                          <button class="small-action-button secondary-button"
-                            type="button" data-action="reject">
-                            Reject
-                          </button>
-                        </div>
-                      `
+                    item.requesterNote
+                      ? `<span>${escapeHtml(item.requesterNote)}</span>`
                       : ""
                   }
                 </div>
               `).join("")
-            : "<p>No booking requests.</p>"
+            : "<p>No Home Pooja bookings.</p>"
         }
 
-        <h4>Administrator Blocks</h4>
+        <h4>Administration Blocks</h4>
         ${
           blocks.length
             ? blocks.map(item => `
-                <div class="maaladharan-registration"
-                  data-home-pooja-id="${item.id}">
+                <div class="maaladharan-registration">
                   <strong>
-                    ${escapeHtml(formatPortalDate(item.poojaDate))}
+                    ${escapeHtml(formatPortalDate(item.date))}
                   </strong>
-                  <span>${escapeHtml(item.blockReason)}</span>
+                  <span>
+                    ${escapeHtml(
+                      formatHomePoojaBlockedLabel(item.reason)
+                    )}
+                  </span>
                   <button class="small-action-button secondary-button"
-                    type="button" data-action="unblock">
+                    type="button"
+                    data-action="unblock-date"
+                    data-pooja-date="${escapeHtml(item.date)}">
                     Unblock
                   </button>
                 </div>
               `).join("")
-            : "<p>No additional blocked dates.</p>"
+            : "<p>No blocked dates.</p>"
         }
         <div id="homePoojaAdminMessage"
           class="inline-message" role="status"></div>
@@ -4961,7 +4992,7 @@
 
     return `
       <div class="trend-card">
-        <h3>Registered Swamies</h3>
+        <h3>Registered Swamies (${values.length})</h3>
         <div class="trend-subtitle">
           2026–27 Mandalam participant details
         </div>

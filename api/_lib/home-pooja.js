@@ -82,7 +82,7 @@ export async function handlePublicHomePooja(req, res) {
         message:
           action === "request-code"
             ? "A verification passcode has been sent."
-            : "Your Home Pooja request has been submitted."
+            : "Your Home Pooja has been booked."
       });
     }
 
@@ -151,7 +151,7 @@ export async function handlePublicHomePooja(req, res) {
     return res.status(201).json({
       success: true,
       message:
-        "Your Home Pooja request was submitted for admin approval."
+        "Your Home Pooja has been booked."
     });
   } catch (error) {
     return handleError(res, error);
@@ -226,7 +226,7 @@ export async function handleMemberHomePooja(req, res) {
     return res.status(201).json({
       success: true,
       message:
-        "Your Home Pooja request was submitted for admin approval."
+        "Your Home Pooja has been booked."
     });
   } catch (error) {
     return handleError(res, error);
@@ -344,46 +344,7 @@ export async function handleAdminHomePooja(req, res) {
       });
     }
 
-    if (action === "approve") {
-      if (getSelect(row, FIELDS.entryType) !== "Booking") {
-        return badRequest(
-          res,
-          "Only booking requests can be approved."
-        );
-      }
-
-      const date =
-        cleanString(
-          row[fieldKey(FIELDS.poojaDate)]
-        );
-
-      await assertDateCanBeApproved(
-        date,
-        id
-      );
-
-      await patchEntry(id, {
-        [fieldKey(FIELDS.requestStatus)]:
-          await selectOptionId(
-            FIELDS.requestStatus,
-            "Approved"
-          ),
-        [fieldKey(FIELDS.adminNotes)]: notes,
-        [fieldKey(FIELDS.approvedBy)]:
-          auth.normalizedEmail,
-        [fieldKey(FIELDS.approvedOn)]:
-          todayInEasternTime()
-      });
-    } else if (action === "reject") {
-      await patchEntry(id, {
-        [fieldKey(FIELDS.requestStatus)]:
-          await selectOptionId(
-            FIELDS.requestStatus,
-            "Rejected"
-          ),
-        [fieldKey(FIELDS.adminNotes)]: notes
-      });
-    } else if (action === "unblock") {
+    if (action === "unblock") {
       if (getSelect(row, FIELDS.entryType) !== "Blocked") {
         return badRequest(
           res,
@@ -402,7 +363,7 @@ export async function handleAdminHomePooja(req, res) {
     } else {
       return badRequest(
         res,
-        "Select approve, reject, or unblock."
+        "Select unblock."
       );
     }
 
@@ -510,25 +471,6 @@ async function assertDateCanBeRequested(date) {
   }
 }
 
-async function assertDateCanBeApproved(
-  date,
-  excludedId
-) {
-  const unavailable =
-    await getUnavailableReason(
-      date,
-      excludedId
-    );
-
-  if (unavailable) {
-    const error =
-      new Error(unavailable);
-
-    error.status = 409;
-    throw error;
-  }
-}
-
 async function getUnavailableReason(
   date,
   excludedId = null
@@ -553,7 +495,9 @@ async function getUnavailableReason(
         (entry.entryType === "Blocked" &&
           entry.status === "Blocked") ||
         (entry.entryType === "Booking" &&
-          entry.status === "Approved")
+          ["Approved", "Submitted"].includes(
+            entry.status
+          ))
       );
 
   if (conflict) {
@@ -618,7 +562,9 @@ async function buildPublicCalendar(query = {}) {
 
     if (
       entry.entryType === "Booking" &&
-      entry.status === "Approved"
+      ["Approved", "Submitted"].includes(
+        entry.status
+      )
     ) {
       state.set(entry.poojaDate, {
         status: "Booked",
@@ -716,12 +662,16 @@ async function createBooking({
     [fieldKey(FIELDS.requestStatus)]:
       await selectOptionId(
         FIELDS.requestStatus,
-        "Submitted"
+        "Approved"
       ),
     [fieldKey(FIELDS.requesterNote)]:
       request.requesterNote,
     [fieldKey(FIELDS.emailVerified)]:
-      Boolean(emailVerified)
+      Boolean(emailVerified),
+    [fieldKey(FIELDS.approvedBy)]:
+      "First come, first served",
+    [fieldKey(FIELDS.approvedOn)]:
+      todayInEasternTime()
   };
 
   await createRow(values);

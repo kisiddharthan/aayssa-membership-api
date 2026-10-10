@@ -73,10 +73,11 @@ Maaladharan registration table:
 Home Pooja booking table:
 - Name: `AAYSSA_Pooja_Bookings`
 - Table ID: `1240702`
-- Stores booking requests and administrator-created blocked dates.
-- Public requests require Supabase email verification; matching members are linked by normalized email.
-- Statuses are `Submitted`, `Approved`, `Rejected`, `Cancelled`, and `Blocked`.
-- Only approved bookings are exposed on the privacy-safe public calendar.
+- Stores confirmed bookings and administrator-created blocked dates.
+- Public bookings require Supabase email verification; matching members are linked by normalized email.
+- New bookings are stored immediately with `Approved` status on a first-come, first-served basis; `Cancelled` and `Blocked` remain available for calendar management.
+- Legacy `Submitted` Home Pooja rows are treated as booked so dates claimed before the workflow change remain reserved.
+- Approved bookings are exposed as booked dates on the privacy-safe public calendar.
 
 Volunteer records are per person:
 - Primary
@@ -138,8 +139,8 @@ The old Supabase magic-link callback route was removed after switching to passco
   - Returns 404 unless `HOME_POOJA_PUBLIC_ENABLED=true`.
 
 - `POST /api/register?resource=home-pooja`
-  - Public Home Pooja request flow using `request-code` and `submit` actions.
-  - Verifies the requester email with Supabase before creating a `Submitted` request.
+  - Public Home Pooja booking flow using `request-code` and `submit` actions.
+  - Verifies the requester email with Supabase before immediately booking an available date.
   - Links the family automatically when the verified email matches a member.
   - Returns 404 unless `HOME_POOJA_PUBLIC_ENABLED=true`.
 
@@ -186,11 +187,11 @@ The old Supabase magic-link callback route was removed after switching to passco
   - Shares the existing `my-volunteers` function to keep the Vercel Hobby route count stable.
 
 - `GET /api/my-volunteers?resource=home-pooja`
-  - Returns the authenticated family's requests plus the privacy-safe booking calendar.
-  - Claims unlinked public requests whose verified email matches the signed-in member.
+  - Returns the authenticated family's bookings plus the privacy-safe booking calendar.
+  - Claims unlinked public bookings whose verified email matches the signed-in member.
 
 - `POST /api/my-volunteers?resource=home-pooja`
-  - Creates a family-linked Home Pooja request with `Submitted` status.
+  - Immediately creates a family-linked Home Pooja booking with `Approved` status.
   - Validates the date against server-controlled availability and blocked dates.
 
 - `GET /api/admin-stats`
@@ -203,15 +204,14 @@ The old Supabase magic-link callback route was removed after switching to passco
   - Supports search and sorting by primary name or registered date.
 
 - `GET /api/admin-members?resource=home-pooja`
-  - Board/Admin-only list of Home Pooja requests, blocks, and calendar state.
+  - Board/Admin-only list of Home Pooja bookings, blocks, and calendar state.
 
 - `POST /api/admin-members?resource=home-pooja`
   - Board/Admin-only creation of a blocked calendar date with a reason.
 
 - `PATCH /api/admin-members?resource=home-pooja`
-  - Board/Admin-only approval/rejection of requests and removal of custom date blocks.
+  - Board/Admin-only removal of custom and built-in date blocks.
   - Supports unblocking a date directly from the admin calendar, including built-in event and preparation blocks; built-in overrides are persisted as cancelled block rows.
-  - Approval is refused when another approved booking or block occupies the date.
 
 ## Portal Features
 
@@ -237,12 +237,13 @@ Member portal (`public/index.html`) includes:
   - Padi choices run from `0 (Kanni Swamy)` through `39`, followed by `40+`; `18 (Guru Swamy)` retains its existing label.
   - Selecting `0 (Kanni Swamy)` automatically marks the participant as taking Deeksha for the first time.
   - Displays existing family registrations and prevents duplicates.
+  - The Registered Swamies card heading shows the total number of active family registrations.
   - Shows the Maaladharan WhatsApp group link inside Registered Swamies whenever the family has an active Swamy registration.
 - Home Pooja booking card:
-  - Shows the shared availability calendar and the family's submitted requests.
+  - Shows the shared availability calendar and the family's confirmed bookings.
   - Presents availability in a responsive month-at-a-time calendar with Previous/Next navigation and privacy-safe Available, Booked, and Blocked states.
-  - Allows an authenticated family to submit a request for administrator approval.
-  - Does not mark a requested date booked until the request is approved.
+  - Allows an authenticated family to book an available date immediately on a first-come, first-served basis.
+  - Marks the date booked as soon as the booking is saved; no administrator approval is required.
 - During preview, appears only for authenticated Board/Admin users and the member API enforces the same role restriction.
   - Preview loading is isolated from the core member profile so an optional booking or dashboard failure cannot prevent portal access.
   - Calendar-only dates are formatted as local calendar dates to avoid UTC date shifts in the browser.
@@ -266,9 +267,11 @@ Board/Admin dashboard includes:
 - A full-width 2026-27 Maaladharan Padi-count chart.
 - Monthly donations and registration trends display the latest six months side by side without a forced horizontal scroll.
 - A second Maaladharan row has the date chart and a sortable registered-Swamies table showing name, Padi count, age, and Maaladharan date.
+- The dashboard Registered Swamies card heading shows the total number of registered Swamies.
 - Member directory with search, pagination, and sorting.
-- Board/Admin Home Pooja request review with Approve and Reject actions.
+- Board/Admin Home Pooja booking review without an approval step.
 - Board/Admin date blocking with a required reason, plus calendar-level Unblock controls for custom and built-in blocked dates.
+- The Administration Blocks list is derived from calendar state so it includes every active custom and built-in block, with concise event labels.
 
 ## Public Registration Embed
 
@@ -320,8 +323,8 @@ When this file changes, copy the updated embed into GoDaddy for the public login
 - During the 2026 Mandalam window, October 30 through November 29, Fridays are also offered from 5:00–8:00 PM.
 - Thanksgiving dates November 25 and 26, 2026 are offered from 5:00–8:00 PM.
 - November 14–15 and November 21–22, 2026 are fixed blocked dates for event preparation and the Pushpabhishekam/Sastha Preethi events.
-- Administrator-created blocks and approved requests remove dates from availability; submitted requests do not reserve a date.
-- Public requests start with `Submitted` status. The public flow cannot approve or edit requests.
+- Administrator-created blocks and confirmed bookings remove dates from availability.
+- Public bookings are confirmed immediately with `Approved` status on a first-come, first-served basis.
 - The public API is disabled by default during Board preview; launch it by setting `HOME_POOJA_PUBLIC_ENABLED=true`.
 - At launch, move/copy the reviewed embed into the public deployment workflow, set `HOME_POOJA_PUBLIC_ENABLED=true`, and copy it into GoDaddy.
 

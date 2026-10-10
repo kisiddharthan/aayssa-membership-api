@@ -144,7 +144,7 @@
   <div class="card">
     <div class="header">
       <h2>AAYSSA Home Pooja Booking</h2>
-      <p>Submit a request for administrator approval</p>
+      <p>Book an available date on a first-come, first-served basis</p>
     </div>
     <div class="body">
       <div class="notice">
@@ -219,7 +219,7 @@
             </div>
             <div class="actions full">
               <button id="homePoojaSubmit" type="submit">
-                Submit Home Pooja Request
+                Book Home Pooja
               </button>
               <button id="homePoojaChangeEmail"
                 class="secondary" type="button">
@@ -365,7 +365,7 @@
         }
         var values = new FormData(form);
         submitButton.disabled = true;
-        submitButton.textContent = "Submitting…";
+        submitButton.textContent = "Booking…";
         setMessage("");
         try {
           var data = await request({
@@ -389,7 +389,7 @@
           setMessage(error.message, "error");
         } finally {
           submitButton.disabled = false;
-          submitButton.textContent = "Submit Home Pooja Request";
+          submitButton.textContent = "Book Home Pooja";
         }
       });
 
